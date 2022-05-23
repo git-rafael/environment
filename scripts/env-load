@@ -1,0 +1,37 @@
+set -e;
+
+readonly TARGET_PARAMETER=${1:-${TARGET:-}};
+readonly TARGET_CONFIG="${HOME}/.nix-target";
+if [ -z "${TARGET_PARAMETER}" ]; then
+  readonly TARGET="$(cat ${TARGET_CONFIG} 2>/dev/null || echo '???')";
+else
+  readonly TARGET="${TARGET_PARAMETER}";
+fi
+
+if ! command -v nix >/dev/null 2>&1; then
+  curl -sL https://nixos.org/nix/install | sh -s -- --no-daemon;
+  . ${HOME}/.nix-profile/etc/profile.d/nix.sh;
+
+  mkdir -p ${HOME}/.config/nix;
+  nix-env --quiet -f '<nixpkgs>' -iA nixUnstable;
+  echo 'experimental-features = nix-command flakes' >> ${HOME}/.config/nix/nix.conf;
+fi
+
+trap 'nix-collect-garbage --quiet' EXIT;
+if [ -z "${TARGET##device.*}" ]; then
+  if [ "${TARGET}" = 'device.phone' ]; then
+    readonly TARGET_PATH='github:git-rafael/environment#phone';
+    nix-on-droid switch --flake ${TARGET_PATH};
+  else
+    readonly TARGET_PATH='github:git-rafael/environment#homeConfigurations.'${TARGET##device.}'.activationPackage';
+    nix build ${TARGET_PATH} --no-link && $(nix path-info ${TARGET_PATH})/activate;
+  fi
+elif [ -z "${TARGET##toolbox.*}" ]; then
+  readonly TARGET_PATH='github:git-rafael/environment#'${TARGET};
+  nix build ${TARGET_PATH} --no-link && docker load < $(nix path-info ${TARGET_PATH});
+else
+  echo "Unknown target: ${TARGET}.";
+  exit 1;
+fi
+
+echo "${TARGET}" > ${TARGET_CONFIG};

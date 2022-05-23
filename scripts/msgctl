@@ -1,0 +1,97 @@
+set -ueo pipefail;
+
+export NC='\033[0m';
+export RED='\033[0;31m';
+export GREEN='\033[0;32m';
+export YELLOW='\033[1;33m';
+export MAGENTA='\033[1;35m';
+
+function prompt {
+  local msg="$*";
+
+	echo -e "${MAGENTA}${msg}${NC}" > /dev/stdout;
+
+	if [ -z "${CI:-}" ]; then
+		while true; do
+				read -n1 -p "Continue (Y/N)? " yn && echo;
+				case $yn in
+						[Yy] ) return 0;;
+						[Nn] ) return 2;;
+						* ) echo "Please answer Y or N.";;
+				esac
+		done
+	fi
+}
+
+function fail {
+    local msg="$*";
+
+    echo -e "${RED}${msg}${NC}" > /dev/stderr;
+    test -n "${WEBHOOK_URL:-}" && send "${msg}";
+
+	exit 1;
+}
+
+function error {
+  local msg="$*";
+
+	echo -e "${RED}${msg}${NC}" > /dev/stderr;
+  test -n "${WEBHOOK_URL:-}" && send "${msg}";
+
+	return 0;
+}
+
+function warn {
+  local msg="$*";
+
+  echo -e "${YELLOW}${msg}${NC}" > /dev/stdout;
+  test -n "${WEBHOOK_URL:-}" && send "${msg}";
+
+  return 0;
+}
+
+function info {
+  local msg="$*";
+
+  echo -e "${GREEN}${msg}${NC}" > /dev/stdout;
+  test -n "${WEBHOOK_URL:-}" && send "${msg}";
+
+  return 0;
+}
+
+function send {
+  local msg="$*";
+
+  curl -X POST ${WEBHOOK_URL} \
+    -H 'Content-type: application/json' \
+    --data '{"text":"'"${msg}"'"}' \
+  || echo -e "${RED}Failed sending webhook message${NC}" > /dev/stderr;
+  
+  return 0;
+}
+
+function main {
+  local action="${1:-}";
+  shift; local msg="${@}";
+
+  case ${action} in
+    --info|-i)
+      info "${msg}";
+      ;;
+    --warn|-w)
+      warn "${msg}";
+      ;;
+    --error|-e)
+      error "${msg}";
+      ;;
+    --fail|-f)
+      fail "${msg}";
+      ;;
+    --prompt|-p)
+      prompt "${msg}";
+      ;;
+    *)
+      fail "Usage: $(basename $0 .sh) <--info|--warn|--error|--fail|--prompt> <MESSAGE>";
+      ;;
+  esac
+}; main "$@";

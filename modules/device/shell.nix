@@ -2,6 +2,7 @@
 
 let
   packages = with pkgs; [
+    powerline-fonts
     ncurses
     gnugrep
     gnused

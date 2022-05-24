@@ -2,6 +2,7 @@
 
 let
   packages = with pkgs; [
+    glibcLocales
     ncurses
     gnugrep
     gnused
@@ -52,6 +53,9 @@ in {
       enable = true;
 
       plugins = [
+        { name = "romkatv/powerlevel10k"; tags = [ as:theme ]; }
+      # { name = "spaceship-prompt/spaceship-prompt"; tags = [ as:theme ]; }
+      
       #  { name = "frosit/zsh-plugin-homeassistant-cli"; }
         
         { name = "plugins/wd"; tags = [ from:oh-my-zsh ]; }
@@ -61,6 +65,7 @@ in {
 
     initExtra = ''
       export EDITOR='vim';
+      export LC_ALL='en_US.UTF-8';
       export TERM='xterm-256color';
 
       if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
@@ -89,20 +94,6 @@ in {
       # direnv hook
       eval "$(direnv hook zsh)";
     '';
-  };
-
-  programs.starship = {
-    enable = true;
-    settings = {
-      # add_newline = false;
-
-      # character = {
-      #   success_symbol = "[➜](bold green)";
-      #   error_symbol = "[➜](bold red)";
-      # };
-
-      # package.disabled = true;
-    };
   };
 
   programs.tmux = {

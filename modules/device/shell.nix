@@ -43,21 +43,21 @@ in {
   programs.zsh = {
     enable = true;
 
-    enableCompletion = true;
-    enableAutosuggestions = true;
-    enableSyntaxHighlighting = true;
-
     zplug = {
       enable = true;
 
       plugins = [
-      # { name = "romkatv/powerlevel10k"; tags = [ as:theme ]; }
-        { name = "spaceship-prompt/spaceship-prompt"; tags = [ as:theme ]; }
-      
+        { name = "zsh-users/zsh-completions"; }
+        { name = "zsh-users/zsh-autosuggestions"; }
+        { name = "zsh-users/zsh-syntax-highlighting"; }
+
       #  { name = "frosit/zsh-plugin-homeassistant-cli"; }
-        
+
         { name = "plugins/wd"; tags = [ from:oh-my-zsh ]; }
         { name = "plugins/git-auto-fetch"; tags = [ from:oh-my-zsh ]; }
+
+      # { name = "romkatv/powerlevel10k"; tags = [ as:theme ]; }
+        { name = "spaceship-prompt/spaceship-prompt"; tags = [ as:theme ]; }
       ];
     };
 

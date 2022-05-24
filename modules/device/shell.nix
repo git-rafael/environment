@@ -2,7 +2,6 @@
 
 let
   packages = with pkgs; [
-    powerline-fonts
     ncurses
     gnugrep
     gnused
@@ -57,8 +56,8 @@ in {
         { name = "plugins/wd"; tags = [ from:oh-my-zsh ]; }
         { name = "plugins/git-auto-fetch"; tags = [ from:oh-my-zsh ]; }
 
-      # { name = "romkatv/powerlevel10k"; tags = [ as:theme ]; }
-        { name = "spaceship-prompt/spaceship-prompt"; tags = [ as:theme ]; }
+        { name = "romkatv/powerlevel10k"; tags = [ as:theme ]; }
+      # { name = "spaceship-prompt/spaceship-prompt"; tags = [ as:theme ]; }
       ];
     };
 

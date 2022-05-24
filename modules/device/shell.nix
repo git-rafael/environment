@@ -26,6 +26,7 @@ let
     bitwarden-cli
     home-assistant-cli
 
+    xonsh
     starship
     env-shell
   ];

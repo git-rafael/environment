@@ -104,6 +104,7 @@ in {
 
       # package.disabled = true;
     };
+  };
 
   programs.tmux = {
     enable = true;

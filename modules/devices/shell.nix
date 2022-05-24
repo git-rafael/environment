@@ -23,6 +23,7 @@ let
     iotop
     iftop
     rsync
+    xclip
     httpie
     openssh
     findutils

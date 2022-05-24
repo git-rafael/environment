@@ -54,12 +54,11 @@ in {
         { name = "marlonrichert/zsh-autocomplete"; }
         { name = "zsh-users/zsh-syntax-highlighting"; }
 
-        { name = "zsh-users/zplugin/zsh-exa"; }
-
-        { name = "frosit/zsh-plugin-homeassistant-cli"; }
+        { name = "zplugin/zsh-exa"; }
 
         { name = "plugins/wd"; tags = [ from:oh-my-zsh ]; }
         { name = "plugins/git-auto-fetch"; tags = [ from:oh-my-zsh ]; }
+        { name = "frosit/zsh-plugin-homeassistant-cli"; tags = [ from:oh-my-zsh ]; }
 
         { name = "romkatv/powerlevel10k"; tags = [ as:theme ]; }
       ];

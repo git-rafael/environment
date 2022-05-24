@@ -92,8 +92,6 @@ in {
 
       # direnv hook
       eval "$(direnv hook zsh)";
-
-      if [ "$TMUX" = "" ]; then tmux; fi
     '';
   };
 
@@ -105,6 +103,8 @@ in {
 
     newSession = true;
     terminal = "screen-256color";
+
+    shell = "${pkgs.zsh}/bin/zsh";
 
     # Force tmux to use /tmp for sockets (WSL2 compat)
     # # secureSocket = false;
@@ -121,6 +121,7 @@ in {
 
     extraConfig = ''
       set-option -g mouse on
+      set-env LOCALE_ARCHIVE /usr/lib/locale/locale-archive
 
       bind-key -n C-Down split-window -v -c '#{pane_current_path}'
       bind-key -n C-Right split-window -h -c '#{pane_current_path}'

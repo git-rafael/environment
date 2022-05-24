@@ -42,8 +42,8 @@ in {
 
       interactive.diffFilter = "delta --color-only";
 
+      delta.light = false;
       delta.navigate = true;
-      delta.navigate = false;
       delta.side-by-side = true;
       delta.line-numbers = true;
 

@@ -3,6 +3,7 @@
 let
   packages = with pkgs; [
     nerdfonts
+    thefuck
     ncurses
     gnugrep
     gnused
@@ -18,6 +19,7 @@ let
     git
     perl
     htop
+    ctop
     iotop
     iftop
     rsync

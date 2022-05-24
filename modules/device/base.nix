@@ -2,7 +2,6 @@
 
 let
   packages = with pkgs; [
-    glibcLocales
     env-load
     direnv
   ];

@@ -23,12 +23,10 @@ let
     openssh
     findutils
 
-    #starship
-    spotify-tui
-
     bitwarden-cli
     home-assistant-cli
 
+    starship
     env-shell
   ];
 

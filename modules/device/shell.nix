@@ -65,7 +65,6 @@ in {
 
     initExtra = ''
       export EDITOR='vim';
-      export LC_ALL='en_US.UTF-8';
       export TERM='xterm-256color';
 
       if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then

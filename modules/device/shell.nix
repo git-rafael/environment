@@ -26,9 +26,6 @@ let
     bitwarden-cli
     home-assistant-cli
 
-    xonsh
-    fish
-    starship
     env-shell
   ];
 
@@ -37,60 +34,62 @@ let
 in {
   home.packages = packages;
 
-  # programs.zsh = {
-  #   enable = true;
+  programs.broot = {
+    enable = true;
+    enableZshIntegration = true;
+  };
 
-  #   history.extended = true;
+  programs.zsh = {
+    enable = true;
 
-  #   enableCompletion = true;
-  #   enableAutosuggestions = true;
-  #   enableSyntaxHighlighting = true;
+    history.extended = true;
 
-  #   zplug = {
-  #     enable = true;
+    enableCompletion = true;
+    enableAutosuggestions = true;
+    enableSyntaxHighlighting = true;
 
-  #     plugins = [
-  #       { name = "romkatv/powerlevel10k"; tags = [ as:theme ]; }
-  #     # { name = "spaceship-prompt/spaceship-prompt"; tags = [ as:theme ]; }
-      
-  #     #  { name = "frosit/zsh-plugin-homeassistant-cli"; }
+    zplug = {
+      enable = true;
+
+      plugins = [
+      #  { name = "frosit/zsh-plugin-homeassistant-cli"; }
         
-  #       { name = "plugins/wd"; tags = [ from:oh-my-zsh ]; }
-  #       { name = "plugins/git-auto-fetch"; tags = [ from:oh-my-zsh ]; }
-  #     ];
-  #   };
+        { name = "plugins/wd"; tags = [ from:oh-my-zsh ]; }
+        { name = "plugins/git-auto-fetch"; tags = [ from:oh-my-zsh ]; }
+      ];
+    };
 
-  #   initExtra = ''
-  #     export EDITOR='vim';
-  #     export TERM='xterm-256color';
+    initExtra = ''
+      export EDITOR='vim';
+      export TERM='xterm-256color';
 
-  #     if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
-  #       . ~/.nix-profile/etc/profile.d/nix.sh;
-  #     fi
+      if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
+        . ~/.nix-profile/etc/profile.d/nix.sh;
+      fi
 
-  #     if [ -e ~/.env ]; then
-  #       . ~/.env;
-  #     fi
+      if [ -e ~/.env ]; then
+        . ~/.env;
+      fi
 
-  #     # # Start up Starship shell
-  #     # eval "$(starship init zsh)";
+      # # Start up Starship shell
+      # eval "$(starship init zsh)";
 
-  #     # Autocomplete for various utilities
-  #     #command -v hass-cli &>/dev/null && source <(hass-cli completion zsh);
-  #     command -v helm &>/dev/null && source <(helm completion zsh);
-  #     command -v kubectl &>/dev/null && source <(kubectl completion zsh);
-  #     command -v minikube &>/dev/null && source <(minikube completion zsh);
-  #     command -v gh &>/dev/null && source <(gh completion --shell zsh);
-  #     command -v rustup &>/dev/null && rustup completions zsh > ~/.zfunc/_rustup;
-  #     command -v cue &>/dev/null && source <(cue completion zsh);
-  #     command -v npm &>/dev/null && source <(npm completion zsh);
-  #     command -v humioctl &>/dev/null && source <(humioctl completion zsh);
-  #     command -v fluxctl &>/dev/null && source <(fluxctl completion zsh);
+      # Autocomplete for various utilities
+      #command -v hass-cli &>/dev/null && source <(hass-cli completion zsh);
+      command -v helm &>/dev/null && source <(helm completion zsh);
+      command -v kubectl &>/dev/null && source <(kubectl completion zsh);
+      command -v minikube &>/dev/null && source <(minikube completion zsh);
+      command -v gh &>/dev/null && source <(gh completion --shell zsh);
+      command -v rustup &>/dev/null && rustup completions zsh > ~/.zfunc/_rustup;
+      command -v cue &>/dev/null && source <(cue completion zsh);
+      command -v npm &>/dev/null && source <(npm completion zsh);
+      command -v humioctl &>/dev/null && source <(humioctl completion zsh);
+      command -v fluxctl &>/dev/null && source <(fluxctl completion zsh);
 
-  #     # direnv hook
-  #     eval "$(direnv hook zsh)";
-  #   '';
-  # };
+      # direnv hook
+      eval "$(direnv hook zsh)";
+    '';
+  };
 
   programs.starship = {
     enable = true;
@@ -115,7 +114,7 @@ in {
     newSession = true;
     terminal = "screen-256color";
 
-    shell = "${pkgs.xonsh}/bin/xonsh";
+    shell = "${pkgs.zsh}/bin/zsh";
 
     # Force tmux to use /tmp for sockets (WSL2 compat)
     # # secureSocket = false;

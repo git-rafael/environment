@@ -34,6 +34,8 @@ let
 in {
   home.packages = packages;
 
+  home.file.".p10k.zsh".source = ../../resources/files/p10k.zsh;
+
   programs.broot = {
     enable = true;
     enableZshIntegration = true;
@@ -61,33 +63,7 @@ in {
       ];
     };
 
-    initExtra = ''
-      export EDITOR='vim';
-      export TERM='xterm-256color';
-
-      if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
-        . ~/.nix-profile/etc/profile.d/nix.sh;
-      fi
-
-      if [ -e ~/.env ]; then
-        . ~/.env;
-      fi
-
-      # Autocomplete for various utilities
-      #command -v hass-cli &>/dev/null && source <(hass-cli completion zsh);
-      command -v helm &>/dev/null && source <(helm completion zsh);
-      command -v kubectl &>/dev/null && source <(kubectl completion zsh);
-      command -v minikube &>/dev/null && source <(minikube completion zsh);
-      command -v gh &>/dev/null && source <(gh completion --shell zsh);
-      command -v rustup &>/dev/null && rustup completions zsh > ~/.zfunc/_rustup;
-      command -v cue &>/dev/null && source <(cue completion zsh);
-      command -v npm &>/dev/null && source <(npm completion zsh);
-      command -v humioctl &>/dev/null && source <(humioctl completion zsh);
-      command -v fluxctl &>/dev/null && source <(fluxctl completion zsh);
-
-      # direnv hook
-      eval "$(direnv hook zsh)";
-    '';
+    initExtra = (builtins.readFile ../../resources/files/zshrc);
   };
 
   programs.tmux = {
@@ -114,11 +90,6 @@ in {
       tmuxPlugins.better-mouse-mode
     ];
 
-    extraConfig = ''
-      set-option -g mouse on
-
-      bind-key -n C-Down split-window -v -c '#{pane_current_path}'
-      bind-key -n C-Right split-window -h -c '#{pane_current_path}'
-    '';
+    extraConfig = (builtins.readFile ../../resources/files/tmux.conf);
   };
 }

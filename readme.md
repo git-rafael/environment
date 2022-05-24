@@ -1,6 +1,6 @@
 # Personal Linux Environment
 
-This is my personal Linux environment repository containing [Nix](https://nixos.org/) modules, derivations and scripts for my various device classes and development toolboxes.
+This is my personal Linux environment repository containing [Nix](https://nixos.org/) modules, derivations and scripts for my various device classes and development containers.
 
 ## Loading
 
@@ -18,18 +18,18 @@ env-load '<target>'
 
 Typically, you will update with the same `target` from the first use, but it is possible to switch to another compatible `device` environment thanks to how [Nix](https://nixos.org/) works.
 
-After loading a `device` environment to your appliance other `targets` will be easily available with the `env-load` command, for example the [docker](https://www.docker.com/) based `toolbox` type set.
+After loading a `device` environment to your appliance other `targets` will be easily available with the `env-load` command, for example the [docker](https://www.docker.com/) based `containers`.
 
 ## Targets
 
-### Toolboxes
+### Containers
 
-- **toolbox.python**: dev container for [Python](https://www.python.org/) stacks and projects.
-- **toolbox.node**: dev container for [Node.js](https://nodejs.org/) stacks and projects.
-- **toolbox.java**: dev container for [Java](https://www.java.com/) stacks and projects.
-- **toolbox.dotnet**: dev container for [.NET Core](https://dotnet.microsoft.com/) stacks and projects.
-- **toolbox.automation**: tools container for security, infrastructure operations and home automation.
-- **toolbox.laboratory**: tools container for data exploration, science and visualization.
+- **container.python**: dev container for [Python](https://www.python.org/) stacks and projects.
+- **container.node**: dev container for [Node.js](https://nodejs.org/) stacks and projects.
+- **container.java**: dev container for [Java](https://www.java.com/) stacks and projects.
+- **container.dotnet**: dev container for [.NET Core](https://dotnet.microsoft.com/) stacks and projects.
+- **container.automation**: tools container for security, infrastructure operations and home automation.
+- **container.laboratory**: tools container for data exploration, science and visualization.
 
 ### Devices
 

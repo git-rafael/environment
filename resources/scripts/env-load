@@ -30,7 +30,7 @@ if [ -z "${TARGET##device.*}" ]; then
     readonly TARGET_PATH="${TARGET_URL}#homeConfigurations.${TARGET##device.}.activationPackage";
     nix build ${TARGET_PATH} --no-link && $(nix path-info ${TARGET_PATH})/activate;
   fi
-elif [ -z "${TARGET##toolbox.*}" ]; then
+elif [ -z "${TARGET##container.*}" ]; then
   readonly TARGET_PATH="${TARGET_URL}#${TARGET}";
   nix build ${TARGET_PATH} --no-link && docker load < $(nix path-info ${TARGET_PATH});
 else

@@ -27,7 +27,7 @@
       configuration.imports = modulePaths;
     };
 
-    toolboxDerivation = modulePath: overrides:
+    containerDerivation = modulePath: overrides:
       let 
         module = import modulePath;
         pkgs = import nixpkgs { system="x86_64-linux"; };
@@ -41,27 +41,27 @@
     ];
 
     homeConfigurations.tablet = deviceDerivation "x86_64-linux" "rafael" [
-      ./modules/device/base.nix
-      ./modules/device/shell.nix
-      ./modules/device/data.nix
-      ./modules/device/systems.nix
-      ./modules/device/science.nix
-      ./modules/device/development.nix
-      ./modules/device/security.nix
-      ./modules/device/code.nix
+      ./modules/devices/base.nix
+      ./modules/devices/shell.nix
+      ./modules/devices/data.nix
+      ./modules/devices/systems.nix
+      ./modules/devices/science.nix
+      ./modules/devices/development.nix
+      ./modules/devices/security.nix
+      ./modules/devices/code.nix
     ];
 
     homeConfigurations.notebook = deviceDerivation "x86_64-linux" "rafaeloliveira" [
-      ./modules/device/base.nix
-      ./modules/device/shell.nix
-      ./modules/device/data.nix
-      ./modules/device/systems.nix
-      ./modules/device/science.nix
-      ./modules/device/development.nix
-      ./modules/device/code.nix
+      ./modules/devices/base.nix
+      ./modules/devices/shell.nix
+      ./modules/devices/data.nix
+      ./modules/devices/systems.nix
+      ./modules/devices/science.nix
+      ./modules/devices/development.nix
+      ./modules/devices/code.nix
     ];
 
-    packages.x86_64-linux.toolbox.automation = toolboxDerivation ./modules/toolbox/automation.nix {};
-    packages.x86_64-linux.toolbox.laboratory = toolboxDerivation ./modules/toolbox/laboratory.nix {};
+    packages.x86_64-linux.container.automation = containerDerivation ./modules/containers/automation.nix {};
+    packages.x86_64-linux.container.laboratory = containerDerivation ./modules/containers/laboratory.nix {};
   };
 }

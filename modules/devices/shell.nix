@@ -34,10 +34,7 @@ let
 in {
   home.packages = packages;
 
-  home.file.".p10k.zsh" = {
-    executable = true;
-    source = ../../resources/files/p10k.zsh;
-  };
+  home.file.".p10k.zsh".source = ../../resources/files/p10k.zsh;
 
   programs.broot = {
     enable = true;

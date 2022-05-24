@@ -53,8 +53,8 @@ in {
       enable = true;
 
       plugins = [
-        { name = "romkatv/powerlevel10k"; tags = [ as:theme ]; }
-      # { name = "spaceship-prompt/spaceship-prompt"; tags = [ as:theme ]; }
+      # { name = "romkatv/powerlevel10k"; tags = [ as:theme ]; }
+        { name = "spaceship-prompt/spaceship-prompt"; tags = [ as:theme ]; }
       
       #  { name = "frosit/zsh-plugin-homeassistant-cli"; }
         
@@ -92,6 +92,8 @@ in {
 
       # direnv hook
       eval "$(direnv hook zsh)";
+
+      if [ "$TMUX" = "" ]; then tmux; fi
     '';
   };
 
@@ -103,8 +105,6 @@ in {
 
     newSession = true;
     terminal = "screen-256color";
-
-    shell = "${pkgs.zsh}/bin/zsh";
 
     # Force tmux to use /tmp for sockets (WSL2 compat)
     # # secureSocket = false;

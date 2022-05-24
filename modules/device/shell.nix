@@ -121,8 +121,7 @@ in {
 
     extraConfig = ''
       set-option -g mouse on
-      set-env LOCALE_ARCHIVE /usr/lib/locale/locale-archive
-
+      
       bind-key -n C-Down split-window -v -c '#{pane_current_path}'
       bind-key -n C-Right split-window -h -c '#{pane_current_path}'
     '';

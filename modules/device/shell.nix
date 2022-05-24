@@ -43,8 +43,6 @@ in {
   programs.zsh = {
     enable = true;
 
-    history.extended = true;
-
     enableCompletion = true;
     enableAutosuggestions = true;
     enableSyntaxHighlighting = true;
@@ -121,7 +119,7 @@ in {
 
     extraConfig = ''
       set-option -g mouse on
-      
+
       bind-key -n C-Down split-window -v -c '#{pane_current_path}'
       bind-key -n C-Right split-window -h -c '#{pane_current_path}'
     '';

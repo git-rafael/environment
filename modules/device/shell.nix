@@ -90,6 +90,8 @@ in {
 
       # direnv hook
       eval "$(direnv hook zsh)";
+
+      bindkey "''${key[Up]}" up-line-or-search
     '';
   };
 

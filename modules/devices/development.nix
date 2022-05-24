@@ -40,8 +40,6 @@ in {
     userName = "Rafael Oliveira";
 
     extraConfig = {
-      interactive.diffFilter = "delta --color-only";
-
       delta.light = false;
       delta.navigate = true;
       delta.side-by-side = true;

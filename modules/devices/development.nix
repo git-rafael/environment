@@ -40,6 +40,8 @@ in {
     userName = "Rafael Oliveira";
 
     extraConfig = {
+      pull.rebase = false;
+      
       delta.light = false;
       delta.navigate = true;
       delta.side-by-side = true;

@@ -49,6 +49,7 @@ in {
       plugins = [
         { name = "zsh-users/zsh-completions"; }
         { name = "zsh-users/zsh-autosuggestions"; }
+        { name = "marlonrichert/zsh-autocomplete"; }
         { name = "zsh-users/zsh-syntax-highlighting"; }
 
       #  { name = "frosit/zsh-plugin-homeassistant-cli"; }

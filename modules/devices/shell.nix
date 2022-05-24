@@ -2,6 +2,7 @@
 
 let
   packages = with pkgs; [
+    nerdfonts
     ncurses
     gnugrep
     gnused
@@ -34,6 +35,8 @@ let
 
 in {
   home.packages = packages;
+
+  fonts.fontconfig.enable = true;
 
   home.file.".p10k.zsh".source = ../../resources/files/p10k.zsh;
 

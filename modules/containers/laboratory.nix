@@ -4,7 +4,7 @@ let
   packages = pkgs;
 
 in {
-  name = "toolbox";
+  name = "environment";
   tag = "laboratory";
 
   config = {

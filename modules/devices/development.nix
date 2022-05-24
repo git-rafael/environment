@@ -32,10 +32,12 @@ in {
   home.packages = packages;
 
   programs.git = {
-    userName = "Rafael Oliveira";
+    enable = true;
 
     lfs.enable = true;
     delta.enable = true;
+
+    userName = "Rafael Oliveira";
 
     extraConfig = {
       core.pager = "delta";

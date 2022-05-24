@@ -40,8 +40,6 @@ in {
     userName = "Rafael Oliveira";
 
     extraConfig = {
-      core.pager = "delta";
-
       interactive.diffFilter = "delta --color-only";
 
       delta.light = false;

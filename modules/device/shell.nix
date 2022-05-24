@@ -2,7 +2,6 @@
 
 let
   packages = with pkgs; [
-    glibcLocales
     ncurses
     gnugrep
     gnused
@@ -74,9 +73,6 @@ in {
         . ~/.env;
       fi
 
-      # # Start up Starship shell
-      # eval "$(starship init zsh)";
-
       # Autocomplete for various utilities
       #command -v hass-cli &>/dev/null && source <(hass-cli completion zsh);
       command -v helm &>/dev/null && source <(helm completion zsh);
@@ -91,8 +87,6 @@ in {
 
       # direnv hook
       eval "$(direnv hook zsh)";
-
-      bindkey "''${key[Up]}" up-line-or-search
     '';
   };
 

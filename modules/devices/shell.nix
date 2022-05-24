@@ -11,6 +11,7 @@ let
     wget
     zip
     jq
+    exa
     bat
     vim
     git

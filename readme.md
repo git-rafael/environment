@@ -7,7 +7,7 @@ This is my personal Linux environment repository containing [Nix](https://nixos.
 On first use:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/git-rafael/environment/main/scripts/env-load | TARGET='<target>' sh
+curl -fsSL https://raw.githubusercontent.com/git-rafael/environment/main/resources/scripts/env-load | TARGET='<target>' sh
 ```
 
 If loading a `device` type, the `target` environment and the `env-load` script will be available locally. To update with the latest version:

@@ -29,7 +29,7 @@ let
     env-shell
   ];
 
-  env-shell = pkgs.writeShellScriptBin "env-shell" (builtins.readFile ../../scripts/env-shell);
+  env-shell = pkgs.writeShellScriptBin "env-shell" (builtins.readFile ../../resources/scripts/env-shell);
 
 in {
   home.packages = packages;

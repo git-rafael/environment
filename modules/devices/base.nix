@@ -6,7 +6,7 @@ let
     direnv
   ];
 
-  env-load = pkgs.writeShellScriptBin "env-load" (builtins.readFile ../../scripts/env-load);
+  env-load = pkgs.writeShellScriptBin "env-load" (builtins.readFile ../../resources/scripts/env-load);
 
 in {
   home.packages = packages;

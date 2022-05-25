@@ -15,13 +15,13 @@ in {
   name = "environment";
   tag = "automation";
 
-  contents = nixpkgs.lib.nixosSystem {
+  contents = packages.lib.nixosSystem {
     modules = [
       home-manager.nixosModules.home-manager
       {
         home-manager.useGlobalPkgs = true;
         home-manager.sharedModules = [
-          import ../profiles/base.nix;
+          import ../profiles/base.nix
         ];
       }
     ];

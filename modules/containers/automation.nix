@@ -1,4 +1,4 @@
-{ pkgs, home-manager, ... } : 
+{ pkgs, home-manager, nixpkgs, ... } : 
 
 let
   packages = pkgs;
@@ -15,7 +15,7 @@ in {
   name = "environment";
   tag = "automation";
 
-  contents = packages.lib.nixosSystem {
+  contents = nixpkgs.lib.nixosSystem {
     modules = [
       home-manager.nixosModules.home-manager
       {

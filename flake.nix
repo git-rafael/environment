@@ -26,7 +26,7 @@
       configuration.imports = modulePaths;
     };
 
-    mkContainerDerivation = { nixpkgs, home-manager, ... }: modulePath: x86_64-linuxPkgs.dockerTools.buildImage (import ./modules/containers/automation.nix { inherit nixpkgs home-manager; });
+    mkContainerDerivation = args@{ nixpkgs, home-manager, ... }: modulePath: x86_64-linuxPkgs.dockerTools.buildImage (import modulePath args);
 
   in {
     nixOnDroidConfigurations.phone = mkDeviceMobileDerivation "aarch64-linux" [

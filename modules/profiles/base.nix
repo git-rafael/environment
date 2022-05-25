@@ -11,6 +11,7 @@ let
 in {
   home.packages = packages;
 
+  targets.genericLinux.enable = true;
   programs.home-manager.enable = true;
 
   nixpkgs.config.allowUnfree = true;

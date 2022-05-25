@@ -15,6 +15,18 @@ in {
   name = "environment";
   tag = "automation";
 
+  contents = nixpkgs.lib.nixosSystem {
+    modules = [
+      home-manager.nixosModules.home-manager
+      {
+        home-manager.useGlobalPkgs = true;
+        home-manager.sharedModules = [
+          import ../profiles/base.nix;
+        ];
+      }
+    ];
+  };
+
   config = {
     Cmd = [ "env-shell" ];
   };

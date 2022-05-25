@@ -41,24 +41,24 @@
     ];
 
     homeConfigurations.tablet = deviceDerivation "x86_64-linux" "rafael" [
-      ./modules/devices/base.nix
-      ./modules/devices/shell.nix
-      ./modules/devices/data.nix
-      ./modules/devices/systems.nix
-      ./modules/devices/science.nix
-      ./modules/devices/development.nix
-      ./modules/devices/security.nix
-      ./modules/devices/code.nix
+      ./modules/profiles/base.nix
+      ./modules/profiles/shell.nix
+      ./modules/profiles/data.nix
+      ./modules/profiles/systems.nix
+      ./modules/profiles/science.nix
+      ./modules/profiles/development.nix
+      ./modules/profiles/security.nix
+      ./modules/profiles/code.nix
     ];
 
     homeConfigurations.notebook = deviceDerivation "x86_64-linux" "rafaeloliveira" [
-      ./modules/devices/base.nix
-      ./modules/devices/shell.nix
-      ./modules/devices/data.nix
-      ./modules/devices/systems.nix
-      ./modules/devices/science.nix
-      ./modules/devices/development.nix
-      ./modules/devices/code.nix
+      ./modules/profiles/base.nix
+      ./modules/profiles/shell.nix
+      ./modules/profiles/data.nix
+      ./modules/profiles/systems.nix
+      ./modules/profiles/science.nix
+      ./modules/profiles/development.nix
+      ./modules/profiles/code.nix
     ];
 
     packages.x86_64-linux.container.automation = containerDerivation ./modules/containers/automation.nix {};

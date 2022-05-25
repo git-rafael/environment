@@ -27,17 +27,24 @@
       configuration.imports = modulePaths;
     };
 
-    containerDerivation = modulePath: overrides:
+    containerDerivation = modulePath:
       let 
         module = import modulePath;
         pkgs = import nixpkgs { system="x86_64-linux"; };
+        profile = module (builtins.intersectAttrs (builtins.functionArgs module) pkgs);
+        overrides = {
+          contents = deviceDerivation "x86_64-linux" "system" [
+            ./modules/profiles/base.nix
+            ./modules/profiles/shell.nix
+          ];
+        };
       in 
-        pkgs.dockerTools.buildImage (module ((builtins.intersectAttrs (builtins.functionArgs module) pkgs) // overrides));
+        pkgs.dockerTools.buildImage (profile // overrides);
 
   in {
     nixOnDroidConfigurations.phone = deviceMobileDerivation "aarch64-linux" [
-      ./modules/device/base.nix
-      ./modules/device/shell.nix
+      ./modules/profiles/base.nix
+      ./modules/profiles/shell.nix
     ];
 
     homeConfigurations.tablet = deviceDerivation "x86_64-linux" "rafael" [

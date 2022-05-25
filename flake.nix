@@ -22,7 +22,7 @@
     mkDeviceDerivation = system: username: modulePaths: home-manager.lib.homeManagerConfiguration {
       system = system;
       username = username;
-      homeDirectory = "/home/${username}";(2)
+      homeDirectory = "/home/${username}";
       configuration.imports = modulePaths;
     };
 

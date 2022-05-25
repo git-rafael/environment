@@ -31,7 +31,7 @@
       let 
         module = import modulePath;
         pkgs = import nixpkgs { system="x86_64-linux"; };
-        profile = (module ((builtins.intersectAttrs (builtins.functionArgs module) pkgs) // overrides));
+        profile = module ((builtins.intersectAttrs (builtins.functionArgs module) pkgs) // overrides);
         overrides = {
           contents = deviceDerivation "x86_64-linux" "rafaeloliveira" [
             ./modules/profiles/base.nix
@@ -73,7 +73,7 @@
       ./modules/profiles/code.nix
     ];
 
-    packages.x86_64-linux.container.automation = containerDerivation ./modules/containers/automation.nix {};
-    packages.x86_64-linux.container.laboratory = containerDerivation ./modules/containers/laboratory.nix {};
+    packages.x86_64-linux.container.automation = containerDerivation ./modules/containers/automation.nix;
+    packages.x86_64-linux.container.laboratory = containerDerivation ./modules/containers/laboratory.nix;
   };
 }

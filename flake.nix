@@ -29,7 +29,7 @@
       let 
         module = import modulePath;
         pkgs = import nixpkgs { system="x86_64-linux"; };
-      in pkgs.dockerTools.buildImage (module (builtins.intersectAttrs (builtins.functionArgs module) pkgs home-manager));
+      in pkgs.dockerTools.buildImage (module ( (builtins.intersectAttrs (builtins.functionArgs module) pkgs) // home-manager));
 
   in {
     nixOnDroidConfigurations.phone = mkDeviceMobileDerivation "aarch64-linux" [

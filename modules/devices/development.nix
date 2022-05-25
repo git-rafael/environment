@@ -9,7 +9,7 @@ let
   packages = with pkgs; [
     tldr
     
-    docker
+    docker-client
     docker-compose
 
     podman

@@ -40,6 +40,7 @@ in {
   home.packages = packages;
 
   fonts.fontconfig.enable = true;
+  fonts.fontconfig.enableProfileFonts = true;
 
   home.file.".p10k.zsh".source = ../../resources/files/p10k.zsh;
 
@@ -63,7 +64,10 @@ in {
         { name = "zplugin/zsh-exa"; }
 
         { name = "plugins/wd"; tags = [ from:oh-my-zsh ]; }
+        { name = "plugins/extract"; tags = [ from:oh-my-zsh ]; }
+        { name = "plugins/web-search"; tags = [ from:oh-my-zsh ]; }
         { name = "plugins/git-auto-fetch"; tags = [ from:oh-my-zsh ]; }
+        { name = "plugins/command-not-found"; tags = [ from:oh-my-zsh ]; }
         { name = "frosit/zsh-plugin-homeassistant-cli"; tags = [ from:oh-my-zsh ]; }
 
         { name = "romkatv/powerlevel10k"; tags = [ as:theme ]; }

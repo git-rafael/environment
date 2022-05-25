@@ -1,7 +1,7 @@
-{ pkgs, ... } : 
+{ nixpkgs, home-manager, ... } : 
 
 let
-  packages = pkgs;
+  pkgs = import nixpkgs { system="x86_64-linux"; };
 
 in {
   name = "environment";

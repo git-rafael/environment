@@ -10,7 +10,7 @@
     nix-on-droid.inputs.home-manager.follows = "home-manager";
   };
 
-  outputs = inputs@{ self, nixpkgs, home-manager, nix-on-droid, ... }:
+  outputs = args@{ self, nixpkgs, home-manager, nix-on-droid, ... }:
   let
     x86_64-linuxPkgs = import nixpkgs { system="x86_64-linux"; };
 
@@ -55,7 +55,6 @@
       ./modules/profiles/code.nix
     ];
 
-    packages.x86_64-linux.container.automation = mkContainerDerivation inputs ./modules/containers/automation.nix;
-    packages.x86_64-linux.container.laboratory = mkContainerDerivation inputs ./modules/containers/laboratory.nix;
+    packages.x86_64-linux.container.automation = mkContainerDerivation args ./modules/containers/automation.nix;
   };
 }

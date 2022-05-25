@@ -20,6 +20,6 @@ in {
     };
 
   config = {
-    Cmd = [ "${packages.hello}/bin/hello" ];
+    Cmd = [ "${packages.bash}/bin/bash" ];
   };
 }

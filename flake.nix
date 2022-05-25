@@ -31,15 +31,20 @@
       let 
         module = import modulePath;
         pkgs = import nixpkgs { system="x86_64-linux"; };
-        profile = module (builtins.intersectAttrs (builtins.functionArgs module) pkgs);
+        profile = (module ((builtins.intersectAttrs (builtins.functionArgs module) pkgs) // overrides));
         overrides = {
-          contents = deviceDerivation "x86_64-linux" "system" [
+          contents = deviceDerivation "x86_64-linux" "rafaeloliveira" [
             ./modules/profiles/base.nix
             ./modules/profiles/shell.nix
+            ./modules/profiles/data.nix
+            ./modules/profiles/systems.nix
+            ./modules/profiles/science.nix
+            ./modules/profiles/development.nix
+            ./modules/profiles/code.nix
           ];
         };
       in 
-        pkgs.dockerTools.buildImage (profile // overrides);
+        pkgs.dockerTools.buildImage profile;
 
   in {
     nixOnDroidConfigurations.phone = deviceMobileDerivation "aarch64-linux" [

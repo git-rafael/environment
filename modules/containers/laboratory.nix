@@ -8,6 +8,6 @@ in {
   tag = "laboratory";
 
   config = {
-    Cmd = [ "${packages.hello}/bin/hello" ];
+    Cmd = [ "ipython" ];
   };
 }

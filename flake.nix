@@ -31,9 +31,8 @@
       let 
         module = import modulePath;
         pkgs = import nixpkgs { system="x86_64-linux"; };
-        profile = module ((builtins.intersectAttrs (builtins.functionArgs module) pkgs) // overrides);
         overrides = {
-          contents = deviceDerivation "x86_64-linux" "rafaeloliveira" [
+          contents = deviceDerivation "x86_64-linux" "system" [
             ./modules/profiles/base.nix
             ./modules/profiles/shell.nix
             ./modules/profiles/data.nix
@@ -43,6 +42,7 @@
             ./modules/profiles/code.nix
           ];
         };
+        profile = module ((builtins.intersectAttrs (builtins.functionArgs module) pkgs) // overrides);
       in 
         pkgs.dockerTools.buildImage profile;
 

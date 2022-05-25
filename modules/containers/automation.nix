@@ -1,4 +1,4 @@
-{ pkgs, home-manager, ... } : 
+{ pkgs, ... } : 
 
 let
   packages = pkgs;
@@ -8,6 +8,6 @@ in {
   tag = "automation";
 
   config = {
-    Cmd = [ "${packages.bash}/bin/bash" ];
+    Cmd = [ "env-shell" ];
   };
 }

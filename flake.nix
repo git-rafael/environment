@@ -13,34 +13,31 @@
   outputs = { self, nixpkgs, home-manager, nix-on-droid, ... }:
 
   let
-    deviceMobileDerivation = system: modulePaths:
-      nix-on-droid.lib.nixOnDroidConfiguration {
+    mkDeviceMobileDerivation = system: modulePaths: nix-on-droid.lib.nixOnDroidConfiguration {
         system = system;
         config.home-manager.config.imports = modulePaths;
     };
 
-    deviceDerivation = system: username: modulePaths:
-      home-manager.lib.homeManagerConfiguration {
+    mkDeviceDerivation = system: username: modulePaths: home-manager.lib.homeManagerConfiguration {
       system = system;
       username = username;
       homeDirectory = "/home/${username}";
       configuration.imports = modulePaths;
     };
 
-    containerDerivation = modulePath:
+    mkContainerDerivation = modulePath:
       let 
         module = import modulePath;
         pkgs = import nixpkgs { system="x86_64-linux"; };
-      in 
-        pkgs.dockerTools.buildImage (module (builtins.intersectAttrs (builtins.functionArgs module) pkgs));
+      in pkgs.dockerTools.buildImage (module (builtins.intersectAttrs (builtins.functionArgs module) pkgs));
 
   in {
-    nixOnDroidConfigurations.phone = deviceMobileDerivation "aarch64-linux" [
+    nixOnDroidConfigurations.phone = mkDeviceMobileDerivation "aarch64-linux" [
       ./modules/profiles/base.nix
       ./modules/profiles/shell.nix
     ];
 
-    homeConfigurations.tablet = deviceDerivation "x86_64-linux" "rafael" [
+    homeConfigurations.tablet = mkDeviceDerivation "x86_64-linux" "rafael" [
       ./modules/profiles/base.nix
       ./modules/profiles/shell.nix
       ./modules/profiles/data.nix
@@ -51,7 +48,7 @@
       ./modules/profiles/code.nix
     ];
 
-    homeConfigurations.notebook = deviceDerivation "x86_64-linux" "rafaeloliveira" [
+    homeConfigurations.notebook = mkDeviceDerivation "x86_64-linux" "rafaeloliveira" [
       ./modules/profiles/base.nix
       ./modules/profiles/shell.nix
       ./modules/profiles/data.nix
@@ -61,7 +58,7 @@
       ./modules/profiles/code.nix
     ];
 
-    packages.x86_64-linux.container.automation = containerDerivation ./modules/containers/automation.nix {};
-    packages.x86_64-linux.container.laboratory = containerDerivation ./modules/containers/laboratory.nix {};
+    packages.x86_64-linux.container.automation = mkContainerDerivation ./modules/containers/automation.nix;
+    packages.x86_64-linux.container.laboratory = mkContainerDerivation ./modules/containers/laboratory.nix;
   };
 }

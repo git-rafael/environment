@@ -10,9 +10,10 @@
     nix-on-droid.inputs.home-manager.follows = "home-manager";
   };
 
-  outputs = { self, nixpkgs, home-manager, nix-on-droid, ... }:
-
+  outputs = inputs@{ self, nixpkgs, home-manager, nix-on-droid, ... }:
   let
+    x86_64-linuxPkgs = import nixpkgs { system="x86_64-linux"; };
+
     mkDeviceMobileDerivation = system: modulePaths: nix-on-droid.lib.nixOnDroidConfiguration {
         system = system;
         config.home-manager.config.imports = modulePaths;
@@ -21,14 +22,11 @@
     mkDeviceDerivation = system: username: modulePaths: home-manager.lib.homeManagerConfiguration {
       system = system;
       username = username;
-      homeDirectory = "/home/${username}";
+      homeDirectory = "/home/${username}";(2)
       configuration.imports = modulePaths;
     };
 
-    mkContainerDerivation = modulePath: 
-      let
-        pkgs = import nixpkgs { system="x86_64-linux"; };
-      in pkgs.dockerTools.buildImage (pkgs.callPackage modulePath {});
+    mkContainerDerivation = { nixpkgs, home-manager }: modulePath: x86_64-linuxPkgs.dockerTools.buildImage (nixpkgs.callPackage modulePath {});
 
   in {
     nixOnDroidConfigurations.phone = mkDeviceMobileDerivation "aarch64-linux" [
@@ -57,7 +55,7 @@
       ./modules/profiles/code.nix
     ];
 
-    packages.x86_64-linux.container.automation = mkContainerDerivation ./modules/containers/automation.nix;
-    packages.x86_64-linux.container.laboratory = mkContainerDerivation ./modules/containers/laboratory.nix;
+    packages.x86_64-linux.container.automation = mkContainerDerivation inputs ./modules/containers/automation.nix;
+    packages.x86_64-linux.container.laboratory = mkContainerDerivation inputs ./modules/containers/laboratory.nix;
   };
 }

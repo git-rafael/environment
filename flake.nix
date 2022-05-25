@@ -28,7 +28,7 @@
     mkContainerDerivation = modulePath: 
       let
         pkgs = import nixpkgs { system="x86_64-linux"; };
-      in pkgs.dockerTools.buildImage pkgs.callPackage modulePath {};
+      in pkgs.dockerTools.buildImage (pkgs.callPackage modulePath {});
 
   in {
     nixOnDroidConfigurations.phone = mkDeviceMobileDerivation "aarch64-linux" [

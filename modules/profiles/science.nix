@@ -13,7 +13,7 @@ let
           sha256 = "sha256-sKoeeQLTgIppjUhT9t/hL9AqDZyzhR2zv1lwMQbUSoA=";
         };
         buildInputs = with super;
-          [ jupyter-packaging ];
+          [ jupyter-packaging notebook ];
       };
       
       jupyter_bokeh = super.buildPythonPackage rec {

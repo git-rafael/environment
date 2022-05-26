@@ -3,9 +3,7 @@
 let
   packages = with pkgs; [
     marp
-  ];
-
-  jupyterPackages = with pkgs.python39Packages; [
+  ] ++ (with pkgs.python39Packages; [
     jupyterlab
     panel
     #jupyter_http_over_ws
@@ -16,7 +14,7 @@ let
     #influxdb
     #kafka-python
     #scikit-learn
-  ];
+  ]);
 
 in {
   home.packages = packages ++ jupyterPackages;

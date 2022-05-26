@@ -3,10 +3,9 @@
 let
   packages = with pkgs; [
     marp
-  ] ++ (with pkgs.python39Packages; [
+  ] ++ (with pkgs.python3Packages; [
     jupyterlab
     panel
-    jupyter_http_over_ws
     jupyter_bokeh
     ipython-sql
     pandas
@@ -14,6 +13,8 @@ let
     influxdb
     kafka-python
     scikit-learn
+  ]) ++ (with pkgs.pypyPackages; [
+    jupyter_http_over_ws
   ]);
 
 in {

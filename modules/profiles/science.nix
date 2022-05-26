@@ -23,6 +23,9 @@ let
           inherit pname version;
           sha256 = "sha256-TEoGw/bF2SDINXaBvupXKXs9bR1GuCwpBFCIuW+dSwE=";
         };
+        checkPhase = ''
+          py.test -k 'not function_name and not other_function' tests
+        '';
         buildInputs = with super;
           [ jupyter-packaging ipywidgets bokeh ];
       };

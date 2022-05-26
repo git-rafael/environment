@@ -26,20 +26,7 @@
       configuration.imports = modulePaths;
     };
 
-    mkContainerDerivation = args@{ nixpkgs, home-manager, ... }: modulePath:
-      let
-        deviceDerivation = mkDeviceDerivation "x86_64-linux" "rafael" [
-          ./modules/profiles/base.nix
-          ./modules/profiles/shell.nix
-          ./modules/profiles/data.nix
-          ./modules/profiles/systems.nix
-          ./modules/profiles/science.nix
-          ./modules/profiles/development.nix
-          ./modules/profiles/security.nix
-          ./modules/profiles/code.nix
-        ];;
-        containerDerivation = import modulePath { inherit args deviceDerivation; };
-      in x86_64-linuxPkgs.dockerTools.buildImage containerDerivation;
+    mkContainerDerivation = args@{ ... }: modulePath: x86_64-linuxPkgs.dockerTools.buildImage (import modulePath args);
 
   in {
     nixOnDroidConfigurations.phone = mkDeviceMobileDerivation "aarch64-linux" [
@@ -69,5 +56,6 @@
     ];
 
     packages.x86_64-linux.container.automation = mkContainerDerivation args ./modules/containers/automation.nix;
+    packages.x86_64-linux.container.laboratory = mkContainerDerivation args ./modules/containers/laboratory.nix;
   };
 }

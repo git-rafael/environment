@@ -1,4 +1,4 @@
-{ nixpkgs, home-manager, deviceDerivation, ... } : 
+{ nixpkgs, ... } : 
 let
   pkgs = import nixpkgs { system="x86_64-linux"; };
 in {
@@ -13,7 +13,7 @@ in {
   name = "environment";
   tag = "automation";
 
-  contents = deviceDerivation;
+  runAsRoot = "curl -fsSL https://raw.githubusercontent.com/git-rafael/environment/main/resources/scripts/env-load | TARGET='device.notebook' sh";
 
   config = {
     Cmd = [ "env-shell" ];

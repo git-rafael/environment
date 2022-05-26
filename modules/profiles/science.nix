@@ -21,7 +21,7 @@ let
           inherit pname version;
           sha256 = "sha256-sKoeeQLTgIppjUhT9t/hL9AqDZyzhR2zv1lwMQbUSoA=";
         };
-        buildInputs = with super;
+        buildInputs = with self;
           [ jupyter-packaging ];
       };
       
@@ -32,7 +32,7 @@ let
           inherit pname version;
           sha256 = "sha256-ujsDL1KgOdnl7Y9sUPP5oA3LlwBYccJGc6OzoFRlrvU=";
         };
-        buildInputs = with super;
+        buildInputs = with self;
           [ jupyter-packaging ];
       };
 
@@ -43,8 +43,6 @@ let
           inherit pname version;
           sha256 = "sha256-PoiOWb9XJ3y9bzg8sjKFiy18cSGeV0klcSjxbZhX5Gw=";
         };
-        buildInputs = with super;
-          [ jupyterlab ];
       };
     };
   };

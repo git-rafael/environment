@@ -1,10 +1,8 @@
 pkgs: with pkgs;
 	let
-		pythonPkgs = python38Packages.override {
+		labpython = python38.override {
 
-			overrides = self: super: {
-
-				inherit self;
+			packageOverrides = self: super: {
 
 				ipython-sql_prettytable = super.buildPythonPackage rec {
 					pname = "prettytable";
@@ -74,7 +72,7 @@ pkgs: with pkgs;
 			ipython
 		]; 
 
-		laboratoryPython = pythonPkgs.python.withPackages laboratoryPythonPackages;
+		laboratoryPython = labpython.withPackages laboratoryPythonPackages;
 
 	in [
 		marp

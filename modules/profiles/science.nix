@@ -33,7 +33,7 @@ let
         pname = "ipython-sql";
         version = "0.4.0";
         doCheck = false;
-        # patches = [ ../../resources/patches/ipython-sql-setup.py ];
+        patches = [ ../../resources/patches/ipython-sql-setup.py ];
         src = super.fetchPypi {
           inherit pname version;
           sha256 = "sha256-PoiOWb9XJ3y9bzg8sjKFiy18cSGeV0klcSjxbZhX5Gw=";

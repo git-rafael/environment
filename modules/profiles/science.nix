@@ -7,7 +7,7 @@ let
 
       prettytable = super.buildPythonPackage rec {
         pname = "prettytable";
-        version = "3.3.0";
+        version = "0.7.2";
         doCheck = false;
         src = super.fetchPypi {
           inherit pname version;

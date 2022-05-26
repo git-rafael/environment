@@ -61,7 +61,7 @@ in {
 
         { name = "plugins/wd"; tags = [ from:oh-my-zsh ]; }
         { name = "plugins/extract"; tags = [ from:oh-my-zsh ]; }
-        { name = "plugins/copydir"; tags = [ from:oh-my-zsh ]; }
+        { name = "plugins/copypath"; tags = [ from:oh-my-zsh ]; }
         { name = "plugins/copyfile"; tags = [ from:oh-my-zsh ]; }
         { name = "plugins/web-search"; tags = [ from:oh-my-zsh ]; }
         { name = "plugins/git-auto-fetch"; tags = [ from:oh-my-zsh ]; }

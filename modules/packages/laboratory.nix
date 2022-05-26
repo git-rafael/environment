@@ -70,4 +70,5 @@ pkgs: with pkgs;
 		jupyter_http_over_ws
 		jupyter_bokeh
 		ipython-sql
+		ipython
 	])

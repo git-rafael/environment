@@ -46,9 +46,9 @@ let
     };
   };
 
-  packages = with myPyPkgs; [
+  packages = with pkgs; [
     marp
-  ] ++ (with pkgs.python3Packages; [
+  ] ++ (with myPyPkgs; [
     jupyterlab
     panel
     pypi-matplotlib

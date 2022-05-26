@@ -21,7 +21,7 @@ let
         version = "3.0.3";
         src = super.fetchPypi {
           inherit pname version;
-          sha256 = "sha256-ujsDL1KgOdnl7Y9sUPP5oA3LlwBYccJGc6OzoFRlrvU=";
+          sha256 = "sha256-TEoGw/bF2SDINXaBvupXKXs9bR1GuCwpBFCIuW+dSwE=";
         };
         buildInputs = with super;
           [ jupyter-packaging ipywidgets bokeh ];

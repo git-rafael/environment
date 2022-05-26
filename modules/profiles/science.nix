@@ -17,5 +17,5 @@ let
   ]);
 
 in {
-  home.packages = packages ++ jupyterPackages;
+  home.packages = packages;
 }

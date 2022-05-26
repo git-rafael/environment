@@ -45,11 +45,6 @@ in {
     enableZshIntegration = true;
   };
 
-  programs.watson = {
-    enable = true;
-    enableZshIntegration = true;
-  };
-
   programs.zsh = {
     enable = true;
 

@@ -51,12 +51,11 @@ let
   ] ++ (with myPyPkgs; [
     jupyterlab
     panel
-    pypi-matplotlib
-    # pandas
-    # altair
-    # influxdb
+    pandas
+    altair
+    influxdb
+    scikit-learn
     # kafka-python
-    # scikit-learn
     # jupyter_http_over_ws
     # jupyter_bokeh
     # ipython-sql

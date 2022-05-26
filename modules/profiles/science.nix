@@ -6,7 +6,6 @@ let
   ] ++ (with pkgs.python3Packages; [
     jupyterlab
     panel
-    ipython-sql
     pandas
     altair
     influxdb
@@ -15,6 +14,7 @@ let
   ]) ++ (with pkgs.pypyPackages; [
     jupyter_http_over_ws
     jupyter_bokeh
+    ipython-sql
   ]);
 
 in {

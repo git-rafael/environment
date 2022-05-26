@@ -58,9 +58,6 @@
     homeConfigurations.core-hub = mkDeviceDerivation "x86_64-linux" "root" [
       ./modules/profiles/base.nix
       ./modules/profiles/shell.nix
-      ./modules/profiles/data.nix
-      ./modules/profiles/systems.nix
-      ./modules/profiles/security.nix
     ];
 
     packages.x86_64-linux.container.laboratory = mkContainerDerivation "x86_64-linux" ./modules/containers/laboratory.nix;

@@ -24,7 +24,7 @@ let
           sha256 = "sha256-ujsDL1KgOdnl7Y9sUPP5oA3LlwBYccJGc6OzoFRlrvU=";
         };
         buildInputs = with super;
-          [ jupyter-packaging ];
+          [ jupyter-packaging ipywidgets ];
       };
 
       ipython-sql = super.buildPythonPackage rec {

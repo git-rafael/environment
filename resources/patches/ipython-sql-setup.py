@@ -1,5 +1,5 @@
---- a/setup.py
-+++ b/setup.py
+--- setup.py.orig	2022-05-26 14:01:23.185934840 -0300
++++ setup.py	2022-05-26 14:02:27.785933400 -0300
 @@ -1,9 +1,10 @@
  import os
  from io import open
@@ -11,5 +11,4 @@
 +here = Path(__file__).parent.resolve()
  README = open(os.path.join(here, "README.rst"), encoding="utf-8").read()
  NEWS = open(os.path.join(here, "NEWS.rst"), encoding="utf-8").read()
- 
  

@@ -2,6 +2,8 @@ pkgs: with pkgs;
 	let
 		pythonPkgs = python38Packages.override {
 
+			inherit self;
+
 			overrides = self: super: {
 
 				ipython-sql_prettytable = super.buildPythonPackage rec {

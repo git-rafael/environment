@@ -7,11 +7,11 @@ let
 
       prettytable = super.buildPythonPackage rec {
         pname = "prettytable";
-        version = "1.0.0";
+        version = "0.7.2";
         doCheck = false;
         src = super.fetchPypi {
           inherit pname version;
-          sha256 = "sha256-mKO3SxmA5qk5JJjjoqVAb2vYNvQShDwr4j2ciGcXR6w=";
+          sha256 = "sha256-LVRg3J23SjK8yPn2feaLLE9NLwH6O9UYdkxpFW2crNk=";
         };
       };
 
@@ -25,7 +25,7 @@ let
           sha256 = "sha256-PoiOWb9XJ3y9bzg8sjKFiy18cSGeV0klcSjxbZhX5Gw=";
         };
         buildInputs = with super;
-          [ six sqlalchemy sqlparse self.prettytable ipython_genutils ipython ];
+          [ six sqlalchemy sqlparse prettytable ipython_genutils ipython ];
       };
 
       jupyter_http_over_ws = super.buildPythonPackage rec {

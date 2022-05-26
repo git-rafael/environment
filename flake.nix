@@ -24,7 +24,7 @@
       configuration.imports = modulePaths;
     };
 
-    mkContainerDerivation = system: modulePaths:
+    mkContainerDerivation = system: modulePath:
       let systemPkgs = import nixpkgs { inherit system; };
       in systemPkgs.dockerTools.buildImage (import modulePath { inherit systemPkgs; });
 

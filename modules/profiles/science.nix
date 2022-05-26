@@ -55,7 +55,7 @@ let
     kafka-python
     jupyter_http_over_ws
     jupyter_bokeh
-    ipython-sql
+    # ipython-sql
   ]);
 
 in {

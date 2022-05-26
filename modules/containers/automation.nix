@@ -15,7 +15,7 @@ in {
 
   runAsRoot = ''
   #!${pkgs.runtimeShell}
-  curl -fsSL https://raw.githubusercontent.com/git-rafael/environment/main/resources/scripts/env-load | TARGET='device.notebook' sh";
+  curl -fsSL https://raw.githubusercontent.com/git-rafael/environment/main/resources/scripts/env-load | TARGET='device.notebook' sh;
   '';
 
   config = {

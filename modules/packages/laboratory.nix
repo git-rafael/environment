@@ -1,6 +1,6 @@
 pkgs: with pkgs;
 	let
-		pythonPkgs = pythonPackages.override {
+		pythonPkgs = python38Packages.override {
 
 			overrides = self: super: {
 

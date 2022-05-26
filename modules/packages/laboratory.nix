@@ -52,23 +52,29 @@ pkgs: with pkgs;
 				};
 			};
 		};
+
+		laboratoryPythonPackages = python-packages: with python-packages; [
+			jupyterlab
+			panel
+			pyspark
+			pandas
+			numpy
+			scipy
+			patsy
+			altair
+			influxdb
+			statsmodels
+			scikit-learn
+			kafka-python
+			jupyter_http_over_ws
+			jupyter_bokeh
+			ipython-sql
+			ipython
+		]; 
+
+		laboratoryPython = python3.withPackages laboratoryPythonPackages;
+
 	in [
 		marp
-	] ++ (with pythonPkgs; [
-		jupyterlab
-		panel
-		pyspark
-		pandas
-		numpy
-		scipy
-		patsy
-		altair
-		influxdb
-		statsmodels
-		scikit-learn
-		kafka-python
-		jupyter_http_over_ws
-		jupyter_bokeh
-		ipython-sql
-		ipython
-	])
+		laboratoryPython
+	]

@@ -74,7 +74,7 @@ pkgs: with pkgs;
 			ipython
 		]; 
 
-		laboratoryPython = pythonPkgs.python3.withPackages laboratoryPythonPackages;
+		laboratoryPython = pythonPkgs.python39.withPackages laboratoryPythonPackages;
 
 	in [
 		marp

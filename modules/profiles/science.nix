@@ -2,46 +2,37 @@
 
 let
   myPyPkgs = pkgs.python3Packages.override {
+
     overrides = self: super: {
-      righteuous-fa = super.buildPythonPackage rec {
-        pname = "righteous-fa";
-        version = "1.2.1";
+
+      jupyter_http_over_ws = super.buildPythonPackage rec {
+        pname = "jupyter_http_over_ws";
+        version = "0.0.8";
         src = super.fetchPypi {
           inherit pname version;
-          sha256 = "1qrbk8v2bxm8k6knx33vajajs8y2lsn77j4byviy7mh354xwzsc4";
         };
         buildInputs = with super;
-          [ pandas numpy statsmodels scikitlearn scipy patsy ];
+          [ jupyterlab ];
       };
-      impetuous-gfa = super.buildPythonPackage rec {
-        pname = "impetuous-gfa";
-        version = "0.95.1";
+      
+      jupyter_bokeh = super.buildPythonPackage rec {
+        pname = "jupyter_bokeh";
+        version = "3.0.4";
         src = super.fetchPypi {
           inherit pname version;
-          sha256 = "11vd8lk6bj9j4xhhqrclvwk8bwh47svracwzcslww7sf16wiz4f3";
         };
         buildInputs = with super;
-          [ pandas numpy statsmodels scikitlearn scipy patsy ];
+          [ jupyterlab ];
       };
-      pypi-matplotlib = super.buildPythonPackage rec {
-        pname = "matplotlib";
-        version = "3.3.3";
+
+      ipython-sql = super.buildPythonPackage rec {
+        pname = "ipython-sql";
+        version = "0.4.0";
         src = super.fetchPypi {
           inherit pname version;
-          sha256 = "1v5xwk8amb9b8lx383yy0mgkvzbnfh9d7c4arzjykky4frj0rdmi";
         };
         buildInputs = with super;
-          [ numpy certifi ];
-      };
-      counterpartner = super.buildPythonPackage rec {
-        pname = "counterpartner";
-        version = "0.10.2";
-        src = super.fetchPypi {
-          inherit pname version;
-          sha256 = "0sfc59ycpq2j4y0c8k002h23arz6kidbvamhlmxfgrj38kxry0nx";
-        };
-        buildInputs = with super;
-          [ pandas numpy statsmodels scikitlearn scipy ];
+          [ jupyterlab ];
       };
     };
   };
@@ -55,10 +46,10 @@ let
     altair
     influxdb
     scikit-learn
-    # kafka-python
-    # jupyter_http_over_ws
-    # jupyter_bokeh
-    # ipython-sql
+    kafka-python
+    jupyter_http_over_ws
+    jupyter_bokeh
+    ipython-sql
   ]);
 
 in {

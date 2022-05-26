@@ -1,5 +1,5 @@
 pkgs: with pkgs; [
-  python3
+  python
   poetry
-  python3Packages.pip
+  pythonPackages.pip
 ]

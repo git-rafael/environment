@@ -5,7 +5,7 @@ let
 
     overrides = self: super: {
 
-      prettytable = super.buildPythonPackage rec {
+      prettytable0 = super.buildPythonPackage rec {
         pname = "prettytable";
         version = "0.7.2";
         doCheck = false;
@@ -25,7 +25,7 @@ let
           sha256 = "sha256-PoiOWb9XJ3y9bzg8sjKFiy18cSGeV0klcSjxbZhX5Gw=";
         };
         buildInputs = with super;
-          [ six sqlalchemy sqlparse prettytable ipython_genutils ipython ];
+          [ six sqlalchemy sqlparse prettytable0 ipython_genutils ipython ];
       };
 
       jupyter_http_over_ws = super.buildPythonPackage rec {

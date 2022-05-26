@@ -20,6 +20,7 @@ let
         version = "3.0.4";
         src = super.fetchPypi {
           inherit pname version;
+          sha256 = "sha256-ujsDL1KgOdnl7Y9sUPP5oA3LlwBYccJGc6OzoFRlrvU=";
         };
         buildInputs = with super;
           [ jupyterlab ];

@@ -5,6 +5,15 @@ let
 
     overrides = self: super: {
 
+      jupyter-packaging = super.buildPythonPackage rec {
+        pname = "jupyter-packaging";
+        version = "0.12.0";
+        src = super.fetchPypi {
+          inherit pname version;
+          sha256 = "sha256-ujsDL1KgOdnl7Y9sUPP5oA3LlwBYccJGc6OzoFRlrvU=";
+        };
+      };
+
       jupyter_http_over_ws = super.buildPythonPackage rec {
         pname = "jupyter_http_over_ws";
         version = "0.0.8";
@@ -13,7 +22,7 @@ let
           sha256 = "sha256-sKoeeQLTgIppjUhT9t/hL9AqDZyzhR2zv1lwMQbUSoA=";
         };
         buildInputs = with super;
-          [ jupyterlab ];
+          [ jupyter-packaging ];
       };
       
       jupyter_bokeh = super.buildPythonPackage rec {
@@ -24,7 +33,7 @@ let
           sha256 = "sha256-ujsDL1KgOdnl7Y9sUPP5oA3LlwBYccJGc6OzoFRlrvU=";
         };
         buildInputs = with super;
-          [ jupyterlab ];
+          [ jupyter-packaging ];
       };
 
       ipython-sql = super.buildPythonPackage rec {

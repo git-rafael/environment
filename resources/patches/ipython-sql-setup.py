@@ -1,5 +1,5 @@
---- setup.py	2022-05-26 14:01:23.185934840 -0300
-+++ setup.py	2022-05-26 14:02:27.785933400 -0300
+--- a/setup.py
++++ b/setup.py
 @@ -1,9 +1,10 @@
  import os
  from io import open

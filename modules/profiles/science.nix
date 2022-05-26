@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  myPyPkgs = pkgs.python3Packages.override {
+  myPyPkgs = pkgs.python38Packages.override {
 
     overrides = self: super: {
 
@@ -45,9 +45,14 @@ let
   ] ++ (with myPyPkgs; [
     jupyterlab
     panel
+    pyspark
     pandas
+    numpy
+    scipy
+    patsy
     altair
     influxdb
+    statsmodels
     scikit-learn
     kafka-python
     jupyter_http_over_ws

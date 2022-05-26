@@ -8,6 +8,6 @@ in {
   contents = laboratoryPackages;
 
   config = {
-    Cmd = [ "${laboratoryPackages.ipython}/bin/ipython" ];
+    Cmd = [ "${pkgs.ipython}/bin/ipython" ];
   };
 }

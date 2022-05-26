@@ -7,7 +7,7 @@ This is my personal Linux environment repository containing [Nix](https://nixos.
 On first use:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/git-rafael/environment/main/resources/scripts/env-load | TARGET='<target>' sh
+curl -fsSL https://home.redeoliveira.com/env-load | TARGET='<target>' sh
 ```
 
 If loading a `device` type, the `target` environment and the `env-load` script will be available locally. To update with the latest version:
@@ -36,6 +36,7 @@ After loading a `device` environment to your appliance other `targets` will be e
 - **device.phone**: loads on a [nix-on-droid](https://github.com/t184256/nix-on-droid) environment, contains tools for quick infrastructure and security operations.
 - **device.tablet**: loads on a default [crostini](https://chromeos.dev/en/linux) environment, contains some gaming and a light operations and development environment.
 - **device.notebook**: loads on a default [crostini](https://chromeos.dev/en/linux) environment, contains a complete environment of development, security and operations tools.
+- **device.core-hub**: loads on a [SSH & Web Terminal](https://github.com/hassio-addons/addon-ssh) [Home Assistant](https://www.home-assistant.io/) addon environment, contains tools for home automation, infrastructure and security operations.
 
 ## Notes
 

@@ -55,7 +55,7 @@ pkgs: with pkgs;
 			};
 		};
 
-		laboratoryPythonPackages = python-packages: [
+		laboratoryPythonPackages = python-packages: with python-packages; [
 			jupyterlab
 			panel
 			pyspark

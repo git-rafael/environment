@@ -5,6 +5,29 @@ let
 
     overrides = self: super: {
 
+      prettytable = super.buildPythonPackage rec {
+        pname = "prettytable";
+        version = "3.3.0";
+        doCheck = false;
+        src = super.fetchPypi {
+          inherit pname version;
+          sha256 = "sha256-PoiOWb9XJ3y9bzg8sjKFiy18cSGeV0klcSjxbZhX5Gw=";
+        };
+      };
+
+      ipython-sql = super.buildPythonPackage rec {
+        pname = "ipython-sql";
+        version = "0.4.0";
+        doCheck = false;
+        patches = [ ../../resources/patches/ipython-sql-setup.py ];
+        src = super.fetchPypi {
+          inherit pname version;
+          sha256 = "sha256-PoiOWb9XJ3y9bzg8sjKFiy18cSGeV0klcSjxbZhX5Gw=";
+        };
+        buildInputs = with super;
+          [ six sqlalchemy self.prettytable ];
+      };
+
       jupyter_http_over_ws = super.buildPythonPackage rec {
         pname = "jupyter_http_over_ws";
         version = "0.0.8";
@@ -27,19 +50,6 @@ let
         };
         buildInputs = with super;
           [ jupyter-packaging ipywidgets bokeh ];
-      };
-
-      ipython-sql = super.buildPythonPackage rec {
-        pname = "ipython-sql";
-        version = "0.4.0";
-        doCheck = false;
-        patches = [ ../../resources/patches/ipython-sql-setup.py ];
-        src = super.fetchPypi {
-          inherit pname version;
-          sha256 = "sha256-PoiOWb9XJ3y9bzg8sjKFiy18cSGeV0klcSjxbZhX5Gw=";
-        };
-        buildInputs = with super;
-          [ six sqlalchemy prettytable ];
       };
     };
   };

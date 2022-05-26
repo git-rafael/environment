@@ -11,7 +11,7 @@ let
         doCheck = false;
         src = super.fetchPypi {
           inherit pname version;
-          sha256 = "sha256-EY61T9J5QEm4EIk2U7IJUjSd9tO8F2Tn+s2KGAZPqbA=";
+          sha256 = "sha256-LVRg3J23SjK8yPn2feaLLE9NLwH6O9UYdkxpFW2crNk=";
         };
       };
 

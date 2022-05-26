@@ -10,23 +10,23 @@
     nix-on-droid.inputs.home-manager.follows = "home-manager";
   };
 
-  outputs = args@{ self, nixpkgs, home-manager, nix-on-droid, ... }:
-  let
-    x86_64-linuxPkgs = import nixpkgs { system="x86_64-linux"; };
+  outputs = inputs@{ self, nixpkgs, home-manager, nix-on-droid, ... }:
 
+  let
     mkDeviceMobileDerivation = system: modulePaths: nix-on-droid.lib.nixOnDroidConfiguration {
-        system = system;
+        inherit system;
         config.home-manager.config.imports = modulePaths;
     };
 
     mkDeviceDerivation = system: username: modulePaths: home-manager.lib.homeManagerConfiguration {
-      system = system;
-      username = username;
+      inherit system username;
       homeDirectory = "/home/${username}";
       configuration.imports = modulePaths;
     };
 
-    mkContainerDerivation = args@{ ... }: modulePath: x86_64-linuxPkgs.dockerTools.buildImage (import modulePath args);
+    mkContainerDerivation = system: modulePaths:
+      let systemPkgs = import nixpkgs { inherit system; };
+      in systemPkgs.dockerTools.buildImage (import modulePath { inherit systemPkgs; });
 
   in {
     nixOnDroidConfigurations.phone = mkDeviceMobileDerivation "aarch64-linux" [
@@ -37,25 +37,32 @@
     homeConfigurations.tablet = mkDeviceDerivation "x86_64-linux" "rafael" [
       ./modules/profiles/base.nix
       ./modules/profiles/shell.nix
+      ./modules/profiles/code.nix
       ./modules/profiles/data.nix
       ./modules/profiles/systems.nix
       ./modules/profiles/science.nix
       ./modules/profiles/development.nix
       ./modules/profiles/security.nix
-      ./modules/profiles/code.nix
     ];
 
     homeConfigurations.notebook = mkDeviceDerivation "x86_64-linux" "rafaeloliveira" [
       ./modules/profiles/base.nix
       ./modules/profiles/shell.nix
+      ./modules/profiles/code.nix
       ./modules/profiles/data.nix
       ./modules/profiles/systems.nix
       ./modules/profiles/science.nix
       ./modules/profiles/development.nix
-      ./modules/profiles/code.nix
     ];
 
-    packages.x86_64-linux.container.automation = mkContainerDerivation args ./modules/containers/automation.nix;
-    packages.x86_64-linux.container.laboratory = mkContainerDerivation args ./modules/containers/laboratory.nix;
+    homeConfigurations.core-hub = mkDeviceDerivation "x86_64-linux" "root" [
+      ./modules/profiles/base.nix
+      ./modules/profiles/shell.nix
+      ./modules/profiles/data.nix
+      ./modules/profiles/systems.nix
+      ./modules/profiles/security.nix
+    ];
+
+    packages.x86_64-linux.container.laboratory = mkContainerDerivation "x86_64-linux" ./modules/containers/laboratory.nix;
   };
 }

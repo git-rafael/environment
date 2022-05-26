@@ -5,7 +5,7 @@ let
 
     overrides = self: super: {
 
-      ipython-sql_prettytable = super.buildPythonPackage {
+      ipython-sql_prettytable = super.buildPythonPackage rec {
         pname = "prettytable";
         version = "0.7.2";
         doCheck = false;
@@ -15,7 +15,7 @@ let
         };
       };
 
-      ipython-sql = super.buildPythonPackage {
+      ipython-sql = super.buildPythonPackage rec {
         pname = "ipython-sql";
         version = "0.4.0";
         doCheck = false;
@@ -28,7 +28,7 @@ let
           [ six sqlalchemy sqlparse self.ipython-sql_prettytable ipython_genutils ipython ];
       };
 
-      jupyter_http_over_ws = super.buildPythonPackage {
+      jupyter_http_over_ws = super.buildPythonPackage rec {
         pname = "jupyter_http_over_ws";
         version = "0.0.8";
         doCheck = false;
@@ -40,7 +40,7 @@ let
           [ jupyter-packaging notebook ];
       };
       
-      jupyter_bokeh = super.buildPythonPackage {
+      jupyter_bokeh = super.buildPythonPackage rec {
         pname = "jupyter_bokeh";
         version = "3.0.3";
         doCheck = false;

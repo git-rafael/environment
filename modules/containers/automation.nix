@@ -13,7 +13,10 @@ in {
   name = "environment";
   tag = "automation";
 
-  runAsRoot = "curl -fsSL https://raw.githubusercontent.com/git-rafael/environment/main/resources/scripts/env-load | TARGET='device.notebook' sh";
+  runAsRoot = ''
+  #!${pkgs.runtimeShell}
+  curl -fsSL https://raw.githubusercontent.com/git-rafael/environment/main/resources/scripts/env-load | TARGET='device.notebook' sh";
+  '';
 
   config = {
     Cmd = [ "env-shell" ];

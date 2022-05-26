@@ -39,7 +39,7 @@ let
           sha256 = "sha256-PoiOWb9XJ3y9bzg8sjKFiy18cSGeV0klcSjxbZhX5Gw=";
         };
         buildInputs = with super;
-          [ six ];
+          [ six sqlalchemy ];
       };
     };
   };

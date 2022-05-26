@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  myPyPkgs = pkgs.python38Packages.override {
+  pythonPkgs = pkgs.python38Packages.override {
 
     overrides = self: super: {
 
@@ -24,7 +24,7 @@ let
           sha256 = "sha256-ujsDL1KgOdnl7Y9sUPP5oA3LlwBYccJGc6OzoFRlrvU=";
         };
         buildInputs = with super;
-          [ jupyter-packaging ipywidgets ];
+          [ jupyter-packaging ipywidgets bokeh ];
       };
 
       ipython-sql = super.buildPythonPackage rec {
@@ -40,7 +40,7 @@ let
 
   packages = with pkgs; [
     marp
-  ] ++ (with myPyPkgs; [
+  ] ++ (with pythonPkgs; [
     jupyterlab
     panel
     pyspark
@@ -55,7 +55,7 @@ let
     kafka-python
     jupyter_http_over_ws
     jupyter_bokeh
-    # ipython-sql
+    ipython-sql
   ]);
 
 in {

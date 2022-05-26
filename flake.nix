@@ -27,7 +27,18 @@
     };
 
     mkContainerDerivation = args@{ nixpkgs, home-manager, ... }: modulePath:
-      let containerDerivation = import modulePath args;
+      let
+        deviceDerivation = mkDeviceDerivation "x86_64-linux" "rafael" [
+          ./modules/profiles/base.nix
+          ./modules/profiles/shell.nix
+          ./modules/profiles/data.nix
+          ./modules/profiles/systems.nix
+          ./modules/profiles/science.nix
+          ./modules/profiles/development.nix
+          ./modules/profiles/security.nix
+          ./modules/profiles/code.nix
+        ];;
+        containerDerivation = import modulePath { inherit args deviceDerivation; };
       in x86_64-linuxPkgs.dockerTools.buildImage containerDerivation;
 
   in {

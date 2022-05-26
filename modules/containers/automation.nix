@@ -1,4 +1,4 @@
-{ nixpkgs, home-manager, ... } : 
+{ nixpkgs, home-manager, deviceDerivation, ... } : 
 let
   pkgs = import nixpkgs { system="x86_64-linux"; };
 in {
@@ -13,17 +13,7 @@ in {
   name = "environment";
   tag = "automation";
 
-  contents = nixpkgs.lib.nixosSystem {
-    system = "x86_64-linux";
-    modules = [
-      home-manager.nixosModules.home-manager {
-        home-manager.useGlobalPkgs = true;
-        home-manager.sharedModules = [
-          import ../profiles/base.nix
-        ];
-      }
-    ];
-  };
+  contents = deviceDerivation;
 
   config = {
     Cmd = [ "env-shell" ];

@@ -27,7 +27,6 @@ let
     openssh
     findutils
 
-    asdf-vm
     pritunl-ssh
 
     bitwarden-cli

@@ -9,8 +9,10 @@ pkgs: with pkgs;
     using = pkgs.writeShellScriptBin "using" (builtins.readFile ../../resources/scripts/using);
 
     packages = with pkgs; [
+      coreutils
+      asdf-vm
       tldr
-      
+
       docker-client
       docker-compose
 

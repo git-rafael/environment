@@ -2,9 +2,9 @@ pkgs: with pkgs;
   let
     sciencePython = python39.override {
 
-      self = sciencePython;
-      reproducibleBuild = false;
-      enableOptimizations = true;
+      # self = sciencePython;
+      # reproducibleBuild = false;
+      # enableOptimizations = true;
 
       packageOverrides = self: super: {
 

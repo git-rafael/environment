@@ -33,6 +33,16 @@ pkgs: with pkgs;
             [ sqlalchemy sqlparse self.ipython-sql_prettytable ];
         };
 
+        nbterm_kernel-driver = super.buildPythonPackage rec {
+          pname = "kernel-driver";
+          version = "0.0.7";
+          doCheck = false;
+          src = super.fetchPypi {
+            inherit pname version;
+            sha256 = "sha256-uUURu4UeEK4FUsCc9+7TU3vPh8+bQmCtm8MRiCqYFgc=";
+          };
+        };
+
         nbterm = super.buildPythonPackage rec {
           pname = "nbterm";
           version = "0.0.12";
@@ -41,6 +51,8 @@ pkgs: with pkgs;
             inherit pname version;
             sha256 = "sha256-uUURu4UeEK4FUsCc9+7TU3vPh8+bQmCtm8MRiCqYFgc=";
           };
+          buildInputs = with super;
+            [ self.nbterm_kernel-driver ];
         };
 
         jupyter_http_over_ws = super.buildPythonPackage rec {

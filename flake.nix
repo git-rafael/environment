@@ -10,58 +10,64 @@
     nix-on-droid.inputs.home-manager.follows = "home-manager";
   };
 
-  outputs = { self, nixpkgs, home-manager, nix-on-droid, ... }:
+  outputs = inputs@{ self, nixpkgs, home-manager, nix-on-droid, ... }:
 
   let
-    deviceMobileDerivation = system: modulePaths:
-      nix-on-droid.lib.nixOnDroidConfiguration {
-        system = system;
+    mkDeviceMobileDerivation = system: modulePaths: nix-on-droid.lib.nixOnDroidConfiguration {
+        inherit system;
         config.home-manager.config.imports = modulePaths;
     };
 
-    deviceDerivation = system: username: modulePaths:
-      home-manager.lib.homeManagerConfiguration {
-      system = system;
-      username = username;
+    mkDeviceDerivation = system: username: modulePaths: home-manager.lib.homeManagerConfiguration {
+      inherit system username;
       homeDirectory = "/home/${username}";
       configuration.imports = modulePaths;
     };
 
-    toolboxDerivation = modulePath: overrides:
-      let 
-        module = import modulePath;
-        pkgs = import nixpkgs { system="x86_64-linux"; };
-      in 
-        pkgs.dockerTools.buildImage (module ((builtins.intersectAttrs (builtins.functionArgs module) pkgs) // overrides));
+    mkContainerDerivation = system: modulePath:
+      let systemPkgs = import nixpkgs { inherit system; };
+      in systemPkgs.dockerTools.buildImage (import modulePath { pkgs = systemPkgs; });
 
   in {
-    nixOnDroidConfigurations.phone = deviceMobileDerivation "aarch64-linux" [
-      ./modules/device/base.nix
-      ./modules/device/shell.nix
+    nixOnDroidConfigurations.phone = mkDeviceMobileDerivation "aarch64-linux" [
+      ./modules/profiles/base.nix
+      ./modules/profiles/shell.nix
+      ./modules/profiles/data.nix
+      ./modules/profiles/systems.nix
     ];
 
-    homeConfigurations.tablet = deviceDerivation "x86_64-linux" "rafael" [
-      ./modules/device/base.nix
-      ./modules/device/shell.nix
-      ./modules/device/data.nix
-      ./modules/device/systems.nix
-      ./modules/device/science.nix
-      ./modules/device/development.nix
-      ./modules/device/security.nix
-      ./modules/device/code.nix
+    homeConfigurations.tablet = mkDeviceDerivation "x86_64-linux" "rafael" [
+      ./modules/profiles/base.nix
+      ./modules/profiles/shell.nix
+      ./modules/profiles/data.nix
+      ./modules/profiles/systems.nix
+      ./modules/profiles/security.nix
+      ./modules/profiles/code-science.nix
+      ./modules/profiles/code-development.nix
     ];
 
-    homeConfigurations.notebook = deviceDerivation "x86_64-linux" "rafaeloliveira" [
-      ./modules/device/base.nix
-      ./modules/device/shell.nix
-      ./modules/device/data.nix
-      ./modules/device/systems.nix
-      ./modules/device/science.nix
-      ./modules/device/development.nix
-      ./modules/device/code.nix
+    homeConfigurations.notebook = mkDeviceDerivation "x86_64-linux" "rafaeloliveira" [
+      ./modules/profiles/base.nix
+      ./modules/profiles/shell.nix
+      ./modules/profiles/data.nix
+      ./modules/profiles/systems.nix
+      ./modules/profiles/code-science.nix
+      ./modules/profiles/code-development.nix
     ];
 
-    packages.x86_64-linux.toolbox.automation = toolboxDerivation ./modules/toolbox/automation.nix {};
-    packages.x86_64-linux.toolbox.laboratory = toolboxDerivation ./modules/toolbox/laboratory.nix {};
+    homeConfigurations.core-hub = mkDeviceDerivation "x86_64-linux" "root" [
+      ./modules/profiles/base.nix
+      ./modules/profiles/shell.nix
+      ./modules/profiles/data.nix
+      ./modules/profiles/systems.nix
+      ./modules/profiles/security.nix
+      ./modules/profiles/science.nix
+      ./modules/profiles/development.nix
+    ];
+
+    packages.x86_64-linux.container.python = mkContainerDerivation "x86_64-linux" ./modules/containers/python.nix;
+    packages.x86_64-linux.container.javascript = mkContainerDerivation "x86_64-linux" ./modules/containers/javascript.nix;
+    packages.x86_64-linux.container.java = mkContainerDerivation "x86_64-linux" ./modules/containers/java.nix;
+    packages.x86_64-linux.container.dotnet = mkContainerDerivation "x86_64-linux" ./modules/containers/dotnet.nix;
   };
 }

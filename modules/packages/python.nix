@@ -1,5 +1,6 @@
-pkgs : with pkgs; [
-  python3
+pkgs: with pkgs;
+let
+  developmentPackages = import ./development.nix pkgs;
+in [
   poetry
-  python39Packages.pip
-]
+] ++ developmentPackages.lite

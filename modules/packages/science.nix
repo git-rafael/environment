@@ -92,7 +92,7 @@ pkgs: with pkgs;
       marp
     ];
 
-    in {
+  in {
     withIpython = [
       ipythonPython
     ] ++ laboratoryPackages;

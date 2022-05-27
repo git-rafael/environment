@@ -45,6 +45,28 @@ in {
     enableZshIntegration = true;
   };
 
+  programs.git = {
+    enable = true;
+
+    lfs.enable = true;
+    delta.enable = true;
+
+    userName = "Rafael Oliveira";
+
+    extraConfig = {
+      pull.rebase = false;
+      
+      delta.light = false;
+      delta.navigate = true;
+      delta.side-by-side = true;
+      delta.line-numbers = true;
+
+      merge.conflictstyle = "diff3";
+
+      diff.colorMoved = "default";
+    };
+  };
+
   programs.zsh = {
     enable = true;
 

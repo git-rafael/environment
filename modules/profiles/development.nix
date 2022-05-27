@@ -1,55 +1,8 @@
 { config, lib, pkgs, ... }:
 
 let
-  javaPackages = import ../packages/java.nix pkgs;
-  dotnetPackages = import ../packages/dotnet.nix pkgs;
-  pythonPackages = import ../packages/python.nix pkgs;
-  javascriptPackages = import ../packages/javascript.nix pkgs;
-
-  packages = with pkgs; [
-    tldr
-    
-    docker-client
-    docker-compose
-
-    podman
-    podman-compose
-
-    git-crypt
-    git-hound
-
-    pritunl-ssh
-
-    goss
-    dgoss
-  ]
-  ++ javaPackages
-  ++ dotnetPackages
-  ++ pythonPackages
-  ++ javascriptPackages;
+  developmentPackages = import ../packages/development.nix pkgs;
 
 in {
-  home.packages = packages;
-
-  programs.git = {
-    enable = true;
-
-    lfs.enable = true;
-    delta.enable = true;
-
-    userName = "Rafael Oliveira";
-
-    extraConfig = {
-      pull.rebase = false;
-      
-      delta.light = false;
-      delta.navigate = true;
-      delta.side-by-side = true;
-      delta.line-numbers = true;
-
-      merge.conflictstyle = "diff3";
-
-      diff.colorMoved = "default";
-    };
-  };
+  home.packages = developmentPackages.full;
 }

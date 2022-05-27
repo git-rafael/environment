@@ -2,11 +2,8 @@
 
 let
   codePackages = import ../packages/code.nix pkgs;
+  developmentPackages = import ../packages/development.nix pkgs;
 
 in {
-  imports = [
-    ./development.nix
-  ];
-
-  home.packages = codePackages;
+  home.packages = codePackages ++ developmentPackages.lite;
 }

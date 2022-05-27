@@ -59,7 +59,7 @@ pkgs: with pkgs;
 			};
 		};
 
-		laboratoryPackages = [
+		laboratoryPackages = pythonPkgs: with pythonPkgs; [
 			pyspark
 			pandas
 			numpy

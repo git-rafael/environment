@@ -39,7 +39,7 @@ pkgs: with pkgs;
           doCheck = false;
           src = super.fetchPypi {
             inherit pname version;
-            sha256 = "sha256-LVRg3J23SjK8yPn2feaLLE9NLwH6O9UYdkxpFW2crNk=";
+            sha256 = "sha256-uUURu4UeEK4FUsCc9+7TU3vPh8+bQmCtm8MRiCqYFgc=";
           };
         };
 

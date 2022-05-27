@@ -1,6 +1,6 @@
 pkgs: with pkgs;
 	let
-		laboratoryPython = python38.override {
+		laboratoryPython = python310.override {
 
 			# self = laboratoryPython;
 			# reproducibleBuild = false;

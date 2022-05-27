@@ -52,7 +52,7 @@ pkgs: with pkgs;
             sha256 = "sha256-uUURu4UeEK4FUsCc9+7TU3vPh8+bQmCtm8MRiCqYFgc=";
           };
           buildInputs = with super;
-            [ self.nbterm_kernel-driver ];
+            [ self.nbterm_kernel-driver python-dateutil ];
         };
 
         jupyter_http_over_ws = super.buildPythonPackage rec {

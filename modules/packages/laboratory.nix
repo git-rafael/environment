@@ -2,6 +2,10 @@ pkgs: with pkgs;
 	let
 		labpython = python38.override {
 
+			# labpython = mypython;
+			# enableOptimizations = true;
+			# reproducibleBuild = false;
+			
 			packageOverrides = self: super: {
 
 				ipython-sql_prettytable = super.buildPythonPackage rec {
@@ -25,6 +29,8 @@ pkgs: with pkgs;
 					};
 					buildInputs = with super;
 						[ six sqlalchemy sqlparse self.ipython-sql_prettytable ipython_genutils ipython ];
+					propagatedBuildInputs = with super;
+						[ sqlalchemy sqlparse self.ipython-sql_prettytable ];
 				};
 
 				jupyter_http_over_ws = super.buildPythonPackage rec {
@@ -69,7 +75,6 @@ pkgs: with pkgs;
 			jupyter_http_over_ws
 			jupyter_bokeh
 			ipython-sql
-			ipython-sql_prettytable
 			sqlalchemy
 			ipython
 		]);

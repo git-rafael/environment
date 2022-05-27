@@ -1,5 +1,4 @@
 pkgs: with pkgs; [
-  python
+  python39
   poetry
-  pythonPackages.pip
 ]

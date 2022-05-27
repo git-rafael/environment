@@ -1,4 +1,4 @@
 pkgs: with pkgs; [
-  python310
+  python
   poetry
 ]

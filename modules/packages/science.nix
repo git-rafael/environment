@@ -1,8 +1,8 @@
 pkgs: with pkgs;
   let
-    laboratoryPython = python39.override {
+    sciencePython = python39.override {
 
-      # self = laboratoryPython;
+      # self = sciencePython;
       # reproducibleBuild = false;
       # enableOptimizations = true;
 
@@ -33,6 +33,16 @@ pkgs: with pkgs;
             [ sqlalchemy sqlparse self.ipython-sql_prettytable ];
         };
 
+        nbterm = super.buildPythonPackage rec {
+          pname = "nbterm";
+          version = "0.0.12";
+          doCheck = false;
+          src = super.fetchPypi {
+            inherit pname version;
+            sha256 = "sha256-LVRg3J23SjK8yPn2feaLLE9NLwH6O9UYdkxpFW2crNk=";
+          };
+        };
+
         jupyter_http_over_ws = super.buildPythonPackage rec {
           pname = "jupyter_http_over_ws";
           version = "0.0.8";
@@ -59,7 +69,7 @@ pkgs: with pkgs;
       };
     };
 
-    laboratoryPythonPackages = pythonPkgs: with pythonPkgs; [
+    sciencePythonPackages = pythonPkgs: with pythonPkgs; [
       panel
       pandas
       numpy
@@ -75,29 +85,29 @@ pkgs: with pkgs;
       sqlalchemy
     ];
 
-    ipythonPythonPackages = pythonPkgs: with pythonPkgs; [
-      ipython
+    localSciencePackages = pythonPkgs: with pythonPkgs; [
+      nbterm
     ];
 
-    jupyterlabPythonPackages = pythonPkgs: with pythonPkgs; [
+    serverSciencePackages = pythonPkgs: with pythonPkgs; [
       jupyterlab
       jupyter_bokeh
       jupyter_http_over_ws
     ];
 
-    ipythonPython = laboratoryPython.withPackages (pythonPkgs: (ipythonPythonPackages pythonPkgs) ++ (laboratoryPythonPackages pythonPkgs));
-    jupyterlabPython = laboratoryPython.withPackages (pythonPkgs: (jupyterlabPythonPackages pythonPkgs) ++ (laboratoryPythonPackages pythonPkgs));
+    localSciencePython = sciencePython.withPackages (pythonPkgs: (localSciencePackages pythonPkgs) ++ (sciencePythonPackages pythonPkgs));
+    serverSciencePython = sciencePython.withPackages (pythonPkgs: (serverSciencePackages pythonPkgs) ++ (sciencePythonPackages pythonPkgs));
 
-    laboratoryPackages = [
+    sciencePackages = [
       marp
     ];
 
   in {
-    withIpython = [
-      ipythonPython
-    ] ++ laboratoryPackages;
+    lite = [
+      localSciencePython
+    ] ++ sciencePackages;
 
-    withJupyter = [
-      jupyterlabPython
-    ] ++ laboratoryPackages;
+    full = [
+      serverSciencePython
+    ] ++ sciencePackages;
   }

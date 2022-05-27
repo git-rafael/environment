@@ -4,5 +4,5 @@ let
   laboratoryPackages = import ../packages/laboratory.nix pkgs;
 
 in {
-  home.packages = laboratoryPackages;
+  home.packages = laboratoryPackages.withJupyter;
 }

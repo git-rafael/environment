@@ -1,4 +1,4 @@
-pkgs: withJupyter ? false: with pkgs;
+pkgs: with pkgs;
 	let
 		laboratoryPython = python38.override {
 
@@ -88,9 +88,14 @@ pkgs: withJupyter ? false: with pkgs;
 		ipythonPython = laboratoryPython.withPackages (pythonPkgs: (ipythonPythonPackages pythonPkgs) ++ (laboratoryPythonPackages pythonPkgs));
 		jupyterlabPython = laboratoryPython.withPackages (pythonPkgs: (jupyterlabPythonPackages pythonPkgs) ++ (laboratoryPythonPackages pythonPkgs));
 
-		a = if withJupyter then jupyterlabPython else ipythonPython;
+	in {
+		withJupyter = [
+			jupyterlabPython
+			marp
+		];
 
-	in [
-		marp
-		a
-	]
+		withIpython = [
+			ipythonPython
+			marp
+		];
+	}

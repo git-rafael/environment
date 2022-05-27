@@ -42,7 +42,7 @@ pkgs: with pkgs;
             sha256 = "sha256-H+mt0swUhRJG4VJ8jYeFFPfPVRHQW/EXb302xMtDp2M=";
           };
           buildInputs = with super;
-            [ python-dateutil pyzmq rich ];
+            [ rich ];
           propagatedBuildInputs = with super;
             [ python-dateutil pyzmq ];
         };

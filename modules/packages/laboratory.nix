@@ -53,7 +53,7 @@ pkgs: with pkgs;
 			};
 		};
 
-		laboratoryPythonPackages = python-packages: with python-packages; [
+		laboratoryPython = labpython.withPackages (python-packages: with python-packages; [
 			jupyterlab
 			panel
 			pyspark
@@ -72,9 +72,7 @@ pkgs: with pkgs;
 			ipython-sql_prettytable
 			sqlalchemy
 			ipython
-		]; 
-
-		laboratoryPython = labpython.withPackages laboratoryPythonPackages;
+		]);
 
 	in [
 		marp

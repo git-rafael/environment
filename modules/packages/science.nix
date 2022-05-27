@@ -35,7 +35,7 @@ pkgs: with pkgs;
 
         nbterm_kernel-driver = super.buildPythonPackage rec {
           pname = "kernel-driver";
-          version = "0.0.7";
+          version = "0.0.6";
           doCheck = false;
           src = super.fetchPypi {
             inherit pname version;

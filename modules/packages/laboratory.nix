@@ -29,8 +29,7 @@ pkgs: with pkgs;
 					};
 					buildInputs = with super;
 						[ six sqlalchemy sqlparse self.ipython-sql_prettytable ipython_genutils ipython ];
-					propagatedBuildInputs = with super;
-						[ sqlalchemy sqlparse self.ipython-sql_prettytable ];
+
 				};
 
 				jupyter_http_over_ws = super.buildPythonPackage rec {

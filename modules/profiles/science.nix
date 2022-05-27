@@ -1,8 +1,8 @@
 { config, lib, pkgs, ... }:
 
 let
-  laboratoryPackages = import ../packages/laboratory.nix pkgs;
+  sciencePackages = import ../packages/science.nix pkgs;
 
 in {
-  home.packages = laboratoryPackages.withJupyter;
+  home.packages = sciencePackages.withIpython;
 }

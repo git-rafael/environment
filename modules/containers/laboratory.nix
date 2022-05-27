@@ -1,11 +1,11 @@
 { pkgs } : 
 let
-  laboratoryPackages = import ../packages/laboratory.nix pkgs;
+  sciencePackages = import ../packages/science.nix pkgs;
 in {
   name = "environment";
   tag = "laboratory";
 
-  contents = laboratoryPackages.withIpython;
+  contents = sciencePackages.withIpython;
 
   config = {
     Cmd = [ "ipython" ];

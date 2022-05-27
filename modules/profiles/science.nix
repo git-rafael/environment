@@ -10,5 +10,5 @@ in {
     name = "pipzone";
     targetPkgs = pkgs: sciencePackages.withIpython;
     runScript = "bash";
-  };
+  }.env;
 }

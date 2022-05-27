@@ -44,7 +44,7 @@ pkgs: with pkgs;
           buildInputs = with super;
             [ python-dateutil pyzmq rich ];
           propagatedBuildInputs = with super;
-            [ python-dateutil ];
+            [ python-dateutil pyzmq ];
         };
 
         nbterm = super.buildPythonPackage rec {

@@ -65,6 +65,9 @@
       ./modules/profiles/development.nix
     ];
 
-    packages.x86_64-linux.container.laboratory = mkContainerDerivation "x86_64-linux" ./modules/containers/laboratory.nix;
+    packages.x86_64-linux.container.python = mkContainerDerivation "x86_64-linux" ./modules/containers/python.nix;
+    packages.x86_64-linux.container.javascript = mkContainerDerivation "x86_64-linux" ./modules/containers/javascript.nix;
+    packages.x86_64-linux.container.java = mkContainerDerivation "x86_64-linux" ./modules/containers/java.nix;
+    packages.x86_64-linux.container.dotnet = mkContainerDerivation "x86_64-linux" ./modules/containers/dotnet.nix;
   };
 }

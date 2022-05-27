@@ -25,11 +25,9 @@ After loading a `device` environment to your appliance other `targets` will be e
 ### Containers
 
 - **container.python**: dev container for [Python](https://www.python.org/) stacks and projects.
-- **container.node**: dev container for [Node.js](https://nodejs.org/) stacks and projects.
+- **container.javascript**: dev container for [javascript](https://www.javascript.com/) stacks and projects.
 - **container.java**: dev container for [Java](https://www.java.com/) stacks and projects.
 - **container.dotnet**: dev container for [.NET Core](https://dotnet.microsoft.com/) stacks and projects.
-- **container.automation**: tools container for security, infrastructure operations and home automation.
-- **container.laboratory**: tools container for data exploration, science and visualization.
 
 ### Devices
 

@@ -23,6 +23,7 @@ pkgs: with pkgs;
       goss
       dgoss
 
+      dind
       using
     ];
 

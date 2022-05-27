@@ -1,6 +1,6 @@
 pkgs: with pkgs;
 	let
-		laboratoryPython = python38.override {
+		labpython = python38.override {
 
 			packageOverrides = self: super: {
 
@@ -53,9 +53,7 @@ pkgs: with pkgs;
 			};
 		};
 
-	in [
-		marp
-		laboratoryPython.withPackages (ps: with ps; [
+		laboratoryPythonPackages = python-packages: with python-packages; [
 			jupyterlab
 			panel
 			pyspark
@@ -74,5 +72,11 @@ pkgs: with pkgs;
 			ipython-sql_prettytable
 			sqlalchemy
 			ipython
-		])
+		]; 
+
+		laboratoryPython = labpython.withPackages laboratoryPythonPackages;
+
+	in [
+		marp
+		laboratoryPython
 	]

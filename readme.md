@@ -32,7 +32,7 @@ After loading a `device` environment to your appliance other `targets` will be e
 ### Devices
 
 - **device.phone**: loads on a [nix-on-droid](https://github.com/t184256/nix-on-droid) environment, contains tools for systems and data operations.
-- **device.tablet**: loads on a default [crostini](https://chromeos.dev/en/linux) environment, contains tools for systems and data operations.
+- **device.tablet**: loads on a default [crostini](https://chromeos.dev/en/linux) environment, contains tools for security, systems and data operations.
 - **device.notebook**: loads on a default [crostini](https://chromeos.dev/en/linux) environment, contains a complete environment of development, security and operations tools.
 - **device.core-hub**: loads on a [SSH & Web Terminal](https://github.com/hassio-addons/addon-ssh) [Home Assistant](https://www.home-assistant.io/) addon environment, contains tools for home automation, infrastructure and security operations.
 

@@ -17,6 +17,7 @@ let
     vim
     git
     perl
+    asdf
     htop
     ctop
     iotop
@@ -84,6 +85,7 @@ in {
         { name = "zplugin/zsh-exa"; }
 
         { name = "plugins/wd"; tags = [ from:oh-my-zsh ]; }
+        { name = "plugins/asdf"; tags = [ from:oh-my-zsh ]; }
         { name = "plugins/extract"; tags = [ from:oh-my-zsh ]; }
         { name = "plugins/copypath"; tags = [ from:oh-my-zsh ]; }
         { name = "plugins/copyfile"; tags = [ from:oh-my-zsh ]; }

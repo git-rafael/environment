@@ -41,6 +41,8 @@ pkgs: with pkgs;
             inherit pname version;
             sha256 = "sha256-H+mt0swUhRJG4VJ8jYeFFPfPVRHQW/EXb302xMtDp2M=";
           };
+          buildInputs = with super;
+            [ python-dateutil ];
         };
 
         nbterm = super.buildPythonPackage rec {
@@ -52,7 +54,7 @@ pkgs: with pkgs;
             sha256 = "sha256-uUURu4UeEK4FUsCc9+7TU3vPh8+bQmCtm8MRiCqYFgc=";
           };
           buildInputs = with super;
-            [ self.nbterm_kernel-driver python-dateutil ];
+            [ self.nbterm_kernel-driver ];
         };
 
         jupyter_http_over_ws = super.buildPythonPackage rec {

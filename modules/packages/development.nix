@@ -10,6 +10,9 @@ pkgs: with pkgs;
 
     packages = with pkgs; [
       coreutils
+      findutils
+      cifs-utils
+
       asdf-vm
       tldr
 

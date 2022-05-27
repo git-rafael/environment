@@ -55,10 +55,8 @@ pkgs: with pkgs;
             inherit pname version;
             sha256 = "sha256-uUURu4UeEK4FUsCc9+7TU3vPh8+bQmCtm8MRiCqYFgc=";
           };
-          buildInputs = with super;
-            [  typer ];
           propagatedBuildInputs = with super;
-            [ self.nbterm_kernel-driver prompt-toolkit rich pygments ];
+            [ self.nbterm_kernel-driver prompt-toolkit rich typer pygments ];
         };
 
         jupyter_http_over_ws = super.buildPythonPackage rec {

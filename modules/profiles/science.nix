@@ -6,9 +6,9 @@ let
 in {
   # home.packages = sciencePackages.withIpython;
 
-  home.packages = pkgs.buildFHSUserEnv {
+  home.packages = (pkgs.buildFHSUserEnv {
     name = "pipzone";
     targetPkgs = pkgs: sciencePackages.withIpython;
     runScript = "bash";
-  }.env;
+  }).env;
 }

@@ -5,5 +5,5 @@ let
   sciencePackages = import ../packages/science.nix pkgs;
 
 in {
-  home.packages = codePackages ++ sciencePackages.withJupyter;
+  home.packages = codePackages ++ sciencePackages.full;
 }

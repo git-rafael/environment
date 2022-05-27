@@ -4,5 +4,5 @@ let
   sciencePackages = import ../packages/science.nix pkgs;
 
 in {
-  home.packages = sciencePackages.withIpython;
+  home.packages = sciencePackages.lite;
 }

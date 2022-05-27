@@ -58,7 +58,7 @@ pkgs: with pkgs;
           buildInputs = with super;
             [ self.nbterm_kernel-driver rich typer ];
           propagatedBuildInputs = with super;
-            [ prompt-toolkit ];
+            [ prompt-toolkit pygments ];
         };
 
         jupyter_http_over_ws = super.buildPythonPackage rec {

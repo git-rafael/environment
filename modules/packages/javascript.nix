@@ -1,4 +1,3 @@
 pkgs: with pkgs; [
-  nvm
-  yarn
+  (yarn.override { nodejs = null; })
 ]

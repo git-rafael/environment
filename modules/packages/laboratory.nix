@@ -53,7 +53,7 @@ pkgs: with pkgs;
 			};
 		};
 
-		laboratoryPython = labpython.withPackages (python-packages: with python-packages; [
+		laboratoryPython = labpython.withPackages (pythonPkgs: with pythonPkgs; [
 			jupyterlab
 			panel
 			pyspark

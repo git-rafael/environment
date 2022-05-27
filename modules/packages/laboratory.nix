@@ -59,9 +59,7 @@ pkgs: with pkgs;
 			};
 		};
 
-		ipythonPython = laboratoryPython.withPackages (pythonPkgs: with pythonPkgs; [
-			jupyterlab
-			panel
+		laboratoryPackages = [
 			pyspark
 			pandas
 			numpy
@@ -72,14 +70,23 @@ pkgs: with pkgs;
 			statsmodels
 			scikit-learn
 			kafka-python
-			jupyter_http_over_ws
-			jupyter_bokeh
 			ipython-sql
 			sqlalchemy
+		];
+
+		ipythonPython = laboratoryPython.withPackages (pythonPkgs: with pythonPkgs; [
 			ipython
-		]);
+		] ++ laboratoryPackages);
+
+		jupyterlabPython = laboratoryPython.withPackages (pythonPkgs: with pythonPkgs; [
+			panel
+			jupyterlab
+			jupyter_bokeh
+			jupyter_http_over_ws
+		] ++ laboratoryPackages);
 
 	in [
 		marp
 		ipythonPython
+		jupyterlabPython
 	]

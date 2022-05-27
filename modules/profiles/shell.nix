@@ -17,7 +17,6 @@ let
     vim
     git
     perl
-    asdf
     htop
     ctop
     iotop
@@ -28,6 +27,7 @@ let
     openssh
     findutils
 
+    asdf-vm
     pritunl-ssh
 
     bitwarden-cli

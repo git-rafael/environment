@@ -1,4 +1,4 @@
 pkgs: with pkgs; [
-  nodejs
+  nvm
   yarn
 ]

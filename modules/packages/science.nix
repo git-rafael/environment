@@ -4,7 +4,7 @@ pkgs: with pkgs;
 
       self = sciencePython;
       reproducibleBuild = false;
-      # enableOptimizations = true;
+      enableOptimizations = true;
 
       packageOverrides = self: super: {
 

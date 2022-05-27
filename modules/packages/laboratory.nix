@@ -1,4 +1,4 @@
-pkgs: with pkgs;
+pkgs: withJupyter ? false: with pkgs;
 	let
 		laboratoryPython = python38.override {
 
@@ -59,7 +59,7 @@ pkgs: with pkgs;
 			};
 		};
 
-		laboratoryPackages = pythonPkgs: with pythonPkgs; [
+		laboratoryPythonPackages = pythonPkgs: with pythonPkgs; [
 			pyspark
 			pandas
 			numpy
@@ -74,22 +74,23 @@ pkgs: with pkgs;
 			sqlalchemy
 		];
 
-		ipythonPackages = pythonPkgs: with pythonPkgs; [
+		ipythonPythonPackages = pythonPkgs: with pythonPkgs; [
 			ipython
 		];
 
-		jupyterlabPackages = pythonPkgs: with pythonPkgs; [
+		jupyterlabPythonPackages = pythonPkgs: with pythonPkgs; [
 			panel
 			jupyterlab
 			jupyter_bokeh
 			jupyter_http_over_ws
 		];
 
-		ipythonPython = laboratoryPython.withPackages (pythonPkgs: (ipythonPackages pythonPkgs) ++ (laboratoryPackages pythonPkgs));
-		jupyterlabPython = laboratoryPython.withPackages (pythonPkgs: (jupyterlabPackages pythonPkgs) ++ (laboratoryPackages pythonPkgs));
+		ipythonPython = laboratoryPython.withPackages (pythonPkgs: (ipythonPythonPackages pythonPkgs) ++ (laboratoryPythonPackages pythonPkgs));
+		jupyterlabPython = laboratoryPython.withPackages (pythonPkgs: (jupyterlabPythonPackages pythonPkgs) ++ (laboratoryPythonPackages pythonPkgs));
+
+		a = if withJupyter then jupyterlabPython else ipythonPython;
 
 	in [
 		marp
-		ipythonPython
-		jupyterlabPython
+		a
 	]

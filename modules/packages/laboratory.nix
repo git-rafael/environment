@@ -59,6 +59,10 @@ pkgs: with pkgs;
 			};
 		};
 
+		laboratoryPackages = [
+			marp
+		];
+
 		laboratoryPythonPackages = pythonPkgs: with pythonPkgs; [
 			pyspark
 			pandas
@@ -91,11 +95,11 @@ pkgs: with pkgs;
 	in {
 		withJupyter = [
 			jupyterlabPython
-			marp
+			laboratoryPackages
 		];
 
 		withIpython = [
 			ipythonPython
-			marp
+			laboratoryPackages
 		];
 	}

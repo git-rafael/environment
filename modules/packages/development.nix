@@ -26,5 +26,5 @@ pkgs: with pkgs;
   in {
     lite = packages;
 
-    full = lite ++ javaPackages ++ dotnetPackages ++ pythonPackages ++ javascriptPackages;
+    full = packages ++ javaPackages ++ dotnetPackages ++ pythonPackages ++ javascriptPackages;
   }

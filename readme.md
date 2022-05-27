@@ -31,10 +31,10 @@ After loading a `device` environment to your appliance other `targets` will be e
 
 ### Devices
 
-- **device.phone**: loads on a [nix-on-droid](https://github.com/t184256/nix-on-droid) environment, contains tools for systems and data operations.
-- **device.tablet**: loads on a default [crostini](https://chromeos.dev/en/linux) environment, contains tools for security, systems and data operations besides a science and development coding environment.
-- **device.notebook**: loads on a default [crostini](https://chromeos.dev/en/linux) environment, contains tools for systems and data operations besides a science and development coding environment.
-- **device.core-hub**: loads on a [SSH & Web Terminal](https://github.com/hassio-addons/addon-ssh) [Home Assistant](https://www.home-assistant.io/) addon environment, contains tools for security, systems and data operations besides a science and development environment.
+- **device.phone**: loads on a device with [nix-on-droid](https://github.com/t184256/nix-on-droid), contains tools for systems and data operations.
+- **device.tablet**: loads on a device with [crostini](https://chromeos.dev/en/linux), contains tools for security, systems and data operations besides a science and development coding environment.
+- **device.notebook**: loads on a device with [crostini](https://chromeos.dev/en/linux), contains tools for systems and data operations besides a science and development coding environment.
+- **device.core-hub**: loads on a device with [SSH & Web Terminal](https://github.com/hassio-addons/addon-ssh) [Home Assistant](https://www.home-assistant.io/) addon, contains tools for security, systems and data operations besides a science and development environment.
 
 ## Notes
 

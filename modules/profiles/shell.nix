@@ -27,6 +27,8 @@ let
     openssh
     findutils
 
+    pritunl-ssh
+
     bitwarden-cli
     home-assistant-cli
 

@@ -17,8 +17,6 @@ pkgs: with pkgs;
       git-crypt
       git-hound
 
-      pritunl-ssh
-
       goss
       dgoss
     ];

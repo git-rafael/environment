@@ -74,16 +74,19 @@ pkgs: with pkgs;
 			sqlalchemy
 		];
 
-		ipythonPython = laboratoryPython.withPackages (pythonPkgs: with pythonPkgs; [
+		ipythonPackages = pythonPkgs: with pythonPkgs; [
 			ipython
-		] ++ laboratoryPackages);
+		];
 
-		jupyterlabPython = laboratoryPython.withPackages (pythonPkgs: with pythonPkgs; [
+		jupyterlabPackages = pythonPkgs: with pythonPkgs; [
 			panel
 			jupyterlab
 			jupyter_bokeh
 			jupyter_http_over_ws
-		] ++ laboratoryPackages);
+		];
+
+		ipythonPython = laboratoryPython.withPackages (pythonPkgs: (ipythonPackages pythonPkgs) ++ (laboratoryPackages pythonPkgs));
+		jupyterlabPython = laboratoryPython.withPackages (pythonPkgs: (jupyterlabPackages pythonPkgs) ++ (laboratoryPackages pythonPkgs));
 
 	in [
 		marp

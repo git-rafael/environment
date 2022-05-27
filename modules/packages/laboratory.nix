@@ -1,10 +1,10 @@
 pkgs: with pkgs;
 	let
-		labpython = python38.override {
+		laboratoryPython = python38.override {
 
-			# labpython = mypython;
-			# enableOptimizations = true;
+			# self = laboratoryPython;
 			# reproducibleBuild = false;
+			# enableOptimizations = true;
 			
 			packageOverrides = self: super: {
 
@@ -29,7 +29,8 @@ pkgs: with pkgs;
 					};
 					buildInputs = with super;
 						[ six sqlalchemy sqlparse self.ipython-sql_prettytable ipython_genutils ipython ];
-
+					propagatedBuildInputs = with super;
+						[ sqlalchemy sqlparse self.ipython-sql_prettytable ];
 				};
 
 				jupyter_http_over_ws = super.buildPythonPackage rec {
@@ -58,7 +59,7 @@ pkgs: with pkgs;
 			};
 		};
 
-		laboratoryPython = labpython.withPackages (pythonPkgs: with pythonPkgs; [
+		ipythonPython = laboratoryPython.withPackages (pythonPkgs: with pythonPkgs; [
 			jupyterlab
 			panel
 			pyspark
@@ -80,5 +81,5 @@ pkgs: with pkgs;
 
 	in [
 		marp
-		laboratoryPython
+		ipythonPython
 	]

@@ -5,6 +5,9 @@ pkgs: with pkgs;
     pythonPackages = import ./python.nix pkgs;
     javascriptPackages = import ./javascript.nix pkgs;
 
+    dind = pkgs.writeShellScriptBin "dind" (builtins.readFile ../../resources/scripts/dind);
+    using = pkgs.writeShellScriptBin "using" (builtins.readFile ../../resources/scripts/using);
+
     packages = with pkgs; [
       tldr
       
@@ -19,6 +22,8 @@ pkgs: with pkgs;
 
       goss
       dgoss
+
+      using
     ];
 
   in {

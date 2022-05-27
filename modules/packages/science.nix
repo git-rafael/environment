@@ -33,32 +33,6 @@ pkgs: with pkgs;
             [ sqlalchemy sqlparse self.ipython-sql_prettytable ];
         };
 
-        nbterm_kernel-driver = super.buildPythonPackage rec {
-          pname = "kernel_driver";
-          version = "0.0.7";
-          doCheck = false;
-          src = super.fetchPypi {
-            inherit pname version;
-            sha256 = "sha256-H+mt0swUhRJG4VJ8jYeFFPfPVRHQW/EXb302xMtDp2M=";
-          };
-          buildInputs = with super;
-            [ rich ];
-          propagatedBuildInputs = with super;
-            [ python-dateutil pyzmq ];
-        };
-
-        nbterm = super.buildPythonPackage rec {
-          pname = "nbterm";
-          version = "0.0.12";
-          doCheck = false;
-          src = super.fetchPypi {
-            inherit pname version;
-            sha256 = "sha256-uUURu4UeEK4FUsCc9+7TU3vPh8+bQmCtm8MRiCqYFgc=";
-          };
-          propagatedBuildInputs = with super;
-            [ self.nbterm_kernel-driver prompt-toolkit rich typer pygments ];
-        };
-
         jupyter_http_over_ws = super.buildPythonPackage rec {
           pname = "jupyter_http_over_ws";
           version = "0.0.8";
@@ -102,7 +76,7 @@ pkgs: with pkgs;
     ];
 
     localSciencePackages = pythonPkgs: with pythonPkgs; [
-      nbterm
+      ipython
     ];
 
     serverSciencePackages = pythonPkgs: with pythonPkgs; [

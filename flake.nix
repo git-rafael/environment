@@ -32,32 +32,37 @@
     nixOnDroidConfigurations.phone = mkDeviceMobileDerivation "aarch64-linux" [
       ./modules/profiles/base.nix
       ./modules/profiles/shell.nix
+      ./modules/profiles/data.nix
+      ./modules/profiles/systems.nix
     ];
 
     homeConfigurations.tablet = mkDeviceDerivation "x86_64-linux" "rafael" [
       ./modules/profiles/base.nix
       ./modules/profiles/shell.nix
-      ./modules/profiles/code.nix
       ./modules/profiles/data.nix
       ./modules/profiles/systems.nix
-      ./modules/profiles/science.nix
-      ./modules/profiles/development.nix
       ./modules/profiles/security.nix
+      ./modules/profiles/code-science.nix
+      ./modules/profiles/code-development.nix
     ];
 
     homeConfigurations.notebook = mkDeviceDerivation "x86_64-linux" "rafaeloliveira" [
       ./modules/profiles/base.nix
       ./modules/profiles/shell.nix
-      ./modules/profiles/code.nix
       ./modules/profiles/data.nix
       ./modules/profiles/systems.nix
-      ./modules/profiles/science.nix
-      ./modules/profiles/development.nix
+      ./modules/profiles/code-science.nix
+      ./modules/profiles/code-development.nix
     ];
 
     homeConfigurations.core-hub = mkDeviceDerivation "x86_64-linux" "root" [
       ./modules/profiles/base.nix
       ./modules/profiles/shell.nix
+      ./modules/profiles/data.nix
+      ./modules/profiles/systems.nix
+      ./modules/profiles/security.nix
+      ./modules/profiles/science.nix
+      ./modules/profiles/development.nix
     ];
 
     packages.x86_64-linux.container.laboratory = mkContainerDerivation "x86_64-linux" ./modules/containers/laboratory.nix;

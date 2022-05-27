@@ -59,15 +59,12 @@ pkgs: with pkgs;
 			};
 		};
 
-		laboratoryPackages = [
-			marp
-		];
-
 		laboratoryPythonPackages = pythonPkgs: with pythonPkgs; [
-			pyspark
+			panel
 			pandas
 			numpy
 			scipy
+			pyspark
 			patsy
 			altair
 			influxdb
@@ -83,7 +80,6 @@ pkgs: with pkgs;
 		];
 
 		jupyterlabPythonPackages = pythonPkgs: with pythonPkgs; [
-			panel
 			jupyterlab
 			jupyter_bokeh
 			jupyter_http_over_ws
@@ -92,14 +88,16 @@ pkgs: with pkgs;
 		ipythonPython = laboratoryPython.withPackages (pythonPkgs: (ipythonPythonPackages pythonPkgs) ++ (laboratoryPythonPackages pythonPkgs));
 		jupyterlabPython = laboratoryPython.withPackages (pythonPkgs: (jupyterlabPythonPackages pythonPkgs) ++ (laboratoryPythonPackages pythonPkgs));
 
-	in {
-		withJupyter = [
-			jupyterlabPython
-			laboratoryPackages
+		laboratoryPackages = [
+			marp
 		];
 
+	in {
 		withIpython = [
 			ipythonPython
-			laboratoryPackages
-		];
+		] ++ laboratoryPackages;
+
+		withJupyter = [
+			jupyterlabPython
+		] ++ laboratoryPackages;
 	}

@@ -5,7 +5,7 @@ in {
   name = "environment";
   tag = "laboratory";
 
-  contents = laboratoryPackages;
+  contents = laboratoryPackages.withIpython;
 
   config = {
     Cmd = [ "ipython" ];

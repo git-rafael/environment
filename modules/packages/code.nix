@@ -6,5 +6,4 @@ pkgs: with pkgs; [
     spotify
 
     vscode
-    gnome.gnome-keyring
 ]

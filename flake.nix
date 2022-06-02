@@ -20,8 +20,8 @@
 
     mkDeviceDerivation = system: username: modulePaths: home-manager.lib.homeManagerConfiguration {
       inherit system username;
-      homeDirectory = "/home/${username}";
       configuration.imports = modulePaths;
+      homeDirectory = if username == "root" then "/root" else "/home/${username}";
     };
 
     mkContainerDerivation = system: modulePath:
@@ -29,14 +29,14 @@
       in systemPkgs.dockerTools.buildImage (import modulePath { pkgs = systemPkgs; });
 
   in {
-    nixOnDroidConfigurations.phone = mkDeviceMobileDerivation "aarch64-linux" [
+    nixOnDroidConfigurations.mobile = mkDeviceMobileDerivation "aarch64-linux" [
       ./modules/profiles/base.nix
       ./modules/profiles/shell.nix
       ./modules/profiles/data.nix
       ./modules/profiles/systems.nix
     ];
 
-    homeConfigurations.tablet = mkDeviceDerivation "x86_64-linux" "rafael" [
+    homeConfigurations.personal = mkDeviceDerivation "x86_64-linux" "rafael" [
       ./modules/profiles/base.nix
       ./modules/profiles/shell.nix
       ./modules/profiles/data.nix
@@ -46,7 +46,7 @@
       ./modules/profiles/code-development.nix
     ];
 
-    homeConfigurations.notebook = mkDeviceDerivation "x86_64-linux" "rafaeloliveira" [
+    homeConfigurations.professional = mkDeviceDerivation "x86_64-linux" "rafaeloliveira" [
       ./modules/profiles/base.nix
       ./modules/profiles/shell.nix
       ./modules/profiles/data.nix
@@ -55,7 +55,7 @@
       ./modules/profiles/code-development.nix
     ];
 
-    homeConfigurations.core-hub = mkDeviceDerivation "x86_64-linux" "root" [
+    homeConfigurations.home = mkDeviceDerivation "x86_64-linux" "root" [
       ./modules/profiles/base.nix
       ./modules/profiles/shell.nix
       ./modules/profiles/data.nix

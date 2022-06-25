@@ -6,7 +6,6 @@ readonly TARGET_REFERENCE=${2:-'main'};
 readonly TARGET_CONFIG="${HOME}/.nix-target";
 if [ -d "${TARGET_REFERENCE}" ]; then
   readonly TARGET_URL="${TARGET_REFERENCE}";
-  echo "Using local path '${TARGET_REFERENCE}'.";
 else
   readonly TARGET_URL="github:git-rafael/environment?ref=${TARGET_REFERENCE}";
 fi

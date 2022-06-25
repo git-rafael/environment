@@ -7,7 +7,7 @@ This is my personal Linux environment repository containing [Nix](https://nixos.
 On first use:
 
 ```sh
-curl -fsSL https://home.redeoliveira.com/env-load | TARGET='<target>' sh
+curl -fsSL https://raw.githubusercontent.com/git-rafael/environment/main/resources/scripts/env-load | TARGET='<target>' sh
 ```
 
 If loading a `device` type, the `target` environment and the `env-load` script will be available locally. To update with the latest version:
@@ -31,10 +31,10 @@ After loading a `device` environment to your appliance other `targets` will be e
 
 ### Devices
 
-- **device.phone**: loads on a device with [nix-on-droid](https://github.com/t184256/nix-on-droid), contains tools for systems and data operations.
-- **device.tablet**: loads on a device with [crostini](https://chromeos.dev/en/linux), contains tools for security, systems and data operations besides a science and development coding environment.
-- **device.notebook**: loads on a device with [crostini](https://chromeos.dev/en/linux), contains tools for systems and data operations besides a science and development coding environment.
-- **device.core-hub**: loads on a device with [SSH & Web Terminal](https://github.com/hassio-addons/addon-ssh) [Home Assistant](https://www.home-assistant.io/) addon, contains tools for security, systems and data operations besides a science and development environment.
+- **device.mobile**: loads on a device with [nix-on-droid](https://github.com/t184256/nix-on-droid), contains tools for systems and data operations.
+- **device.personal**: loads on a device with [crostini](https://chromeos.dev/en/linux), contains tools for security, systems and data operations besides a science and development coding environment.
+- **device.professional**: loads on a device with [crostini](https://chromeos.dev/en/linux), contains tools for systems and data operations besides a science and development coding environment.
+- **device.home**: loads on a device with [SSH & Web Terminal](https://github.com/hassio-addons/addon-ssh) [Home Assistant](https://www.home-assistant.io/) addon, contains tools for security, systems and data operations besides a science and development environment.
 
 ## Notes
 

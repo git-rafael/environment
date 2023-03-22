@@ -1,0 +1,123 @@
+set -e;
+
+readonly OS="$(uname -s)";
+
+# Docker installation check
+readonly COMMAND="${DOCKER_COMMAND:-docker}";
+if ! command -v "${COMMAND}" >/dev/null; then
+	if [ "${OS}" = "Linux" ]; then
+		curl -fsSL https://get.docker.com | sh;
+		exit 1;
+	else
+		echo 'Docker Engine not found.';
+		exit 1;
+	fi
+fi
+
+# Image and arguments
+if [ "${1}" = "new" ]; then
+	readonly ARGUMENTS_INDEX='2';
+	readonly IMAGE="${2:-${USING_IMAGE}}";
+
+	if [ -n "${IMAGE}" ]; then
+		while true; do
+				read -n1 -p "Update '${IMAGE}'? (Y/N) " yn && echo;
+				case $yn in
+						[Yy] ) docker pull ${IMAGE};;
+						[Nn] ) echo "Skipping..."; exit 0;;
+						* ) echo "Please answer Y or N.";;
+				esac
+		done
+	fi
+else
+	readonly ARGUMENTS_INDEX='1';
+	readonly IMAGE="${1:-${USING_IMAGE}}";
+
+	readonly CONTAINER=$(${COMMAND} ps -aq -f"name=^/${IMAGE}$");
+	if [ -n "${CONTAINER}" ]; then
+		shift ${ARGUMENTS_INDEX};
+		echo "Using container '${CONTAINER}'.";
+		eval exec "${COMMAND}" exec -ti ${CONTAINER} sh -c "'${@}'";
+	fi
+fi
+
+if [ -z "${IMAGE}" ]; then
+	echo 'Define USING_IMAGE environment variable or set image name as a parameter.';
+	exit 1;
+fi
+
+# TTY configuration
+if tty -s >/dev/null 2>&1; then
+	if [ -t 1 ]; then
+		readonly TERMINAL_FLAG='-t';
+	fi
+	if [ -t 0 ]; then
+		readonly INTERACTIVE_FLAG='-i';
+	fi
+else
+	readonly INTERACTIVE_FLAG='-i';
+fi
+readonly TTY_PARAMETERS="${TERMINAL_FLAG} ${INTERACTIVE_FLAG}";
+
+# Docker API location
+if [ -z "${DOCKER_HOST}" ]; then
+	readonly DOCKER_HOST="/var/run/docker.sock";
+fi
+
+if [ -S "$DOCKER_HOST" ]; then
+	readonly DOCKER_API_PARAMETERS="-v ${DOCKER_HOST}:${DOCKER_HOST} -e DOCKER_HOST";
+else
+	readonly DOCKER_API_PARAMETERS="-e DOCKER_HOST -e DOCKER_TLS_VERIFY -e DOCKER_CERT_PATH";
+fi
+
+# Volumes, groups and mappings
+readonly PWD="$(pwd)";
+if [ "${OS}" = "Linux" ]; then
+	if ! $(cat /etc/group | grep "docker:.*${USER}" >/dev/null) && ! [ $(id -u) = 0 ]; then
+		readonly PRE_COMMAND='sudo';
+	fi
+
+	readonly USER_ID=$(id -u ${USING_USER} 2>/dev/null || id -u -n ${USING_USER} 2>/dev/null || echo ${USING_USER});
+	readonly USER_HOME=${USING_HOME:-$(eval echo "~$(getent passwd ${USER_ID:-0} | cut -d: -f1)")};
+
+	readonly USER_PARAMETER="--user=${USER_ID}";
+	readonly GROUPS_PARAMETERS="--group-add $(getent group docker|cut -d: -f3) --group-add $( (getent group sudo||getent group wheel)|cut -d: -f3)";
+	readonly VOLUMES_PARAMETERS="-v \"${PWD}:${PWD}\" -v /root:/root -v /:/host -v /etc/passwd:/etc/passwd -v /etc/shadow:/etc/shadow -v /etc/group:/etc/group -v /etc/sudoers:/etc/sudoers -v /tmp/.X11-unix:/tmp/.X11-unix";
+elif [ "${OS}" = "Darwin" ]; then
+	readonly USER_ID="";
+	readonly USER_HOME="${USING_HOME:-HOME}";
+
+	readonly USER_PARAMETER="";
+	readonly GROUPS_PARAMETERS="";
+	readonly VOLUMES_PARAMETERS="-v \"${PWD}:${PWD}\" -v /tmp/.X11-unix:/tmp/.X11-unix";
+else
+	readonly PRE_COMMAND='winpty';
+
+	readonly USER_ID="";
+	readonly USER_HOME="${USING_HOME:-HOME}";
+
+	readonly USER_PARAMETER="";
+	readonly GROUPS_PARAMETERS="";
+	readonly VOLUMES_PARAMETERS="";
+fi
+
+if [ -d ${USER_HOME} ] || [ -n "${USING_HOME}" ]; then
+	readonly HOME_VOLUME_PARAMETER="-v ${USER_HOME}:${USER_HOME}";
+
+	if [ -f ${USER_HOME}/.using_profile ]; then
+		readonly ENV_FILE="--env-file=${USER_HOME}/.using_profile";
+	fi
+fi
+
+# Staring up
+readonly PRIVILEGE_FLAGS="--privileged --network=host --ipc=host --uts=host --userns=host --pid=host --cap-add=ALL";
+readonly ENGINE_PARAMETERS="run --rm ${USER_PARAMETER} -w \"/${PWD}\" -e HOME=${USER_HOME} -e DISPLAY=${DISPLAY} ${ENV_FILE} ${PRIVILEGE_FLAGS} ${GROUPS_PARAMETERS} ${VOLUMES_PARAMETERS} ${HOME_VOLUME_PARAMETER} ${TTY_PARAMETERS} ${DOCKER_API_PARAMETERS} ${IMAGE}";
+
+if [ -t 0 ]; then
+	shift ${ARGUMENTS_INDEX};
+	eval exec ${PRE_COMMAND} "${COMMAND}" ${ENGINE_PARAMETERS} "${@}";
+else
+	while read PARAMETERS_LINE; do
+		eval ${PRE_COMMAND} "${COMMAND}" ${ENGINE_PARAMETERS} ${PARAMETERS_LINE};
+	done
+fi

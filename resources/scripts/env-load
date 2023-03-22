@@ -1,0 +1,63 @@
+set -e;
+
+readonly TARGET_PARAMETER=${1:-${TARGET:-}};
+readonly TARGET_REFERENCE=${2:-${TARGET_REF:-'main'}};
+
+readonly TARGET_CONFIG="${HOME}/.nix-target";
+if [ -d "${TARGET_REFERENCE}" ]; then
+  readonly TARGET_URL="${TARGET_REFERENCE}";
+else
+  readonly TARGET_URL="github:git-rafael/environment?ref=${TARGET_REFERENCE}";
+fi
+
+if [ -z "${TARGET_PARAMETER}" ]; then
+  readonly TARGET="$(cat ${TARGET_CONFIG} 2>/dev/null || printf '???')";
+else
+  readonly TARGET="${TARGET_PARAMETER}";
+fi
+
+readonly TARGET_PATH="${TARGET_URL}#homeConfigurations.${TARGET}.activationPackage";
+
+
+if [ -f /etc/alpine-release ]; then
+  export USER=${USER:-root};
+elif [ -n "${TERMUX_VERSION}" ]; then
+  export GC_NPROCS=1;
+  export USER=${USER:-null};
+fi
+export NIX_INSTALLER_NO_MODIFY_PROFILE=true;
+
+if ! command -v nix >/dev/null 2>&1; then
+  if [ -f /etc/alpine-release ]; then
+    mkdir -p /etc/nix;
+    printf "sandbox = false\n" > /etc/nix/nix.conf;
+    printf "filter-syscalls = false\n" >> /etc/nix/nix.conf;
+
+    apk --no-cache add xz >/dev/null;
+
+    test $(getent group nixbld) || addgroup -g 30000 -S nixbld;
+    for i in $(seq 1 30); do
+        test $(id -u "nixbld$i" 2>/dev/null) || adduser -S -D -h /var/empty -g "Nix build user $i" -u $((30000 + i)) -G nixbld "nixbld$i";
+    done
+  elif [ -n "${TERMUX_VERSION}" ]; then
+    mkdir -p /nix;
+    mkdir -p /etc/nix;
+    printf "sandbox = false\n" > /etc/nix/nix.conf;
+    printf "nameserver 1.1.1.1\n" > /etc/resolv.conf;
+  fi
+
+  curl -sL https://releases.nixos.org/nix/nix-2.13.3/install | sh -s -- --no-daemon;
+  . ${HOME}/.nix-profile/etc/profile.d/nix.sh;
+
+  mkdir -p ${HOME}/.config/nix;
+  nix-env --quiet -f '<nixpkgs>' -iA nixUnstable;
+  printf 'experimental-features = nix-command flakes\n' > ${HOME}/.config/nix/nix.conf;
+
+  nix-env --set-flag priority 0 nix;
+fi
+
+
+trap 'nix-collect-garbage --quiet' EXIT;
+nix build ${TARGET_PATH} --no-link && $(nix path-info ${TARGET_PATH})/activate;
+
+printf "${TARGET}" > ${TARGET_CONFIG};

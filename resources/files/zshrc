@@ -1,0 +1,37 @@
+export EDITOR='vim';
+export TERM='xterm-256color';
+
+if [ -z "${NIX_PROFILES}" ]; then
+  if [ -f /etc/alpine-release ]; then
+    export USER=${USER:-root};
+  elif [ -n "${TERMUX_VERSION}" ]; then
+    export GC_NPROCS=1;
+    export USER=${USER:-null};
+  fi  
+  . ${HOME}/.nix-profile/etc/profile.d/nix.sh;
+fi
+
+if [ -e ~/.env ]; then
+  . ~/.env;
+fi
+
+# direnv hook
+eval "$(direnv hook zsh)";
+
+# exa aliases
+alias ls='exa'; # just replace ls by exa and allow all other exa arguments
+alias l='ls -lbF'; # list, size, type
+alias ll='ls -la'; # long, all
+alias llm='ll --sort=modified'; # list, long, sort by modification date
+alias la='ls -lbhHigUmuSa'; # all list
+alias lx='ls -lbhHigUmuSa@'; # all list and extended
+alias tree='exa --tree'; # tree view
+alias lS='exa -1'; # one column by just names
+
+# deer binding
+zle -N deer;
+bindkey '\ek' deer;
+
+# p10k initialization
+# run `p10k configure` or edit ~/.p10k.zsh to customize the prompt
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh;

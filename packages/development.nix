@@ -47,6 +47,7 @@ let
     pythonPackages
 
     devbox
+    quarto
     tldr
     gh
 

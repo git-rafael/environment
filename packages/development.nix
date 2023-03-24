@@ -4,6 +4,16 @@ let
   dind = pkgs.writeShellScriptBin "dind" (builtins.readFile ../resources/scripts/dind);
   using = pkgs.writeShellScriptBin "using" (builtins.readFile ../resources/scripts/using);
 
+  quarto = pkgs.quarto.overrideAttrs (oldAttrs: {
+      installPhase = ''
+        runHook preInstall
+        mkdir -p $out/bin $out/share
+        mv bin/* $out/bin
+        mv share/* $out/share
+        runHook preInstall
+    '';
+  });
+
   python = pkgs.python311.override {
     packageOverrides = self: super: {
       

@@ -20,10 +20,12 @@ let
       jupyter_http_over_ws = super.buildPythonPackage rec {
         pname = "jupyter_http_over_ws";
         version = "0.0.8";
-        doCheck = false;
+        format = "wheel";
+        python = "py2.py3";
+        dist = python;
         src = super.fetchPypi {
-          inherit pname version;
-          sha256 = "sha256-sKoeeQLTgIppjUhT9t/hL9AqDZyzhR2zv1lwMQbUSoA=";
+          inherit pname version format python dist;
+          sha256 = "sha256-MFKpSSnZ+0Hk/jP8IsVp6B4Bi5RUqSO9gYWZv2L/2Fo=";
         };
         buildInputs = with super;
           [ jupyter-packaging notebook ];
@@ -58,6 +60,7 @@ let
 
     devbox
     quarto
+    httpie
     tldr
     gh
 

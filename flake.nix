@@ -10,6 +10,7 @@
 
   let
     coding = import ./packages/coding.nix;
+    tooling = import ./packages/tooling.nix;
     security = import ./packages/security.nix;
     operations = import ./packages/operations.nix;
     development = import ./packages/development.nix;
@@ -25,10 +26,10 @@
         ./home.nix
         {
           home.packages =
-            if profile == "mobile" then (operations pkgs ++ security pkgs)
-            else if profile == "home" then (operations pkgs ++ security pkgs ++ development pkgs)
-            else if profile == "professional" then (operations pkgs ++ development pkgs ++ coding pkgs)
-            else if profile == "personal" then (operations pkgs ++ security pkgs ++ development pkgs ++ coding pkgs)
+            if profile == "mobile" then (tooling pkgs ++ operations pkgs ++ security pkgs)
+            else if profile == "home" then (tooling pkgs ++ operations pkgs ++ security pkgs ++ development pkgs)
+            else if profile == "professional" then (tooling pkgs ++ operations pkgs ++ development pkgs ++ coding pkgs)
+            else if profile == "personal" then (tooling pkgs ++ operations pkgs ++ security pkgs ++ development pkgs ++ coding pkgs)
             else abort "Not a valid profile";
 
           home.homeDirectory =

@@ -4,48 +4,17 @@ let
   env-load = pkgs.writeShellScriptBin "env-load" (builtins.readFile ./resources/scripts/env-load);
   env-shell = pkgs.writeShellScriptBin "env-shell" (builtins.readFile ./resources/scripts/env-shell);
 
-  packages = with pkgs; [
-    direnv
-
-    ncurses
-    gnugrep
-    gnused
-    gnutar
-    gzip
-    gawk
-    wget
-    zip
-    jq
-    exa
-    bat
-    vim
-    tiv
-    git
-    perl
-    htop
-    ctop
-    iotop
-    iftop
-    rsync
-    xclip
-    httpie
-    openssh
-    pciutils
-    findutils
-    coreutils
-    cifs-utils
-
-    pritunl-ssh
-
-    bitwarden-cli
-    home-assistant-cli
-
+in {
+  home.packages = with pkgs; [
     env-load
     env-shell
-  ];
 
-in {
-  home.packages = packages;
+    vim
+    exa
+    git
+
+    direnv
+  ];
 
   programs.broot = {
     enable = true;
@@ -92,7 +61,7 @@ in {
       ];
     };
 
-    initExtra = (builtins.readFile ./resources/files/zshrc);
+    initExtra = (builtins.readFile ./resources/settings/zshrc);
   };
 
   programs.tmux = {
@@ -110,6 +79,6 @@ in {
       tmuxPlugins.better-mouse-mode
     ];
 
-    extraConfig = (builtins.readFile ./resources/files/tmux.conf);
+    extraConfig = (builtins.readFile ./resources/settings/tmux.conf);
   };
 }

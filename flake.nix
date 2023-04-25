@@ -26,8 +26,8 @@
         ./home.nix
         {
           home.packages =
-            if profile == "mobile" then (tooling pkgs ++ operations pkgs ++ security pkgs)
-            else if profile == "home" then (tooling pkgs ++ operations pkgs ++ security pkgs ++ development pkgs)
+            if profile == "home" then (tooling pkgs ++ operations pkgs ++ security pkgs)
+            else if profile == "mobile" then (tooling pkgs ++ operations pkgs ++ security pkgs ++ development pkgs)
             else if profile == "professional" then (tooling pkgs ++ operations pkgs ++ development pkgs ++ coding pkgs)
             else if profile == "personal" then (tooling pkgs ++ operations pkgs ++ security pkgs ++ development pkgs ++ coding pkgs)
             else abort "Not a valid profile";

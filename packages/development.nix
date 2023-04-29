@@ -16,6 +16,7 @@ let
 
   packages = with pkgs; [
     devbox
+
     quarto
     httpie
     tldr

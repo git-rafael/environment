@@ -19,6 +19,8 @@ let
     circleci-cli
 
     steampipe
+
+    python311.pkgs.databricks-cli
   ];
 
 in packages

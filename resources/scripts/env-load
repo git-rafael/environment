@@ -57,7 +57,7 @@ if ! command -v nix >/dev/null 2>&1; then
 fi
 
 
-trap 'nix-collect-garbage --quiet' EXIT;
+trap 'ec=$?; nix-collect-garbage --quiet; exit $ec' EXIT;
 nix build ${TARGET_PATH} --no-link && $(nix path-info ${TARGET_PATH})/activate;
 
 printf "${TARGET}" > ${TARGET_CONFIG};

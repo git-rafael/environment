@@ -15,9 +15,6 @@ if [ -e ~/.env ]; then
   . ~/.env;
 fi
 
-# LD_LIBRARY_PATH for external libraries
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${HOME}/.nix-profile/lib";
-
 # direnv hook
 eval "$(direnv hook zsh)";
 

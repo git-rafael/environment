@@ -14,12 +14,35 @@ let
     '';
   });
 
+  ipython = pkgs.writeShellApplication {
+    name = "ipython";
+    checkPhase = false;
+
+    runtimeInputs = with pkgs; [ 
+      python310
+      stdenv.cc.cc
+      python310Packages.pip 
+    ];
+
+    text = ''
+      set -e;
+      VENV_DIR=$HOME/.ipython-venv;
+      if [ ! -d "$VENV_DIR" ]; then
+        echo 'Creating ipython venv...';
+        python -m venv $VENV_DIR;
+        . $VENV_DIR/bin/activate;
+        pip install -qq pip ipython ipython-sql --upgrade;
+      else
+        . $VENV_DIR/bin/activate;
+      fi
+      LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib" exec ipython "$@";
+    '';
+  };
+
   packages = with pkgs; [
     devbox
 
-    pipx
-    stdenv.cc.cc
-    stdenv.cc.cc.lib
+    ipython
 
     quarto
     httpie

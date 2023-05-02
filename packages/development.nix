@@ -17,6 +17,10 @@ let
   packages = with pkgs; [
     devbox
 
+    pipx
+    stdenv.cc.cc
+    stdenv.cc.cc.lib
+
     quarto
     httpie
     tldr

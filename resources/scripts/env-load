@@ -49,13 +49,16 @@ if ! command -v nix >/dev/null 2>&1; then
   curl -sL https://releases.nixos.org/nix/nix-2.13.3/install | sh -s -- --no-daemon;
   . ${HOME}/.nix-profile/etc/profile.d/nix.sh;
 
-  mkdir -p ${HOME}/.config/nix;
   nix-env --quiet -f '<nixpkgs>' -iA nixUnstable;
-  printf 'experimental-features = nix-command flakes\n' > ${HOME}/.config/nix/nix.conf;
-
   nix-env --set-flag priority 0 nix;
 fi
 
+readonly NIX_CONFIG_PATH="${HOME}/.config/nix";
+readonly NIX_CONFIG_FILE="${NIX_CONFIG_PATH}/nix.conf";
+
+mkdir -p ${NIX_CONFIG_PATH};
+readonly NIX_EXPERIMENTAL_CONFIG='experimental-features = nix-command flakes';
+grep -qxF ${NIX_EXPERIMENTAL_CONFIG} ${NIX_CONFIG_FILE} || echo ${NIX_EXPERIMENTAL_CONFIG} >> ${NIX_CONFIG_FILE};
 
 trap 'ec=$?; nix-collect-garbage --quiet; exit $ec' EXIT;
 nix build ${TARGET_PATH} --no-link && $(nix path-info ${TARGET_PATH})/activate;

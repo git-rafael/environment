@@ -18,7 +18,6 @@ fi
 
 readonly TARGET_PATH="${TARGET_URL}#homeConfigurations.${TARGET}.activationPackage";
 
-
 if [ -f /etc/alpine-release ]; then
   export USER=${USER:-root};
 elif [ -n "${TERMUX_VERSION}" ]; then
@@ -58,7 +57,7 @@ readonly NIX_CONFIG_FILE="${NIX_CONFIG_PATH}/nix.conf";
 
 mkdir -p ${NIX_CONFIG_PATH};
 readonly NIX_EXPERIMENTAL_CONFIG='experimental-features = nix-command flakes';
-grep -qxF ${NIX_EXPERIMENTAL_CONFIG} ${NIX_CONFIG_FILE} || echo ${NIX_EXPERIMENTAL_CONFIG} >> ${NIX_CONFIG_FILE};
+grep -qxF "${NIX_EXPERIMENTAL_CONFIG}" ${NIX_CONFIG_FILE} || echo "${NIX_EXPERIMENTAL_CONFIG}" >> ${NIX_CONFIG_FILE};
 
 trap 'ec=$?; nix-collect-garbage --quiet; exit $ec' EXIT;
 nix build ${TARGET_PATH} --no-link && $(nix path-info ${TARGET_PATH})/activate;

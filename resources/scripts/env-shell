@@ -1,6 +1,10 @@
 set -e;
 
-if [ -e ${HOME}/.nix-profile/etc/profile.d/nix.sh ]; then
+readonly SHELL='tmux';
+
+if command -v nixos-version &>/dev/null; then 
+  exec ${SHELL};
+elif [ -e ${HOME}/.nix-profile/etc/profile.d/nix.sh ]; then
   if [ -f /etc/alpine-release ]; then
     export USER=${USER:-root};
   elif [ -n "${TERMUX_VERSION}" ]; then
@@ -12,7 +16,7 @@ if [ -e ${HOME}/.nix-profile/etc/profile.d/nix.sh ]; then
     . ${HOME}/.nix-profile/etc/profile.d/nix.sh;
   fi
 
-  LOCALE_ARCHIVE=/usr/lib/locale/locale-archive exec tmux;
+  LOCALE_ARCHIVE=/usr/lib/locale/locale-archive exec ${SHELL};
 else
   echo "Environment must be loaded with 'env-load' before running 'env-shell'.";
   exit 1;

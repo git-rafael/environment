@@ -20,7 +20,8 @@ let
 
     runtimeInputs = with pkgs; [ 
       python310
-      stdenv.cc.cc
+      stdenv.cc
+      stdenv.cc.cc.lib
       python310Packages.pip 
     ];
 

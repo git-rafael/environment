@@ -58,7 +58,9 @@ readonly NIX_EXPERIMENTAL_CONFIG='experimental-features = nix-command flakes';
 
 mkdir -p ${NIX_CONFIG_PATH};
 touch ${NIX_CONFIG_FILE};
-grep -qxF "${NIX_EXPERIMENTAL_CONFIG}" ${NIX_CONFIG_FILE} &>/dev/null || echo "${NIX_EXPERIMENTAL_CONFIG}" >> ${NIX_CONFIG_FILE};
+if ! grep -Fxq "${NIX_EXPERIMENTAL_CONFIG}" ${NIX_CONFIG_FILE}; then
+  echo "${NIX_EXPERIMENTAL_CONFIG}" >> ${NIX_CONFIG_FILE};
+fi
 
 trap 'ec=$?; nix-collect-garbage --quiet; exit $ec' EXIT;
 nix build ${TARGET_PATH} --no-link && $(nix path-info ${TARGET_PATH})/activate;

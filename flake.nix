@@ -14,7 +14,7 @@
     operations = import ./packages/operations.nix;
     development = import ./packages/development.nix;
 
-    mkDeviceDerivation = system: username: profile: home-manager.lib.homeManagerConfiguration rec {
+    mkDeviceDerivation = system: username: home-manager.lib.homeManagerConfiguration rec {
       pkgs = import nixpkgs {
         inherit system;
         config.allowUnfree = true;

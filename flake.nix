@@ -9,7 +9,6 @@
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
 
   let
-    coding = import ./packages/coding.nix;
     tooling = import ./packages/tooling.nix;
     security = import ./packages/security.nix;
     operations = import ./packages/operations.nix;
@@ -25,12 +24,7 @@
       modules = [
         ./home.nix
         {
-          home.packages =
-            if profile == "home" then (tooling pkgs ++ operations pkgs ++ security pkgs)
-            else if profile == "mobile" then (tooling pkgs ++ operations pkgs ++ security pkgs ++ development pkgs)
-            else if profile == "professional" then (tooling pkgs ++ operations pkgs ++ development pkgs ++ coding pkgs)
-            else if profile == "personal" then (tooling pkgs ++ operations pkgs ++ security pkgs ++ development pkgs ++ coding pkgs)
-            else abort "Not a valid profile";
+          home.packages = (tooling pkgs ++ operations pkgs ++ security pkgs ++ development pkgs);
 
           home.homeDirectory =
             if username == "null" then "/home"
@@ -46,9 +40,9 @@
     };
 
   in {
-    homeConfigurations.home = mkDeviceDerivation "x86_64-linux" "root" "home";
-    homeConfigurations.mobile = mkDeviceDerivation "aarch64-linux" "null" "mobile";
-    homeConfigurations.personal = mkDeviceDerivation "x86_64-linux" "rafael" "personal";
-    homeConfigurations.professional = mkDeviceDerivation "x86_64-linux" "rafaeloliveira" "professional";
+    homeConfigurations.home = mkDeviceDerivation "x86_64-linux" "root";
+    homeConfigurations.mobile = mkDeviceDerivation "aarch64-linux" "null";
+    homeConfigurations.personal = mkDeviceDerivation "x86_64-linux" "rafael";
+    homeConfigurations.professional = mkDeviceDerivation "x86_64-linux" "rafaeloliveira";
   };
 }

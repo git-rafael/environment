@@ -42,6 +42,7 @@ let
 
   packages = with pkgs; [
     devbox
+    vscode
 
     ipython
 

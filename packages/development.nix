@@ -40,9 +40,32 @@ let
     '';
   };
 
+  vscode-cli = let
+      version = "1.82.0";      
+      sha256 = "sha256-3N7Tpl/AmSG7iiScbzARfb+YN6gDhbr2Ro3a7bSflmY=";
+  in pkgs.stdenv.mkDerivation {
+    name = "vscode-cli-${version}";
+
+    src = let
+      arch = if pkgs.system == "x86_64-linux" then "x64"
+        else if pkgs.system == "aarch64-linux" then "arm64"
+        else abort "Package vscode-cli-${version} does not support ${pkgs.system}";
+    in pkgs.fetchzip {
+      inherit sha256;
+      extension = "tar.gz";
+      url = "https://update.code.visualstudio.com/${version}/cli-alpine-${arch}/stable";
+    };
+    
+    installPhase = ''
+      mkdir -p $out/bin
+      cp $src/code $out/bin
+      chmod +x $out/bin/code
+    '';
+  };
+
   packages = with pkgs; [
     devbox
-    vscode
+    vscode-cli
 
     ipython
 

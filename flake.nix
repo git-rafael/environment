@@ -1,9 +1,9 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/release-23.05";
 
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    home-manager.url = "github:nix-community/home-manager";
+    home-manager.url = "github:nix-community/home-manager/release-23.05";
   };
 
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
@@ -32,7 +32,7 @@
             else "/home/${username}";
 
           home.username = username;
-          home.stateVersion = "22.11";
+          home.stateVersion = "23.05";
           programs.home-manager.enable = true;
           targets.genericLinux.enable = true;
         }

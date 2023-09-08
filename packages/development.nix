@@ -41,15 +41,19 @@ let
   };
 
   vscode-cli = let
-      version = "1.82.0";      
-      sha256 = "sha256-3N7Tpl/AmSG7iiScbzARfb+YN6gDhbr2Ro3a7bSflmY=";
+      version = "1.82.0";
+      sha256 = if pkgs.system == "x86_64-linux" then "sha256-3N7Tpl/AmSG7iiScbzARfb+YN6gDhbr2Ro3a7bSflmY="
+        else if pkgs.system == "aarch64-linux" then "sha256-8tzDyOsyv8G5tAAvaD2Ykyr4E7K4NwWQENjbSuC4KN4="
+        else abort archSupportErrorMessage;
+
+      archSupportErrorMessage = "Package vscode-cli-${version} does not support ${pkgs.system}";
   in pkgs.stdenv.mkDerivation {
     name = "vscode-cli-${version}";
 
     src = let
       arch = if pkgs.system == "x86_64-linux" then "x64"
         else if pkgs.system == "aarch64-linux" then "arm64"
-        else abort "Package vscode-cli-${version} does not support ${pkgs.system}";
+        else abort archSupportErrorMessage;
     in pkgs.fetchzip {
       inherit sha256;
       extension = "tar.gz";

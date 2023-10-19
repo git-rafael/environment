@@ -28,6 +28,7 @@ let
     cifs-utils
 
     pritunl-ssh
+    pritunl-client
 
     bitwarden-cli
     home-assistant-cli

@@ -77,8 +77,7 @@ let
     
     text = ''
       readonly CLI="${vscode-cli}/bin/code";
-      ${if withUI then ''$CLI version use stable --install-dir ${edgePkgs.vscode}/lib/vscode >/dev/null;'' 
-      else ''''}
+      ${pkgs.lib.optionalString withUI "$CLI version use stable --install-dir ${edgePkgs.vscode}/lib/vscode >/dev/null;"}
       exec $CLI "$@";
     '';
   };

@@ -63,6 +63,9 @@ if ! grep -Fxq "${NIX_EXPERIMENTAL_CONFIG}" ${NIX_CONFIG_FILE}; then
 fi
 
 trap 'ec=$?; nix-collect-garbage --quiet; exit $ec' EXIT;
-nix build ${TARGET_PATH} --no-link && $(nix path-info ${TARGET_PATH})/activate;
-
-printf "${TARGET}" > ${TARGET_CONFIG};
+if [ "${TARGET}" = 'update' ]; then
+  nix flake update ${TARGET_URL};
+else
+  nix build ${TARGET_PATH} --no-link && $(nix path-info ${TARGET_PATH})/activate;
+  printf "${TARGET}" > ${TARGET_CONFIG};
+fi

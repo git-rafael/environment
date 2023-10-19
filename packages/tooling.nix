@@ -1,6 +1,8 @@
 { pkgs, edgePkgs, features }:
 
 let
+  withUI = builtins.elem "ui" features;
+
   packages = with pkgs; [
     ncurses
     gnugrep
@@ -32,6 +34,10 @@ let
 
     bitwarden-cli
     home-assistant-cli
+  ] ++ pkgs.lib.optionals withUI [
+    slack
+    discord
+    spotify
   ];
 
 in packages

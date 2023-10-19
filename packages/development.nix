@@ -1,6 +1,8 @@
-pkgs:
+{ pkgs, edgePkgs, features }:
 
 let
+  withUI = builtins.elem "ui" features;
+
   dind = pkgs.writeShellScriptBin "dind" (builtins.readFile ../resources/scripts/dind);
   using = pkgs.writeShellScriptBin "using" (builtins.readFile ../resources/scripts/using);
 
@@ -40,36 +42,50 @@ let
     '';
   };
 
-  vscode-cli = let
-      version = "1.82.0";
-      sha256 = if pkgs.system == "x86_64-linux" then "sha256-3N7Tpl/AmSG7iiScbzARfb+YN6gDhbr2Ro3a7bSflmY="
-        else if pkgs.system == "aarch64-linux" then "sha256-8tzDyOsyv8G5tAAvaD2Ykyr4E7K4NwWQENjbSuC4KN4="
-        else abort archSupportErrorMessage;
+  vscode-cli = edgePkgs.stdenv.mkDerivation rec {
+    name = edgePkgs.vscode.name + "-cli";
+    version = edgePkgs.vscode.version;
+    system = edgePkgs.system;
 
-      archSupportErrorMessage = "Package vscode-cli-${version} does not support ${pkgs.system}";
-  in pkgs.stdenv.mkDerivation {
-    name = "vscode-cli-${version}";
-
-    src = let
-      arch = if pkgs.system == "x86_64-linux" then "x64"
-        else if pkgs.system == "aarch64-linux" then "arm64"
-        else abort archSupportErrorMessage;
-    in pkgs.fetchzip {
-      inherit sha256;
-      extension = "tar.gz";
-      url = "https://update.code.visualstudio.com/${version}/cli-alpine-${arch}/stable";
+    passthru = rec {
+      arch = {
+        x86_64-linux = "x64";
+        aarch64-linux = "arm64";
+      }.${system} or throwSystem;
+      sha256 = {
+        x86_64-linux = "sha256-7X6awCKNYRh2izs7tih9ORw1gJE1c+KBq4VbFlEECe8=";
+        aarch64-linux = "sha256-lovi9Oj+/8y1Q2MPrJP5lGtX+NKcBVYHzURz5FLrtiw=";
+      }.${system} or throwSystem;
+      throwSystem = throw "Unsupported ${system} for ${name} v${version}";
     };
-    
+
+    src = edgePkgs.fetchzip {
+      extension = "tar.gz";
+      sha256 = passthru.sha256;
+      url = "https://update.code.visualstudio.com/${version}/cli-alpine-${passthru.arch}/stable";
+    };
+
     installPhase = ''
       mkdir -p $out/bin
       cp $src/code $out/bin
-      chmod +x $out/bin/code
+    '';
+  };
+
+  vscode = edgePkgs.writeShellApplication {
+    name = "code";
+    checkPhase = false;
+    
+    text = ''
+      readonly CLI="${vscode-cli}/bin/code";
+      ${if withUI then ''$CLI version use stable --install-dir ${edgePkgs.vscode}/lib/vscode >/dev/null;'' 
+      else ''''}
+      exec $CLI "$@";
     '';
   };
 
   packages = with pkgs; [
     devbox
-    vscode-cli
+    vscode
 
     ipython
 

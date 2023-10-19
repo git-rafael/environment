@@ -1,4 +1,4 @@
-pkgs:
+{ pkgs, edgePkgs, features }:
 
 let
   packages = with pkgs; [

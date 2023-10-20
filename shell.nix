@@ -61,7 +61,7 @@ in {
       ];
     };
 
-    initExtra = (builtins.readFile ./resources/settings/zshrc);
+    initExtra = (builtins.readFile ./resources/scripts/zshrc);
   };
 
   programs.tmux = {

@@ -18,13 +18,6 @@ env-load '<target>'
 
 Typically, you will update with the same `target` from first use, but it is possible to switch to another compatible `device` environment thanks to how [Nix](https://nixos.org/) works. The `env-shell` command will also be available to initialize the environment for usage.
 
-## Targets
-
-- **mobile**: loads on a device with [Termux](https://termux.dev/en) on a [Android](https://www.android.com/intl/en-US) system, contains tools for security, systems and data operations.
-- **personal**: loads on a device with [Crostini](https://chromeos.dev/en/linux) on a [ChromeOS](https://chromeos.dev) system, contains tools for security, systems and data operations besides a data science and a systems development coding environment.
-- **professional**: loads on a device with [Crostini](https://chromeos.dev/en/linux) on a [ChromeOS](https://chromeos.dev) system, contains tools for systems and data operations besides a data science and a systems development coding environment.
-- **home**: loads on a device with [SSH & Web Terminal](https://github.com/hassio-addons/addon-ssh) on a [Home Assistant](https://www.home-assistant.io/) system, contains tools for security, systems and data operations besides a data science and a systems development environment.
-
 ## Notes
 
 - Some systems may not come with `curl` installed, the only dependency for the bootstrap script besides `sh`. You will have to install `curl` yourself with the OS package manager or manually.

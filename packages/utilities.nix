@@ -2,6 +2,7 @@
 
 let
   withUI = builtins.elem "ui" features;
+  isServer = builtins.elem "server" features;
 
   packages = with pkgs; [
     ncurses
@@ -38,6 +39,8 @@ let
     slack
     discord
     spotify
+  ] ++ pkgs.lib.optionals isServer [
+    python311Packages.supervisor
   ];
 
 in packages

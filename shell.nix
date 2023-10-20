@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 
 let
   env-load = pkgs.writeShellScriptBin "env-load" (builtins.readFile ./resources/scripts/env-load);

@@ -10,10 +10,11 @@
   outputs = inputs@{ self, nixpkgs, nixpkgs-unstable, home-manager, ... }:
 
   let
-    tooling = import ./packages/tooling.nix;
-    security = import ./packages/security.nix;
-    operations = import ./packages/operations.nix;
     development = import ./packages/development.nix;
+    operations = import ./packages/operations.nix;
+    security = import ./packages/security.nix;
+
+    utilities = import ./packages/utilities.nix;
 
     mkDeviceDerivation = system: username: features: home-manager.lib.homeManagerConfiguration rec {
       pkgs = import nixpkgs {
@@ -31,9 +32,9 @@
           };
           env = { inherit pkgs edgePkgs features; };
         in [
-          ./home.nix
+          ./shell.nix
           {
-            home.packages = (tooling env ++ operations env ++ security env ++ development env);
+            home.packages = (development env ++ operations env ++ security env ++ utilities env);
 
             home.homeDirectory =
               if username == "null" then "/home"

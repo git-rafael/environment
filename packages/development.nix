@@ -128,7 +128,9 @@ let
     quarto
     httpie
     tldr
+
     gh
+    python311Packages.huggingface-hub
 
     docker-client
     docker-compose

@@ -8,6 +8,7 @@ let
 
   ollama = pkgs.stdenvNoCC.mkDerivation rec {
     name = "ollama";
+    version = "0.1.4";
     system = pkgs.system;
 
     passthru = rec {
@@ -24,7 +25,7 @@ let
 
     src = pkgs.fetchurl {
       sha256 = passthru.sha256;
-      url = "https://ollama.ai/download/ollama-linux-${passthru.arch}";
+      url = "https://github.com/jmorganca/ollama/releases/download/v${version}/ollama-linux-${passthru.arch}";
     };
 
     phases = [ "installPhase" ];

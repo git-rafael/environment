@@ -8,7 +8,7 @@ let
 
   ollama = pkgs.stdenvNoCC.mkDerivation rec {
     name = "ollama";
-    version = "0.1.4";
+    version = "0.1.5";
     system = pkgs.system;
 
     passthru = rec {
@@ -17,8 +17,8 @@ let
         aarch64-linux = "arm64";
       }.${system} or throwSystem;
       sha256 = {
-        x86_64-linux = "sha256-Yol9UA3xYgaJYBg5s3pOs4UM8Oj2k+9BU2PSPOZ6ZaA=";
-        aarch64-linux = "sha256-f+H0UlBHQ66Tz3UV2oiG3ZidmPQei9EpA15hC0t36q8=";
+        x86_64-linux = "sha256-ZBUL1ZQNx14Kzjqr0eeuBAw0OJ7D5V/FESfcmHiPrz0=";
+        aarch64-linux = "sha256-GmcB9xDv4SL74ulSSLuzUzKe0W7LsK5SrLOcyo9HCzw=";
       }.${system} or throwSystem;
       throwSystem = throw "Unsupported ${system} for ${name}";
     };

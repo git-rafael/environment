@@ -33,6 +33,9 @@ alias lS='exa -1'; # one column by just names
 zle -N deer;
 bindkey '\ek' deer;
 
+# browsh support config
+sed -i 's/browsh_supporter = ".*"/browsh_supporter = "I have shown my support for Browsh"/' $HOME/.config/browsh/config.toml >/dev/null 2&>1 || true;
+
 # p10k initialization
 # run `p10k configure` or edit ~/.p10k.zsh to customize the prompt
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh;

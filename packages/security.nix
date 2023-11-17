@@ -6,6 +6,9 @@ let
     wapiti
     nikto
 
+    tor
+    nyx
+
     bind
     iputils
     inetutils

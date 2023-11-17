@@ -1,26 +1,22 @@
 { pkgs, edgePkgs, features }:
 
 let
-  packages = with pkgs; [
-    ansible
-
+  packages = with pkgs; let
+    databricks-cli = python311.pkgs.databricks-cli;
+  in [
     awscli
     saml2aws
 
     k9s
-    minikube
     kompose
     kubectl
     kubectx
+    kafkactl
+    minikube
     kubernetes-helm
 
-    kafkactl
-
     circleci-cli
-
-    steampipe
-
-    python311.pkgs.databricks-cli
+    databricks-cli
   ];
 
 in packages

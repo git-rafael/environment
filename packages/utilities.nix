@@ -42,6 +42,7 @@ let
     gnugrep
     gnused
     gnutar
+    gnupg
     gzip
     gawk
     wget

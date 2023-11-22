@@ -50,8 +50,6 @@ let
     jq
 
     ollama
-    browsh
-    firefox
 
     bat
     tiv

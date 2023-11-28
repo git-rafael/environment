@@ -1,8 +1,8 @@
 { pkgs, ... }:
 
 let
-  env-load = pkgs.writeShellScriptBin "env-load" (builtins.readFile ./resources/scripts/env-load);
-  env-shell = pkgs.writeShellScriptBin "env-shell" (builtins.readFile ./resources/scripts/env-shell);
+  env-load = pkgs.writeShellScriptBin "env-load" (builtins.readFile ../resources/scripts/env-load);
+  env-shell = pkgs.writeShellScriptBin "env-shell" (builtins.readFile ../resources/scripts/env-shell);
 
 in {
   home.packages = with pkgs; [
@@ -61,7 +61,7 @@ in {
       ];
     };
 
-    initExtra = (builtins.readFile ./resources/scripts/zshrc);
+    initExtra = (builtins.readFile ../resources/scripts/zshrc);
   };
 
   programs.tmux = {
@@ -79,6 +79,6 @@ in {
       tmuxPlugins.better-mouse-mode
     ];
 
-    extraConfig = (builtins.readFile ./resources/settings/tmux.conf);
+    extraConfig = (builtins.readFile ../resources/settings/tmux.conf);
   };
 }

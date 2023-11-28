@@ -40,3 +40,14 @@ echo '' > ${PREFIX}/etc/motd && \
 echo 'unset LD_PRELOAD && exec termux-chroot "exec ${HOME}/.nix-profile/bin/env-shell"' > ${HOME}/.bashrc &&\
 exit;
 ```
+
+- To have applications within **Chrome OS** launcher, `crostini` expects *.desktop* files to be dropped under *$XDG_DATA*. Applications are registered using a service running within the container called `cros-garcon`, and as it is a simple systemd service you can easily extend it to look in nix-specific locations (restart the container for changes to take place).
+
+```sh
+mkdir -p ~/.config/systemd/user/cros-garcon.service.d/ &&\
+cat > ~/.config/systemd/user/cros-garcon.service.d/override.conf <<EOF
+[Service]
+Environment="PATH=%h/.nix-profile/bin:/usr/local/sbin:/usr/local/bin:/usr/local/games:/usr/sbin:/usr/bin:/usr/games:/sbin:/bin"
+Environment="XDG_DATA_DIRS=%h/.nix-profile/share:%h/.local/share:/usr/local/share:/usr/share"
+EOF
+```

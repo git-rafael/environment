@@ -1,4 +1,4 @@
-{ pkgs, edgePkgs, features }:
+{ pkgs, edgePkgs, features, ... }:
 
 let
   withUI = builtins.elem "ui" features;
@@ -36,8 +36,9 @@ let
       chmod +x $out/bin/ollama
     '';
   };
-
-  packages = with pkgs; [
+  
+in  {
+  home.packages = with pkgs; [
     ncurses
     gnugrep
     gnused
@@ -81,5 +82,4 @@ let
   ] ++ pkgs.lib.optionals isServer [
     python311Packages.supervisor
   ];
-
-in packages
+}

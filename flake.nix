@@ -10,11 +10,11 @@
   outputs = inputs@{ self, nixpkgs, nixpkgs-unstable, home-manager, ... }:
 
   let
-    development = import ./packages/development.nix;
-    operations = import ./packages/operations.nix;
-    security = import ./packages/security.nix;
-
-    utilities = import ./packages/utilities.nix;
+    development = import ./sources/development.nix;
+    operation = import ./sources/operation.nix;
+    security = import ./sources/security.nix;
+    utility = import ./sources/utility.nix;
+    shell = import ./sources/shell.nix;
 
     mkDeviceDerivation = system: username: features: home-manager.lib.homeManagerConfiguration rec {
       pkgs = import nixpkgs {
@@ -31,11 +31,19 @@
             config.allowUnsupportedSystem = true;
           };
           env = { inherit pkgs edgePkgs features; };
+          
+          developmentInstallation = (development env);
+          operationInstallation = (operation env);
+          securityInstallation = (security env);
+          utilityInstallation = (utility env);
+          shellInstallation = (shell env);
         in [
-          ./shell.nix
+          developmentInstallation
+          operationInstallation
+          securityInstallation
+          utilityInstallation
+          shellInstallation
           {
-            home.packages = (development env ++ operations env ++ security env ++ utilities env);
-
             home.homeDirectory =
               if username == "null" then "/home"
               else if username == "root" then "/root"
@@ -43,8 +51,8 @@
 
             home.username = username;
             home.stateVersion = "23.05";
-            programs.home-manager.enable = true;
             targets.genericLinux.enable = true;
+            programs.home-manager.enable = true;
           }
         ];
     };

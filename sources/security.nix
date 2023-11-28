@@ -1,7 +1,9 @@
-{ pkgs, edgePkgs, features }:
+{ pkgs, edgePkgs, features, ... }:
 
 let
-  packages = with pkgs; [
+  metasploit = edgePkgs.metasploit;
+in {
+  home.packages = with pkgs; [
     metasploit
     wapiti
     nikto
@@ -27,5 +29,4 @@ let
 
     oathToolkit
   ];
-
-in packages
+}

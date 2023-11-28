@@ -1,9 +1,10 @@
-{ pkgs, edgePkgs, features }:
+{ pkgs, edgePkgs, features, ... }:
 
 let
-  packages = with pkgs; let
-    databricks-cli = python311.pkgs.databricks-cli;
-  in [
+  databricks-cli = pkgs.python311.pkgs.databricks-cli;
+
+in {
+  home.packages = with pkgs; [
     awscli
     saml2aws
 
@@ -18,5 +19,4 @@ let
     circleci-cli
     databricks-cli
   ];
-
-in packages
+}

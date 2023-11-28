@@ -1,8 +1,11 @@
-{ pkgs, edgePkgs, features }:
+{ pkgs, edgePkgs, features, ... }:
 
 let
   withUI = builtins.elem "ui" features;
   toWork = builtins.elem "work" features;
+  
+  devbox = edgePkgs.devbox;
+  huggingface-cli = pkgs.python311.pkgs.huggingface-hub;
 
   dind = pkgs.writeShellScriptBin "dind" (builtins.readFile ../resources/scripts/dind);
   using = pkgs.writeShellScriptBin "using" (builtins.readFile ../resources/scripts/using);
@@ -83,6 +86,7 @@ let
     runtimeInputs = [
       python
       nodejs
+      coreutils
     ];
 
     text = ''
@@ -95,10 +99,19 @@ let
     '';
   };
   
-  packages = with pkgs; let
-    devbox = edgePkgs.devbox;
-    huggingface-cli = python311.pkgs.huggingface-hub;
-  in [
+  codeDesktopItem = edgePkgs.vscode.desktopItem.override {
+    exec = "${code}/bin/code %F";
+    actions.new-empty-window = {
+      name = "New Empty Window";
+      exec = "${code}/bin/code --new-window %F";
+      icon = "${edgePkgs.vscode}/lib/vscode/resources/app/resources/linux/code.png";
+    };
+  };
+
+in {
+  home.packages = with pkgs; [
+    codeDesktopItem
+    
     code
     devbox
     steampipe
@@ -120,5 +133,4 @@ let
   ] ++ pkgs.lib.optionals toWork [
     flash-install
   ];
-
-in packages
+}

@@ -41,12 +41,21 @@ let
   packages = with pkgs; let
     vscode = edgePkgs.vscode;
     devbox = edgePkgs.devbox;
+    nodejs = edgePkgs.nodejs_18;
+    python = edgePkgs.python311.withPackages (ps: with ps; [
+      pip
+      nbformat
+      ipykernel 
+    ]);
     huggingface-cli = python311.pkgs.huggingface-hub;
   in [
+    python
+    nodejs
+    
     vscode
     devbox
     steampipe
-    
+        
     gh
     tldr
     httpie

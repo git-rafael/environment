@@ -38,52 +38,12 @@ let
     '';
   };
 
-  code = with edgePkgs; let
-    ide = vscode;
-    cli = stdenvNoCC.mkDerivation rec {
-      name = ide.name + "-cli";
-      version = ide.version;
-      
-      passthru = rec {
-        arch = {
-          x86_64-linux = "x64";
-          aarch64-linux = "arm64";
-        }.${system} or throwSystem;
-        sha256 = {
-          x86_64-linux = "sha256-7X6awCKNYRh2izs7tih9ORw1gJE1c+KBq4VbFlEECe8=";
-          aarch64-linux = "sha256-lovi9Oj+/8y1Q2MPrJP5lGtX+NKcBVYHzURz5FLrtiw=";
-        }.${system} or throwSystem;
-        throwSystem = throw "Unsupported ${system} for ${name} v${version}";
-      };
-      
-      src = fetchzip {
-        extension = "tar.gz";
-        sha256 = passthru.sha256;
-        url = "https://update.code.visualstudio.com/${version}/cli-alpine-${passthru.arch}/stable";
-      };
-      
-      phases = [ "unpackPhase" "installPhase" ];
-      
-      installPhase = ''
-        mkdir -p $out/bin
-        cp $src/code $out/bin
-      '';
-    };
-  in writeShellApplication rec {
-    name = "code";
-    checkPhase = false;
-    
-    text = ''
-      ${lib.optionalString withUI "${cli}/bin/code version use stable --install-dir ${ide}/lib/vscode >/dev/null;"}
-      exec ${cli}/bin/code "$@";
-    '';
-  };
-
   packages = with pkgs; let
+    vscode = edgePkgs.vscode;
     devbox = edgePkgs.devbox;
     huggingface-cli = python311.pkgs.huggingface-hub;
   in [
-    code
+    vscode
     devbox
     steampipe
     

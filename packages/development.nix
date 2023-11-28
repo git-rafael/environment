@@ -38,24 +38,71 @@ let
     '';
   };
 
-  packages = with pkgs; let
-    vscode = edgePkgs.vscode;
-    devbox = edgePkgs.devbox;
-    nodejs = edgePkgs.nodejs_18;
-    python = edgePkgs.python311.withPackages (ps: with ps; [
+  code = with edgePkgs; let
+    ide = vscode;
+    cli = stdenvNoCC.mkDerivation rec {
+      name = ide.name + "-cli";
+      version = ide.version;
+      
+      passthru = rec {
+        arch = {
+          x86_64-linux = "x64";
+          aarch64-linux = "arm64";
+        }.${system} or throwSystem;
+        sha256 = {
+          x86_64-linux = "sha256-NVQaHzWo3Kiqa4Q2dKda1yB3rnTh3lVXMdrBof8xglg=";
+          aarch64-linux = "sha256-JkD89PsaqdgDwvJy3n8YjTGTjcO+YKECGDrXpRMRoxE=";
+        }.${system} or throwSystem;
+        throwSystem = throw "Unsupported ${system} for ${name} v${version}";
+      };
+      
+      src = fetchzip {
+        extension = "tar.gz";
+        sha256 = passthru.sha256;
+        url = "https://update.code.visualstudio.com/${version}/cli-alpine-${passthru.arch}/stable";
+      };
+      
+      phases = [ "unpackPhase" "installPhase" ];
+      
+      installPhase = ''
+        mkdir -p $out/bin
+        cp $src/code $out/bin
+      '';
+    };
+
+    nodejs = nodejs_18;
+    python = python311.withPackages (ps: with ps; [
       pip
       nbformat
-      ipykernel 
+      ipykernel
     ]);
+  in writeShellApplication rec {
+    name = "code";
+    checkPhase = false;
+
+    runtimeInputs = [
+      python
+      nodejs
+    ];
+
+    text = ''
+      if [ -f "/usr/share/code/bin/code" ]; then
+        ${cli}/bin/code version use stable --install-dir /usr/share/code >/dev/null;
+      else
+        ${lib.optionalString withUI "${cli}/bin/code version use stable --install-dir ${ide}/lib/vscode >/dev/null;"}
+      fi
+      exec ${cli}/bin/code "$@";
+    '';
+  };
+  
+  packages = with pkgs; let
+    devbox = edgePkgs.devbox;
     huggingface-cli = python311.pkgs.huggingface-hub;
   in [
-    python
-    nodejs
-    
-    vscode
+    code
     devbox
     steampipe
-        
+    
     gh
     tldr
     httpie

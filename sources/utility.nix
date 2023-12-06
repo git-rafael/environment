@@ -61,6 +61,7 @@ in  {
     iftop
     rsync
     xclip
+    rename
     openssh
     pciutils
     findutils

@@ -72,7 +72,46 @@ let
         cp $src/code $out/bin
       '';
     };
-
+    
+    continue = with pkgs; stdenv.mkDerivation rec {
+      name = "continue_server";
+      
+      passthru = rec {
+        arch = {
+          x86_64-linux = "linux";
+        }.${system} or throwSystem;
+        sha256 = {
+          x86_64-linux = "sha256-1SDxK8h9lEEfmDD0Esw/1+6kzTSEoOxUIWxk2OAXknc=";
+        }.${system} or throwSystem;
+        throwSystem = throw "Unsupported ${system} for ${name}";
+      };
+      
+      src = fetchurl {
+        sha256 = passthru.sha256;
+        url = "https://continue-server-binaries.s3.us-west-1.amazonaws.com/${passthru.arch}/continue_server";
+      };
+      
+      phases = [ "installPhase" "fixupPhase" ];
+      
+      installPhase = ''
+        runHook preInstall
+        install -m755 -D $src $out/bin/continue_server
+        runHook postInstall
+      '';
+      
+      fixupPhase = let
+        libPath = lib.makeLibraryPath [
+          stdenv.cc.cc.lib
+          zlib
+        ];
+      in ''
+        patchelf \
+          --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+          --set-rpath "${libPath}" \
+          $out/bin/continue_server
+      '';
+    };
+    
     nodejs = nodejs_18;
     python = python311.withPackages (ps: with ps; [
       pip
@@ -82,13 +121,16 @@ let
   in writeShellApplication rec {
     name = "code";
     checkPhase = false;
-
+    
     runtimeInputs = [
       python
       nodejs
       coreutils
+    ] ++ pkgs.lib.optionals withUI [
+      continue
+      meilisearch
     ];
-
+    
     text = ''
       if [ -f "/usr/share/code/bin/code" ]; then
         ${cli}/bin/code version use stable --install-dir /usr/share/code >/dev/null;
@@ -107,7 +149,6 @@ let
       icon = "${edgePkgs.vscode}/lib/vscode/resources/app/resources/linux/code.png";
     };
   };
-
 in {
   home.packages = with pkgs; [
     codeDesktopItem

@@ -53,8 +53,8 @@ let
           aarch64-linux = "arm64";
         }.${system} or throwSystem;
         sha256 = {
-          x86_64-linux = "sha256-NVQaHzWo3Kiqa4Q2dKda1yB3rnTh3lVXMdrBof8xglg=";
-          aarch64-linux = "sha256-JkD89PsaqdgDwvJy3n8YjTGTjcO+YKECGDrXpRMRoxE=";
+          x86_64-linux = "sha256-Ekfy2JY+hi/7kvMAmx2DSMfIYgDPawHYa3xyLk/NXdo=";
+          aarch64-linux = "sha256-70gs7hsquj9fDTsbByLvF3WpzZlfaPTnd5uYPLqiWy8=";
         }.${system} or throwSystem;
         throwSystem = throw "Unsupported ${system} for ${name} v${version}";
       };
@@ -73,45 +73,6 @@ let
       '';
     };
     
-    continue = with pkgs; stdenv.mkDerivation rec {
-      name = "continue_server";
-      
-      passthru = rec {
-        arch = {
-          x86_64-linux = "linux";
-        }.${system} or throwSystem;
-        sha256 = {
-          x86_64-linux = "sha256-1SDxK8h9lEEfmDD0Esw/1+6kzTSEoOxUIWxk2OAXknc=";
-        }.${system} or throwSystem;
-        throwSystem = throw "Unsupported ${system} for ${name}";
-      };
-      
-      src = fetchurl {
-        sha256 = passthru.sha256;
-        url = "https://continue-server-binaries.s3.us-west-1.amazonaws.com/${passthru.arch}/continue_server";
-      };
-      
-      phases = [ "installPhase" "fixupPhase" ];
-      
-      installPhase = ''
-        runHook preInstall
-        install -m755 -D $src $out/bin/continue_server
-        runHook postInstall
-      '';
-      
-      fixupPhase = let
-        libPath = lib.makeLibraryPath [
-          stdenv.cc.cc.lib
-          zlib
-        ];
-      in ''
-        patchelf \
-          --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-          --set-rpath "${libPath}" \
-          $out/bin/continue_server
-      '';
-    };
-    
     nodejs = nodejs_18;
     python = python311.withPackages (ps: with ps; [
       pip
@@ -126,16 +87,13 @@ let
       python
       nodejs
       coreutils
-    ] ++ pkgs.lib.optionals withUI [
-      continue
-      meilisearch
     ];
     
     text = ''
       if [ -f "/usr/share/code/bin/code" ]; then
         ${cli}/bin/code version use stable --install-dir /usr/share/code >/dev/null;
       else
-        ${lib.optionalString withUI "${cli}/bin/code version use stable --install-dir ${ide}/lib/vscode >/dev/null;"}
+        ${lib.optionalString withUI "${cli}/bin/code version use stable --install-dir ${ide}/lib/vscode >/dev/null;"}:
       fi
       exec ${cli}/bin/code "$@";
     '';

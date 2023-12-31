@@ -74,6 +74,7 @@ let
     };
     
     nodejs = nodejs_18;
+    jvm = adoptopenjdk-jre-bin;
     python = python311.withPackages (ps: with ps; [
       pip
       nbformat
@@ -84,6 +85,7 @@ let
     checkPhase = false;
     
     runtimeInputs = [
+      jvm
       python
       nodejs
       coreutils

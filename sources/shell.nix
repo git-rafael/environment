@@ -10,7 +10,7 @@ in {
     env-shell
 
     vim
-    exa
+    eza
     git
 
     direnv
@@ -49,7 +49,7 @@ in {
 
     enableCompletion = true;
     enableAutosuggestions = true;
-    enableSyntaxHighlighting = true;
+    syntaxHighlighting.enable = true;
 
     zplug = {
       enable = true;

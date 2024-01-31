@@ -53,8 +53,8 @@ let
           aarch64-linux = "arm64";
         }.${system} or throwSystem;
         sha256 = {
-          x86_64-linux = "sha256-Ekfy2JY+hi/7kvMAmx2DSMfIYgDPawHYa3xyLk/NXdo=";
-          aarch64-linux = "sha256-70gs7hsquj9fDTsbByLvF3WpzZlfaPTnd5uYPLqiWy8=";
+          x86_64-linux = "sha256-fPAlsQXv22yqZp2sAZm0tGKl60tmkV4u2AZuAPuODM0=";
+          aarch64-linux = "sha256-vNBigGsJoLvAVJiT0VOdbR3H9cOJ7ehlf3n7S4B9+NU=";
         }.${system} or throwSystem;
         throwSystem = throw "Unsupported ${system} for ${name} v${version}";
       };
@@ -111,9 +111,9 @@ let
   };
 in {
   home.packages = with pkgs; [
+    code
     codeDesktopItem
     
-    code
     devbox
     steampipe
     

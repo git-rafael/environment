@@ -53,8 +53,8 @@ let
           aarch64-linux = "arm64";
         }.${system} or throwSystem;
         sha256 = {
-          x86_64-linux = "sha256-fPAlsQXv22yqZp2sAZm0tGKl60tmkV4u2AZuAPuODM0=";
-          aarch64-linux = "sha256-vNBigGsJoLvAVJiT0VOdbR3H9cOJ7ehlf3n7S4B9+NU=";
+          x86_64-linux = "sha256-S3dK8IIY7Y8I2aefanVbephZk4nhDdyXOq3d86iV6E4=";
+          aarch64-linux = "sha256-S3dK8IIY7Y8I2aefanVbephZk4nhDdyXOq3d86iV6E4=";
         }.${system} or throwSystem;
         throwSystem = throw "Unsupported ${system} for ${name} v${version}";
       };

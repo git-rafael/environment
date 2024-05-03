@@ -28,11 +28,12 @@ export NIX_INSTALLER_NO_MODIFY_PROFILE=true;
 
 if ! command -v nix >/dev/null 2>&1; then
   if [ -f /etc/alpine-release ]; then
+    mkdir -p /nix;
     mkdir -p /etc/nix;
     printf "sandbox = false\n" > /etc/nix/nix.conf;
     printf "filter-syscalls = false\n" >> /etc/nix/nix.conf;
 
-    apk --no-cache add xz >/dev/null;
+    apk --no-cache add sudo xz >/dev/null;
 
     test $(getent group nixbld) || addgroup -g 30000 -S nixbld;
     for i in $(seq 1 30); do
@@ -45,10 +46,9 @@ if ! command -v nix >/dev/null 2>&1; then
     printf "nameserver 1.1.1.1\n" > /etc/resolv.conf;
   fi
 
-  curl -sL https://releases.nixos.org/nix/nix-2.13.3/install | sh -s -- --no-daemon;
+  curl -sL https://nixos.org/nix/install | sh -s -- --no-daemon;
   . ${HOME}/.nix-profile/etc/profile.d/nix.sh;
 
-  nix-env --quiet -f '<nixpkgs>' -iA nixUnstable;
   nix-env --set-flag priority 0 nix;
 fi
 

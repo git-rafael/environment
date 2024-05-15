@@ -15,7 +15,7 @@ in {
 
     direnv
   ];
-
+  
   programs.broot = {
     enable = true;
     enableZshIntegration = true;
@@ -43,6 +43,17 @@ in {
       diff.colorMoved = "default";
     };
   };
+  
+  programs.starship = {
+    enable = true;
+    settings = {
+      add_newline = true;
+      
+      container = {
+        disabled = true;
+      };
+    };
+  };
 
   programs.zsh = {
     enable = true;
@@ -50,16 +61,6 @@ in {
     enableCompletion = true;
     enableAutosuggestions = true;
     syntaxHighlighting.enable = true;
-
-    zplug = {
-      enable = true;
-
-      plugins = [
-        { name = "marlonrichert/zsh-autocomplete"; }
-        { name = "vifon/deer"; tags = ["use:deer"]; }
-        { name = "romkatv/powerlevel10k"; tags = [ as:theme depth:1 ]; }
-      ];
-    };
 
     initExtra = (builtins.readFile ../resources/scripts/zshrc);
   };

@@ -31,11 +31,3 @@ alias lS='exa -1'; # one column by just names
 
 # rename aliases
 alias slugify='rename "s/ /_/g; s/_/-/g; s/[^a-zA-Z0-9.-]//g; y/A-Z/a-z/"';
-
-# deer binding
-zle -N deer;
-bindkey '\ek' deer;
-
-# p10k initialization
-# run `p10k configure` or edit ~/.p10k.zsh to customize the prompt
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh;

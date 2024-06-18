@@ -37,14 +37,14 @@ in  {
 
     bitwarden-cli
     home-assistant-cli
-    
+
+    please-cli
     edgePkgs.ollama
   ] ++ pkgs.lib.optionals toWork [
     pritunl-ssh
     pritunl-client
   ] ++ pkgs.lib.optionals withUI [
     spotify
-    edgePkgs.logseq
   ] ++ pkgs.lib.optionals (withUI && toWork) [
     slack
   ] ++ pkgs.lib.optionals (withUI && toPlay) [

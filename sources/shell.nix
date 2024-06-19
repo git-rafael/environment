@@ -14,6 +14,7 @@ in {
     git
 
     direnv
+    libsecret
   ];
   
   programs.broot = {

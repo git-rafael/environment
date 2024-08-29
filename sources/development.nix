@@ -41,79 +41,30 @@ let
     '';
   };
 
-  code = with edgePkgs; let
-    ide = vscode;
-    cli = stdenvNoCC.mkDerivation rec {
-      name = ide.name + "-cli";
-      version = ide.version;
-      
-      passthru = rec {
-        arch = {
-          x86_64-linux = "x64";
-          aarch64-linux = "arm64";
-        }.${system} or throwSystem;
-        sha256 = {
-          x86_64-linux = "sha256-S3dK8IIY7Y8I2aefanVbephZk4nhDdyXOq3d86iV6E4=";
-          aarch64-linux = "sha256-S3dK8IIY7Y8I2aefanVbephZk4nhDdyXOq3d86iV6E4=";
-        }.${system} or throwSystem;
-        throwSystem = throw "Unsupported ${system} for ${name} v${version}";
-      };
-      
-      src = fetchzip {
-        extension = "tar.gz";
-        sha256 = passthru.sha256;
-        url = "https://update.code.visualstudio.com/${version}/cli-alpine-${passthru.arch}/stable";
-      };
-      
-      phases = [ "unpackPhase" "installPhase" ];
-      
-      installPhase = ''
-        mkdir -p $out/bin
-        cp $src/code $out/bin
-      '';
-    };
-    
-    nodejs = nodejs_18;
-    jvm = adoptopenjdk-jre-bin;
-    python = python311.withPackages (ps: with ps; [
+  code = edgePkgs.vscode.fhsWithPackages (ps: with ps; [ 
+    zlib
+    ollama
+    quarto
+    seahorse
+    nerdfonts
+    pkg-config
+    openssl.dev
+
+    go
+    jdk22
+    rustup
+    nodejs_18
+    stdenv.cc
+    dotnet-sdk_8
+    (python312.withPackages (ps: with ps; [
       pip
       nbformat
       ipykernel
-    ]);
-  in writeShellApplication rec {
-    name = "code";
-    checkPhase = false;
-    
-    runtimeInputs = [
-      jvm
-      python
-      nodejs
-      coreutils
-    ];
-    
-    text = ''
-      if [ -f "/usr/share/code/bin/code" ]; then
-        ${cli}/bin/code version use stable --install-dir /usr/share/code >/dev/null;
-      else
-        ${lib.optionalString withUI "${cli}/bin/code version use stable --install-dir ${ide}/lib/vscode >/dev/null;"}:
-      fi
-      exec ${cli}/bin/code "$@";
-    '';
-  };
-  
-  codeDesktopItem = edgePkgs.vscode.desktopItem.override {
-    exec = "${code}/bin/code %F";
-    actions.new-empty-window = {
-      name = "New Empty Window";
-      exec = "${code}/bin/code --new-window %F";
-      icon = "${edgePkgs.vscode}/lib/vscode/resources/app/resources/linux/code.png";
-    };
-  };
+    ]))
+  ]);
 in {
   home.packages = with pkgs; [
     code
-    codeDesktopItem
-    
     devbox
     steampipe
     

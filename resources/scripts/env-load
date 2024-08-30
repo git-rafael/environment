@@ -64,7 +64,7 @@ fi
 
 trap 'ec=$?; nix-collect-garbage --quiet; exit $ec' EXIT;
 if [ "${TARGET}" = 'update' ]; then
-  nix flake update ${TARGET_URL};
+  nix flake update --flake ${TARGET_URL};
 else
   nix build ${TARGET_PATH} --no-link && $(nix path-info ${TARGET_PATH})/activate;
   printf "${TARGET}" > ${TARGET_CONFIG};

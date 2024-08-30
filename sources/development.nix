@@ -54,13 +54,14 @@ let
 
     ollama
     quarto
-
+    
     go
     jdk22
     rustup
     nodejs_18
     stdenv.cc
     dotnet-sdk_8
+    nixfmt-rfc-style
     (python312.withPackages (ps: with ps; [
       pip
       nbformat

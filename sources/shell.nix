@@ -15,8 +15,15 @@ in {
 
     direnv
     libsecret
+
+    nerdfonts
+    noto-fonts
+    noto-fonts-cjk
+    noto-fonts-emoji
   ];
-  
+
+  fonts.fontconfig.enable = pkgs.lib.mkForce true;
+
   programs.broot = {
     enable = true;
     enableZshIntegration = true;

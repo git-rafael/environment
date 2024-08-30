@@ -43,12 +43,17 @@ let
 
   code = edgePkgs.vscode.fhsWithPackages (ps: with ps; [ 
     zlib
-    ollama
-    quarto
-    seahorse
-    nerdfonts
+    libsecret
     pkg-config
     openssl.dev
+
+    nerdfonts
+    noto-fonts
+    noto-fonts-cjk
+    noto-fonts-emoji
+
+    ollama
+    quarto
 
     go
     jdk22

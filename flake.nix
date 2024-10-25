@@ -59,7 +59,7 @@
 
   in {
     homeConfigurations.phone = mkDeviceDerivation "aarch64-linux" "null" ["work"];
-    homeConfigurations.notebook = mkDeviceDerivation "x86_64-linux" "rafael" ["ui"];
+    homeConfigurations.notebook = mkDeviceDerivation "x86_64-linux" "rafael" ["ui" "work"];
     homeConfigurations.ha-terminal = mkDeviceDerivation "x86_64-linux" "root" ["server"];
     homeConfigurations.crostini-penguin = mkDeviceDerivation "x86_64-linux" "rafael" ["ui"];
     homeConfigurations.crostini-puffin = mkDeviceDerivation "x86_64-linux" "rafaeloliveira" ["ui" "work"];

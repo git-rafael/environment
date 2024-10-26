@@ -29,8 +29,10 @@ alias lx='ls -lbhHigUmuSa@'; # all list and extended
 alias tree='exa --tree'; # tree view
 alias lS='exa -1'; # one column by just names
 
-# rename aliases
+# other aliases
+alias open='xdg-open';
 alias slugify='rename "s/ /_/g; s/_/-/g; s/[^a-zA-Z0-9.-]//g; y/A-Z/a-z/"';
+
 
 if command -v tmux > /dev/null 2>&1; then
   [ -z "$TMUX" ] && [ -n "$PS1" ] && exec tmux;

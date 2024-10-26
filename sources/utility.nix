@@ -21,6 +21,7 @@ in  {
 
     bat
     tiv
+    yai
     perl
     htop
     ctop
@@ -37,20 +38,7 @@ in  {
 
     bitwarden-cli
     home-assistant-cli
-
-    please-cli
+    
     edgePkgs.ollama
-  ] ++ pkgs.lib.optionals toWork [
-    pritunl-ssh
-    pritunl-client
-  ] ++ pkgs.lib.optionals withUI [
-    spotify
-  ] ++ pkgs.lib.optionals (withUI && toWork) [
-    slack
-  ] ++ pkgs.lib.optionals (withUI && toPlay) [
-    discord
-    edgePkgs.steam
-  ] ++ pkgs.lib.optionals isServer [
-    python311Packages.supervisor
   ];
 }

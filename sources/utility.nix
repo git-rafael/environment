@@ -2,9 +2,9 @@
 
 let
   withUI = builtins.elem "ui" features;
-  toPlay = builtins.elem "play" features;
-  toWork = builtins.elem "work" features;
-  isServer = builtins.elem "server" features;
+
+  forWork = builtins.elem "work" features;
+  forServers = builtins.elem "server" features;
   
 in  {
   home.packages = with pkgs; [

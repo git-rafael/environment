@@ -18,8 +18,8 @@ in {
 
     nerdfonts
     noto-fonts
-    noto-fonts-cjk
     noto-fonts-emoji
+    noto-fonts-cjk-sans
   ];
 
   fonts.fontconfig = {

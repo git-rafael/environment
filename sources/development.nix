@@ -2,7 +2,7 @@
 
 let
   withUI = builtins.elem "ui" features;
-  toWork = builtins.elem "work" features;
+  forWork = builtins.elem "work" features;
   
   devbox = edgePkgs.devbox;
   huggingface-cli = pkgs.python311.pkgs.huggingface-hub;
@@ -47,11 +47,6 @@ let
     pkg-config
     openssl.dev
 
-    nerdfonts
-    noto-fonts
-    noto-fonts-cjk
-    noto-fonts-emoji
-
     ollama
     quarto
     
@@ -88,7 +83,7 @@ in {
     docker-client
     podman-compose
     docker-compose
-  ] ++ pkgs.lib.optionals toWork [
+  ] ++ pkgs.lib.optionals forWork [
     flash-install
   ];
 }

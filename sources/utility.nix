@@ -6,6 +6,13 @@ let
   forWork = builtins.elem "work" features;
   forServers = builtins.elem "server" features;
   
+  chrome = pkgs.google-chrome.override {
+    commandLineArgs = [
+      "--enable-features=VaapiVideoDecoder,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE,TouchpadOverscrollHistoryNavigation"
+      "--ozone-platform-hint=auto"
+    ];
+  };
+  
 in  {
   home.packages = with pkgs; [
     ncurses
@@ -40,5 +47,7 @@ in  {
     home-assistant-cli
     
     edgePkgs.ollama
+  ] ++ pkgs.lib.optionals withUI [
+    chrome
   ];
 }

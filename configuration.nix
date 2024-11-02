@@ -2,6 +2,7 @@
 {
   system.stateVersion = "24.05";
   nixpkgs.config.allowUnfree = true;
+  nix.settings.trusted-users = [ "root" "@wheel" ];
 
   imports = [
     ./hardware-configuration.nix
@@ -16,8 +17,8 @@
     };
 
     consoleLogLevel = 0;
-    plymouth.enable = true;
     initrd.verbose = false;
+    plymouth.enable = true;
     kernelParams = [
       "quiet"
       "splash"
@@ -37,7 +38,6 @@
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
-
   i18n.extraLocaleSettings = {
     LC_ADDRESS = "pt_BR.UTF-8";
     LC_IDENTIFICATION = "pt_BR.UTF-8";
@@ -51,8 +51,21 @@
   };
 
   # Enable networking
-  networking.hostName = "nixos";
-  networking.networkmanager.enable = true;
+  networking = {
+    hostName = "nixos";
+    networkmanager.enable = true;
+  };
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
+  };
+
+  # Enable bluetooth
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
 
   # Enable the GNOME Desktop Environment.
   services.xserver.enable = true;
@@ -63,24 +76,72 @@
     variant = "";
   };
 
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
+  # Enable print service with CUPS.
+  services.printing = {
+    enable = true;
+    drivers = [
+      pkgs.epson-escpr
+    ];
+  };
+
+  # Enable scan services with SANE.
+  hardware.sane = {
+    enable = true;
+    extraBackends = [
+      pkgs.sane-airscan
+    ];
+  };
+  services.udev.packages = [
+    pkgs.sane-airscan
+  ];
 
   # Enable sound with pipewire.
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
+    pulse.enable = true;
+    jack.enable = true;
     alsa.enable = true;
     alsa.support32Bit = true;
-    pulse.enable = true;
   };
+
+  # Support for dynamically linked executables 
+  programs.nix-ld = {
+    enable = true;
+    libraries = with pkgs; [
+    ];
+  };
+
+  # Support for virtualization
+  virtualisation = {
+    docker.enable = true;
+    libvirtd.enable = true;
+  };
+  systemd.tmpfiles.rules =
+    let
+      firmware =
+        pkgs.runCommandLocal "qemu-firmware" { } ''
+          mkdir $out
+          cp ${pkgs.qemu}/share/qemu/firmware/*.json $out
+          substituteInPlace $out/*.json --replace-fail ${pkgs.qemu} /run/current-system/sw
+        '';
+    in #https://github.com/NixOS/nixpkgs/issues/115996#issuecomment-2224296279
+    [ "L+ /var/lib/qemu/firmware - - - - ${firmware}" ];
 
   # System packages
   programs.zsh.enable = true;
   programs.steam.enable = true;
-  virtualisation.docker.enable = true;
   environment.systemPackages = with pkgs; [
+    qemu
+    ecryptfs
+    gst_all_1.gstreamer
+    gst_all_1.gst-libav
+    gst_all_1.gst-vaapi
+    gst_all_1.gst-plugins-base
+    gst_all_1.gst-plugins-good
+    gst_all_1.gst-plugins-bad
+    gst_all_1.gst-plugins-ugly
   ];
 
   # Base users environment
@@ -88,9 +149,11 @@
     shell = pkgs.zsh;
     isNormalUser = true;
     description = "Rafael Oliveira";
-    extraGroups = [ "networkmanager" "wheel" "docker" ];
+    extraGroups = [ "networkmanager" "scanner" "lp" "wheel" "docker" ];
     packages = with pkgs; [
-      google-chrome
+      gnome.gnome-sound-recorder
+      gnome.gnome-boxes
     ];
   };
 }
+

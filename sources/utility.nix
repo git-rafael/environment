@@ -28,7 +28,6 @@ in  {
 
     bat
     tiv
-    yai
     perl
     htop
     ctop

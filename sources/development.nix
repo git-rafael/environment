@@ -51,7 +51,7 @@ let
     quarto
     
     go
-    jdk22
+    jdk
     rustup
     nodejs_18
     stdenv.cc

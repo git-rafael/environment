@@ -15,8 +15,8 @@ in {
 
     direnv
     libsecret
+    open-interpreter
 
-    nerdfonts
     noto-fonts
     noto-fonts-emoji
     noto-fonts-cjk-sans

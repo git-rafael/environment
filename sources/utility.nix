@@ -6,6 +6,13 @@ let
   forWork = builtins.elem "work" features;
   forServers = builtins.elem "server" features;
   
+  gtoken = pkgs.writers.writePython3Bin "gtoken" {
+    libraries = with pkgs.python3Packages; [
+      google-auth
+      google-auth-oauthlib
+    ]; 
+  } (builtins.readFile ../resources/scripts/gtoken);
+  
   chrome = pkgs.google-chrome.override {
     commandLineArgs = [
       "--enable-features=VaapiVideoDecoder,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE,TouchpadOverscrollHistoryNavigation"
@@ -18,6 +25,7 @@ in  {
     ncurses
     gnugrep
     gnused
+    gtoken
     gnutar
     gnupg
     gzip

@@ -1,0 +1,74 @@
+import os
+import pickle
+from google_auth_oauthlib.flow import InstalledAppFlow
+
+SCOPE_PROMPT = '''
+Informe os escopos desejados, separados por vírgula.
+Por exemplo, para acessar o YouTube com permissões
+de leitura digite youtube.readonly.
+'''
+
+INSTRUCTIONS_PROMPT = '''
+Para usar este aplicativo, você precisa criar um arquivo credentials.json.
+1. Vá para o Google Cloud Console: https://console.developers.google.com/
+2. Crie um projeto e ative as APIs necessárias.
+3. Vá para 'Credenciais' e clique em 'Criar credenciais'.
+4. Escolha 'ID do cliente OAuth' e configure o consentimento do usuário.
+5. Faça o download do arquivo JSON e salve-o como 'credentials.json' no
+   diretório do script ou defina o caminho na variável GOOGLE_CREDENTIALS_PATH.
+'''
+
+
+def get_scopes():
+    print(SCOPE_PROMPT)
+    scope_input = input("Digite os escopos: ")
+    base_url = "https://www.googleapis.com/auth/"
+    return [base_url + scope.strip() for scope in scope_input.split(',')]
+
+
+def obtain_credentials_path():
+    # Tentar obter o caminho de variáveis de ambiente
+    credentials_path = os.getenv('GOOGLE_CREDENTIALS_PATH')
+    if credentials_path and os.path.exists(credentials_path):
+        return credentials_path
+
+    # Tentar usar o arquivo padrão
+    default_path = 'credentials.json'
+    if os.path.exists(default_path):
+        return default_path
+
+    # Se não encontrado, instruir o usuário
+    print("Credenciais não encontradas.")
+    print(INSTRUCTIONS_PROMPT)
+    return None
+
+
+def main():
+    creds = None
+
+    if os.path.exists('token.pickle'):
+        overwrite = input("Token exists. Overwrite? (y/n) ").lower()
+        if overwrite != 'y':
+            print("Operação cancelada.")
+            return
+
+    SCOPES = get_scopes()
+    credentials_path = obtain_credentials_path()
+
+    if not credentials_path:
+        print("Operação não pode continuar sem credenciais.")
+        return
+
+    flow = InstalledAppFlow.from_client_secrets_file(
+      credentials_path,
+      SCOPES
+    )
+    creds = flow.run_local_server(port=0)
+
+    with open('token.pickle', 'wb') as token:
+        pickle.dump(creds, token)
+    print("Autenticação concluída. Token salvo como 'token.pickle'.")
+
+
+if __name__ == '__main__':
+    main()

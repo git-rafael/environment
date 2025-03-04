@@ -1,8 +1,10 @@
-{ config, pkgs, ... }:
+{ inputs, config, pkgs, ... }:
 {
   system.stateVersion = "24.11";
   nixpkgs.config.allowUnfree = true;
+
   nix.settings.trusted-users = [ "root" "@wheel" ];
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   imports = [
     ./hardware-configuration.nix
@@ -116,6 +118,7 @@
   # Support for virtualization
   virtualisation = {
     docker.enable = true;
+    waydroid.enable = true;
     libvirtd.enable = true;
   };
   systemd.tmpfiles.rules =
@@ -131,10 +134,13 @@
 
   # System packages
   programs.zsh.enable = true;
-  programs.steam.enable = true;
   environment.systemPackages = with pkgs; [
+    git
+
     qemu
     ecryptfs
+    wl-clipboard
+
     gst_all_1.gstreamer
     gst_all_1.gst-libav
     gst_all_1.gst-vaapi
@@ -151,8 +157,20 @@
     description = "Rafael Oliveira";
     extraGroups = [ "networkmanager" "scanner" "lp" "wheel" "docker" ];
     packages = with pkgs; [
-      gnome.gnome-sound-recorder
-      gnome.gnome-boxes
+      gnomeExtensions.bluetooth-battery-meter
+      gnomeExtensions.browser-search-provider
+      gnomeExtensions.caffeine
+      gnomeExtensions.cloudflare-warp-toggle
+      gnomeExtensions.ddterm
+      gnomeExtensions.dim-completed-calendar-events
+      gnomeExtensions.gravatar
+      gnomeExtensions.middle-click-to-close-in-overview
+      gnomeExtensions.task-widget
+      gnomeExtensions.tiling-assistant
+      gnomeExtensions.vscode-search-provider
+      gnomeExtensions.weather-oclock
+      gnome-sound-recorder
+      gnome-boxes
     ];
   };
 }

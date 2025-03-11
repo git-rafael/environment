@@ -16,6 +16,11 @@ if [ -e ~/.env ]; then
   . ~/.env;
 fi
 
+# keybindings
+bindkey "^[[1;5C" forward-word;
+bindkey "^[[1;5D" backward-word;
+bindkey "''${key[Up]}" up-line-or-search;
+
 # direnv hook
 eval "$(direnv hook zsh)";
 

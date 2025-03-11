@@ -15,10 +15,35 @@ in {
 
     direnv
     libsecret
-    open-interpreter
 
     (pkgs.nerdfonts.override { fonts = [ "FiraCode" "DroidSansMono" ]; })
+    (pkgs.buildFHSUserEnv {
+      name = "oi";
+      setLocale = "en_US.UTF-8";
+      targetPkgs = pkgs: (with pkgs; [
+        rustup
+        python311
+        python311Packages.pip
+      ]);
+
+      runScript = "interpreter";
+      profile = ''
+        readonly VENV_DIR="$HOME/.open-interpreter/venv";
+        if [ ! -d "$VENV_DIR" ]; then
+          trap "rm -rf $VENV_DIR" ERR;
+          python -m venv "$VENV_DIR";
+          source "$VENV_DIR/bin/activate";
+          pip install --quiet --no-input --no-cache-dir --disable-pip-version-check --break-system-packages open-interpreter[os,safe];
+        else
+          source "$VENV_DIR/bin/activate";
+        fi
+      '';
+    })
   ];
+  
+  home.file = {
+    ".config/open-interpreter/profiles/default.yaml".text = builtins.readFile ../resources/settings/oi.yaml;
+  };
 
   fonts.fontconfig = {
     enable = pkgs.lib.mkForce true;
@@ -58,8 +83,15 @@ in {
   programs.zsh = {
     enable = true;
 
+    autosuggestion = {
+      enable = true;
+      strategy = [
+        "history"
+        "match_prev_cmd"
+        "completion"
+      ];
+    };    
     enableCompletion = true;
-    autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
 
     initExtra = (builtins.readFile ../resources/scripts/zshrc);

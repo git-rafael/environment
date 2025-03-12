@@ -22,8 +22,18 @@ in {
       setLocale = "en_US.UTF-8";
       targetPkgs = pkgs: (with pkgs; [
         rustup
+        stdenv.cc
+        pkg-config
+        
+        zlib
+        glib.dev
+        dbus.dev
+        libnotify
+        openssl.dev
+        
         python311
         python311Packages.pip
+        python311Packages.cmake
       ]);
 
       runScript = "interpreter";
@@ -33,7 +43,7 @@ in {
           trap "rm -rf $VENV_DIR" ERR;
           python -m venv "$VENV_DIR";
           source "$VENV_DIR/bin/activate";
-          pip install --quiet --no-input --no-cache-dir --disable-pip-version-check --break-system-packages open-interpreter[os,safe];
+          pip install --quiet --no-input --no-cache-dir --upgrade --break-system-packages open-interpreter[os,safe] dbus-python pip;
         else
           source "$VENV_DIR/bin/activate";
         fi

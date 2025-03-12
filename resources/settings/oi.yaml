@@ -1,15 +1,15 @@
 ### OPEN INTERPRETER PROFILE
 
-os: True
-loop: True
-offline: True
-disable_telemetry: True
+os: true
+loop: true
+offline: true
+disable_telemetry: true
 
 llm:
   model: "gpt-4o"
   temperature: 0
-  supports_vision: True
-  supports_functions: True
+  supports_vision: true
+  supports_functions: true
   context_window: 110000
   max_tokens: 4096
   custom_instructions: >

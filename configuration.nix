@@ -1,3 +1,19 @@
+# {
+#   inputs = {
+#     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+#   };
+
+#   outputs = inputs@{ self, nixpkgs, ... }: {
+#     nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+#       specialArgs = { inherit inputs; };
+#       system = "x86_64-linux";
+#       modules = [
+#         ./configuration.nix
+#       ];
+#     };
+#   };
+# }
+
 { inputs, config, pkgs, ... }:
 {
   system.stateVersion = "24.11";
@@ -136,11 +152,11 @@
   programs.zsh.enable = true;
   environment.systemPackages = with pkgs; [
     git
-
     qemu
     ecryptfs
+    cloudflare-warp
+    
     wl-clipboard
-
     gst_all_1.gstreamer
     gst_all_1.gst-libav
     gst_all_1.gst-vaapi
@@ -155,7 +171,7 @@
     shell = pkgs.zsh;
     isNormalUser = true;
     description = "Rafael Oliveira";
-    extraGroups = [ "networkmanager" "scanner" "lp" "wheel" "docker" ];
+    extraGroups = [ "networkmanager" "lp" "scanner" "docker" "wheel" ];
     packages = with pkgs; [
       gnomeExtensions.bluetooth-battery-meter
       gnomeExtensions.browser-search-provider
@@ -171,6 +187,7 @@
       gnomeExtensions.weather-oclock
       gnome-sound-recorder
       gnome-boxes
+      endeavour
     ];
   };
 }

@@ -29,11 +29,13 @@ in {
         glib.dev
         dbus.dev
         libnotify
+        tesseract
         openssl.dev
         
         python311
         python311Packages.pip
         python311Packages.cmake
+        python311Packages.tkinter
       ]);
 
       runScript = "interpreter";
@@ -43,7 +45,7 @@ in {
           trap "rm -rf $VENV_DIR" ERR;
           python -m venv "$VENV_DIR";
           source "$VENV_DIR/bin/activate";
-          pip install --quiet --no-input --no-cache-dir --upgrade --break-system-packages open-interpreter[os,safe] dbus-python pip;
+          pip install --quiet --no-input --no-cache-dir --upgrade --break-system-packages open-interpreter opencv-python plyer pyautogui pywinctl dbus-python pip;
         else
           source "$VENV_DIR/bin/activate";
         fi

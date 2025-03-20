@@ -17,6 +17,7 @@ let
     commandLineArgs = [
       "--enable-features=VaapiVideoDecoder,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE,TouchpadOverscrollHistoryNavigation"
       "--ozone-platform-hint=auto"
+      "--disable-pinch"
     ];
   };
   

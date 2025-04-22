@@ -44,6 +44,7 @@ in  {
     iftop
     rsync
     xclip
+    ffmpeg
     rename
     openssh
     pciutils

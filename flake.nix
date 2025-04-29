@@ -62,5 +62,6 @@
     homeConfigurations.corehub = mkDeviceDerivation "x86_64-linux" "root" [ "server" ];
     homeConfigurations.tablet = mkDeviceDerivation "x86_64-linux" "rafael" [ "ui" "work" ];
     homeConfigurations.notebook = mkDeviceDerivation "x86_64-linux" "rafael" [ "ui" "work" ];
+    homeConfigurations.portable = mkDeviceDerivation "x86_64-linux" "rafael" [ "ui" "work" ];
   };
 }

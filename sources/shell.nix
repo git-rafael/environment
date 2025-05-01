@@ -17,7 +17,7 @@ in {
     libsecret
 
     (pkgs.nerdfonts.override { fonts = [ "FiraCode" "DroidSansMono" ]; })
-    (pkgs.buildFHSUserEnv {
+    (pkgs.buildFHSEnv {
       name = "oi";
       setLocale = "en_US.UTF-8";
       targetPkgs = pkgs: (with pkgs; [

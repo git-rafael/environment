@@ -53,7 +53,7 @@ let
     go
     jdk
     rustup
-    nodejs_18
+    nodejs_22
     stdenv.cc
     dotnet-sdk_8
     nixfmt-rfc-style

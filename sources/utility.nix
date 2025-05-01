@@ -51,10 +51,11 @@ in  {
     findutils
     coreutils
     cifs-utils
+    nix-prefetch-git
 
     bitwarden-cli
     home-assistant-cli
-    
+
     edgePkgs.ollama
   ] ++ pkgs.lib.optionals withUI [
     chrome

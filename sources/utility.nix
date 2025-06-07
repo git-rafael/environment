@@ -2,7 +2,6 @@
 
 let
   withUI = builtins.elem "ui" features;
-
   forWork = builtins.elem "work" features;
   forServers = builtins.elem "server" features;
   
@@ -18,6 +17,18 @@ let
       "--enable-features=VaapiVideoDecoder,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE,TouchpadOverscrollHistoryNavigation"
       "--ozone-platform-hint=auto"
       "--disable-pinch"
+    ];
+  };
+
+  goose-cli = pkgs.buildFHSUserEnv {
+    name = "goose";
+    runScript = "goose";
+    targetPkgs = pkgs: with pkgs; [
+      uv
+      git
+      python312
+      nodejs_22
+      edgePkgs.goose-cli
     ];
   };
   

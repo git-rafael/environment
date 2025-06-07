@@ -34,7 +34,7 @@ in  {
     wget
     zip
     jq
-
+    
     bat
     tiv
     perl
@@ -52,12 +52,15 @@ in  {
     coreutils
     cifs-utils
     nix-prefetch-git
-
+    
+    goose-cli
     bitwarden-cli
     home-assistant-cli
-
+    
     edgePkgs.ollama
   ] ++ pkgs.lib.optionals withUI [
     chrome
+  ] ++ pkgs.lib.optionals forWork [
+    cloudflare-warp
   ];
 }

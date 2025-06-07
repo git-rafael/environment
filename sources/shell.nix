@@ -16,41 +16,8 @@ in {
     direnv
     libsecret
 
-    (pkgs.nerdfonts.override { fonts = [ "FiraCode" "DroidSansMono" ]; })
-    (pkgs.buildFHSEnv {
-      name = "oi";
-      setLocale = "en_US.UTF-8";
-      targetPkgs = pkgs: (with pkgs; [
-        rustup
-        stdenv.cc
-        pkg-config
-        
-        zlib
-        glib.dev
-        dbus.dev
-        libnotify
-        tesseract
-        openssl.dev
-        
-        python311
-        python311Packages.pip
-        python311Packages.cmake
-        python311Packages.tkinter
-      ]);
-
-      runScript = "interpreter";
-      profile = ''
-        readonly VENV_DIR="$HOME/.open-interpreter/venv";
-        if [ ! -d "$VENV_DIR" ]; then
-          trap "rm -rf $VENV_DIR" ERR;
-          python -m venv "$VENV_DIR";
-          source "$VENV_DIR/bin/activate";
-          pip install --quiet --no-input --no-cache-dir --upgrade --break-system-packages open-interpreter opencv-python plyer pyautogui pywinctl dbus-python pip;
-        else
-          source "$VENV_DIR/bin/activate";
-        fi
-      '';
-    })
+    nerd-fonts.fira-code
+    nerd-fonts.droid-sans-mono
   ];
   
   home.file = {
@@ -106,7 +73,7 @@ in {
     enableCompletion = true;
     syntaxHighlighting.enable = true;
 
-    initExtra = (builtins.readFile ../resources/scripts/zshrc);
+    initContent = (builtins.readFile ../resources/scripts/zshrc);
   };
 
   programs.tmux = {

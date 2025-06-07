@@ -1,6 +1,6 @@
 # {
 #   inputs = {
-#     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+#     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
 #   };
 
 #   outputs = inputs@{ self, nixpkgs, ... }: {
@@ -16,7 +16,7 @@
 
 { inputs, config, pkgs, ... }:
 {
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.05";
   nixpkgs.config.allowUnfree = true;
 
   nix.settings.trusted-users = [ "root" "@wheel" ];
@@ -78,6 +78,7 @@
     nssmdns4 = true;
     openFirewall = true;
   };
+  services.cloudflare-warp.enable = true;
 
   # Enable bluetooth
   hardware.bluetooth = {
@@ -85,10 +86,17 @@
     powerOnBoot = true;
   };
 
-  # Enable the GNOME Desktop Environment.
+  # Enable the GNOME and KDE Desktop Environment.
   services.xserver.enable = true;
-  services.xserver.displayManager.gdm.enable = true;
+  #services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
+
+  services.displayManager.sddm.enable = true;
+  services.displayManager.sddm.wayland.enable = true;
+  services.desktopManager.plasma6.enable = true;
+  programs.kdeconnect.enable = true;
+  programs.ssh.askPassword = "${pkgs.gnome-keyring}/bin/gnome-keyring-askpass";
+
   services.xserver.xkb = {
     layout = "br";
     variant = "";
@@ -114,8 +122,8 @@
   ];
 
   # Enable sound with pipewire.
-  hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
+  services.pulseaudio.enable = false;
   services.pipewire = {
     enable = true;
     pulse.enable = true;
@@ -154,16 +162,9 @@
     git
     qemu
     ecryptfs
-    cloudflare-warp
     
     wl-clipboard
-    gst_all_1.gstreamer
-    gst_all_1.gst-libav
-    gst_all_1.gst-vaapi
-    gst_all_1.gst-plugins-base
-    gst_all_1.gst-plugins-good
-    gst_all_1.gst-plugins-bad
-    gst_all_1.gst-plugins-ugly
+    qt6.qtwebengine
   ];
 
   # Base users environment
@@ -173,6 +174,8 @@
     description = "Rafael Oliveira";
     extraGroups = [ "networkmanager" "lp" "scanner" "docker" "wheel" ];
     packages = with pkgs; [
+      kdePackages.yakuake
+
       gnomeExtensions.bluetooth-battery-meter
       gnomeExtensions.browser-search-provider
       gnomeExtensions.caffeine

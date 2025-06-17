@@ -1,6 +1,6 @@
 export EDITOR='vim';
 export TERM='xterm-256color';
-export PATH=${PATH}:${HOME}/.local/bin;
+export PATH=${HOME}/.local/bin:${PATH};
 
 if [ -z "${NIX_PROFILES}" ]; then
   if [ -f /etc/alpine-release ]; then
@@ -13,7 +13,9 @@ if [ -z "${NIX_PROFILES}" ]; then
 fi
 
 if [ -e ~/.env ]; then
-  . ~/.env;
+  set -a;
+  source ~/.env;
+  set +a;
 fi
 
 # keybindings
@@ -21,19 +23,12 @@ bindkey "^[[1;5C" forward-word;
 bindkey "^[[1;5D" backward-word;
 bindkey "''${key[Up]}" up-line-or-search;
 
-# direnv hook
-eval "$(direnv hook zsh)";
+# zsh_codex plugin keybinding and configuration
+zle -N create_completion;
+bindkey '^X' create_completion;
+if [[ -n "$OPENAI_API_KEY" ]]; then
+  sed -i "/^\[openai_service\]/,/^\[/ s/^api_key *= *.*/api_key = $OPENAI_API_KEY/" ~/.config/zsh_codex.ini
+fi
 
-# exa aliases
-alias ls='exa'; # just replace ls by exa and allow all other exa arguments
-alias l='ls -lbF'; # list, size, type
-alias ll='ls -la'; # long, all
-alias llm='ll --sort=modified'; # list, long, sort by modification date
-alias la='ls -lbhHigUmuSa'; # all list
-alias lx='ls -lbhHigUmuSa@'; # all list and extended
-alias tree='exa --tree'; # tree view
-alias lS='exa -1'; # one column by just names
-
-# other aliases
-alias open='xdg-open';
-alias slugify='rename "s/ /_/g; s/_/-/g; s/[^a-zA-Z0-9.-]//g; y/A-Z/a-z/"';
+# alias function for goose
+o() { goose run -st "$*"; }

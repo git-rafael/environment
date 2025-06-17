@@ -46,18 +46,16 @@ let
     libsecret
     pkg-config
     openssl.dev
-
-    ollama
-    quarto
     
     go
     jdk
     rustup
+    protobuf
     nodejs_22
     stdenv.cc
     dotnet-sdk_8
     nixfmt-rfc-style
-    (python312.withPackages (ps: with ps; [
+    (python3.withPackages (ps: with ps; [
       pip
       nbformat
       ipykernel
@@ -66,6 +64,7 @@ let
 in {
   home.packages = with pkgs; [
     code
+    quarto
     devbox
     steampipe
     

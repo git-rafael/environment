@@ -4,6 +4,11 @@ let
   env-load = pkgs.writeShellScriptBin "env-load" (builtins.readFile ../resources/scripts/env-load);
   env-shell = pkgs.writeShellScriptBin "env-shell" (builtins.readFile ../resources/scripts/env-shell);
 
+  python = pkgs.python3.withPackages (ps: with ps; [
+    boto3
+    openai
+    google-generativeai
+  ]);
 in {
   home.packages = with pkgs; [
     env-load
@@ -11,9 +16,8 @@ in {
 
     vim
     eza
-    git
 
-    direnv
+    python
     libsecret
 
     nerd-fonts.fira-code
@@ -21,7 +25,10 @@ in {
   ];
   
   home.file = {
-    ".config/open-interpreter/profiles/default.yaml".text = builtins.readFile ../resources/settings/oi.yaml;
+    ".config/zsh_codex.ini" = {
+      force = true;
+      text = builtins.readFile ../resources/settings/zsh_codex.ini;
+    };
   };
 
   fonts.fontconfig = {
@@ -29,11 +36,6 @@ in {
     defaultFonts.emoji = [
       "FiraCode"
     ];
-  };
-  
-  programs.broot = {
-    enable = true;
-    enableZshIntegration = true;
   };
 
   programs.git = {
@@ -59,6 +61,21 @@ in {
     };
   };
   
+  programs.direnv = {
+    enable = true;
+    enableZshIntegration = true;    
+  };
+  
+  programs.broot = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+  
+  programs.thefuck = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+  
   programs.zsh = {
     enable = true;
 
@@ -74,6 +91,30 @@ in {
     syntaxHighlighting.enable = true;
 
     initContent = (builtins.readFile ../resources/scripts/zshrc);
+    
+    shellAliases = {
+      # exa aliases
+      ls = "exa"; # just replace ls by exa and allow all other exa arguments
+      l = "ls -lbF"; # list, size, type
+      ll = "ls -la"; # long, all
+      llm = "ll --sort=modified"; # list, long, sort by modification date
+      la = "ls -lbhHigUmuSa"; # all list
+      lx = "ls -lbhHigUmuSa@"; # all list and extended
+      tree = "exa --tree"; # tree view
+      lS = "exa -1"; # one column by just names
+
+      # other aliases
+      open = "xdg-open";
+      slugify = "rename \"s/ /_/g; s/_/-/g; s/[^a-zA-Z0-9.-]//g; y/A-Z/a-z/\"";
+    };
+    
+    zplug = {
+      enable = true;
+      plugins = [
+        { name = "tom-doerr/zsh_codex"; }
+        { name = "mfaerevaag/wd"; tags = [ as:command use:wd.sh "hook-load:'wd() { . $ZPLUG_REPOS/mfaerevaag/wd/wd.sh }'" ];  }
+      ];
+    };
   };
 
   programs.tmux = {

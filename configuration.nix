@@ -133,11 +133,7 @@
   };
 
   # Support for dynamically linked executables 
-  programs.nix-ld = {
-    enable = true;
-    libraries = with pkgs; [
-    ];
-  };
+  programs.nix-ld.enable = true;
 
   # Support for virtualization
   virtualisation = {

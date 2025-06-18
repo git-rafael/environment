@@ -52,7 +52,7 @@ let
       tkinter
       dbus-python
     ]);
-  in buildFHSEnv {
+    cli = buildFHSEnv {
       name = "goose";
       setLocale = "en_US.UTF-8";
       targetPkgs = pkgs: (with pkgs; [
@@ -62,6 +62,7 @@ let
         uv
         nodejs
         python
+        chromium
         stdenv.cc
         pkg-config
         
@@ -79,7 +80,7 @@ let
         tesseract
         qt5.qtbase
         qt5.qtwayland
-
+        
         # Graphics support
         mesa
         libGL
@@ -92,7 +93,7 @@ let
         portaudio
         alsa-utils
       ]);
-
+      
       runScript = "goose";
       profile = ''
         readonly VENV_DIR="$HOME/.goose/venv";
@@ -105,10 +106,16 @@ let
           source "$VENV_DIR/bin/activate";
         fi
         
+        export PUPPETEER_EXECUTABLE_PATH=${chromium}/bin/chromium;
         export QT_QPA_PLATFORM_PLUGIN_PATH=${QT_QPA_PLATFORM_PLUGIN_PATH};
       '';
     };
-
+  in writeShellApplication {
+    name = "goose";
+    runtimeInputs = [ xorg.xhost cli ];
+    text = ''${xorg.xhost}/bin/xhost +local: >/dev/null && exec ${cli}/bin/goose "$@"'';
+  };
+  
   code = edgePkgs.vscode.fhsWithPackages (ps: with ps; [ 
     zlib
     libsecret
@@ -135,7 +142,7 @@ in {
     devenv
     quarto
     
-    goose
+    goose xorg.xhost
     ollama
     
     gh

@@ -78,9 +78,7 @@ let
         expat
         libnotify
         tesseract
-        qt5.qtbase
-        qt5.qtwayland
-        
+      ] ++ pkgs.lib.optionals withUI [
         # Graphics support
         mesa
         libGL
@@ -88,6 +86,9 @@ let
         freetype
         fontconfig
         libxkbcommon
+        
+        qt5.qtbase
+        qt5.qtwayland
         
         # Audio support
         portaudio
@@ -106,14 +107,20 @@ let
           source "$VENV_DIR/bin/activate";
         fi
         
-        export PUPPETEER_EXECUTABLE_PATH=${chromium}/bin/chromium;
+        ${if withUI then ''
         export QT_QPA_PLATFORM_PLUGIN_PATH=${QT_QPA_PLATFORM_PLUGIN_PATH};
+        '' else ''
+        export PUPPETEER_HEADLESS=true;
+        ''}
+        export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true;
+        export PUPPETEER_EXECUTABLE_PATH=${chromium}/bin/chromium;
       '';
     };
   in writeShellApplication {
     name = "goose";
     runtimeInputs = [ xorg.xhost cli ];
-    text = ''${xorg.xhost}/bin/xhost +local: >/dev/null && exec ${cli}/bin/goose "$@"'';
+    text = if withUI then ''${xorg.xhost}/bin/xhost +local: >/dev/null && exec ${cli}/bin/goose "$@"''
+                      else ''exec ${cli}/bin/goose "$@"'';
   };
   
   code = edgePkgs.vscode.fhsWithPackages (ps: with ps; [ 

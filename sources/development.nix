@@ -5,7 +5,7 @@ let
   forWork = builtins.elem "work" features;
   
   devbox = edgePkgs.devbox;
-  huggingface-cli = pkgs.python311.pkgs.huggingface-hub;
+  huggingface-cli = pkgs.python3.pkgs.huggingface-hub;
 
   dind = pkgs.writeShellScriptBin "dind" (builtins.readFile ../resources/scripts/dind);
   using = pkgs.writeShellScriptBin "using" (builtins.readFile ../resources/scripts/using);
@@ -40,6 +40,74 @@ let
       export $GH_TOKEN;
     '';
   };
+  
+  
+  ollama = edgePkgs.ollama;
+  
+  goose = with pkgs; let
+    QT_QPA_PLATFORM_PLUGIN_PATH="${qt5.qtbase}/lib/qt-${qt5.qtbase.version}/plugins/platforms:${qt5.qtwayland}/lib/qt-${qt5.qtwayland.version}/plugins/platforms";
+    python = python3.withPackages (ps: with ps; [
+      pip
+      cmake
+      tkinter
+      dbus-python
+    ]);
+  in buildFHSEnv {
+      name = "goose";
+      setLocale = "en_US.UTF-8";
+      targetPkgs = pkgs: (with pkgs; [
+        edgePkgs.goose-cli
+        
+        # Base dependencies
+        uv
+        nodejs
+        python
+        stdenv.cc
+        pkg-config
+        
+        # Build dependencies
+        glib.dev
+        dbus.dev
+        openssl.dev
+        
+        # Runtime dependencies
+        zlib
+        glib
+        dbus
+        expat
+        libnotify
+        tesseract
+        qt5.qtbase
+        qt5.qtwayland
+
+        # Graphics support
+        mesa
+        libGL
+        wayland
+        freetype
+        fontconfig
+        libxkbcommon
+        
+        # Audio support
+        portaudio
+        alsa-utils
+      ]);
+
+      runScript = "goose";
+      profile = ''
+        readonly VENV_DIR="$HOME/.goose/venv";
+        if [ ! -d "$VENV_DIR" ]; then
+          trap "rm -rf $VENV_DIR" ERR;
+          echo "Creating virtual environment...";
+          python -m venv "$VENV_DIR" && source "$VENV_DIR/bin/activate";
+          pip install --quiet --no-input --no-cache-dir --upgrade --break-system-packages pip;
+        else
+          source "$VENV_DIR/bin/activate";
+        fi
+        
+        export QT_QPA_PLATFORM_PLUGIN_PATH=${QT_QPA_PLATFORM_PLUGIN_PATH};
+      '';
+    };
 
   code = edgePkgs.vscode.fhsWithPackages (ps: with ps; [ 
     zlib
@@ -64,9 +132,11 @@ let
 in {
   home.packages = with pkgs; [
     code
+    devenv
     quarto
-    devbox
-    steampipe
+    
+    goose
+    ollama
     
     gh
     tldr

@@ -163,6 +163,7 @@
     description = "Rafael Oliveira";
     extraGroups = [ "networkmanager" "lp" "scanner" "docker" "wheel" ];
     packages = with pkgs; [
+      tailscale-systray
       kdePackages.yakuake
     ];
   };

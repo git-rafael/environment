@@ -78,6 +78,10 @@
     nssmdns4 = true;
     openFirewall = true;
   };
+  services.tailscale = {
+    enable = true;
+    useRoutingFeatures = "client";
+  };
   services.cloudflare-warp.enable = true;
 
   # Enable bluetooth
@@ -86,21 +90,11 @@
     powerOnBoot = true;
   };
 
-  # Enable the GNOME and KDE Desktop Environment.
-  services.xserver.enable = true;
-  #services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
-
+  # Enable Plasma Desktop Environment.
   services.displayManager.sddm.enable = true;
   services.displayManager.sddm.wayland.enable = true;
   services.desktopManager.plasma6.enable = true;
   programs.kdeconnect.enable = true;
-  programs.ssh.askPassword = "${pkgs.gnome-keyring}/bin/gnome-keyring-askpass";
-
-  services.xserver.xkb = {
-    layout = "br";
-    variant = "";
-  };
 
   # Enable print service with CUPS.
   services.printing = {
@@ -158,7 +152,6 @@
     git
     qemu
     ecryptfs
-    
     wl-clipboard
     qt6.qtwebengine
   ];
@@ -171,23 +164,6 @@
     extraGroups = [ "networkmanager" "lp" "scanner" "docker" "wheel" ];
     packages = with pkgs; [
       kdePackages.yakuake
-
-      gnomeExtensions.bluetooth-battery-meter
-      gnomeExtensions.browser-search-provider
-      gnomeExtensions.caffeine
-      gnomeExtensions.cloudflare-warp-toggle
-      gnomeExtensions.ddterm
-      gnomeExtensions.dim-completed-calendar-events
-      gnomeExtensions.gravatar
-      gnomeExtensions.middle-click-to-close-in-overview
-      gnomeExtensions.task-widget
-      gnomeExtensions.tiling-assistant
-      gnomeExtensions.vscode-search-provider
-      gnomeExtensions.weather-oclock
-      gnome-sound-recorder
-      gnome-boxes
-      endeavour
     ];
   };
 }
-

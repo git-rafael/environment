@@ -42,7 +42,6 @@ in  {
     iotop
     iftop
     rsync
-    xclip
     ffmpeg
     rename
     openssh
@@ -58,7 +57,5 @@ in  {
     home-assistant-cli
   ] ++ pkgs.lib.optionals withUI [
     chrome
-  ] ++ pkgs.lib.optionals forWork [
-    cloudflare-warp
   ];
 }

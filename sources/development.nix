@@ -146,7 +146,7 @@ let
 in {
   home.packages = with pkgs; [
     code
-    devenv
+    #devenv
     quarto
     
     goose xorg.xhost

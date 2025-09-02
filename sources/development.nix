@@ -52,11 +52,15 @@ let
       tkinter
       dbus-python
     ]);
-    cli = buildFHSEnv {
+    cli = let
+      GOOSE_PATH = ''$HOME/.local'';
+      GOOSE_VENV = "${GOOSE_PATH}/share/goose/venv";
+      GOOSE_BIN = "${GOOSE_PATH}/bin/goose";
+    in buildFHSEnv {
       name = "goose";
       setLocale = "en_US.UTF-8";
       targetPkgs = pkgs: (with pkgs; [
-        edgePkgs.goose-cli
+        #edgePkgs.goose-cli
         
         # Base dependencies
         uv
@@ -65,6 +69,7 @@ let
         chromium
         stdenv.cc
         pkg-config
+        edgePkgs.mcp-proxy
         
         # Build dependencies
         glib.dev
@@ -87,6 +92,8 @@ let
         fontconfig
         libxkbcommon
         
+        xorg.libxcb
+        
         qt5.qtbase
         qt5.qtwayland
         
@@ -95,9 +102,11 @@ let
         alsa-utils
       ]);
       
-      runScript = "goose";
+      runScript = "${GOOSE_BIN}";
       profile = ''
-        readonly VENV_DIR="$HOME/.goose/venv";
+        test -f ${GOOSE_BIN} || curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash;
+      
+        readonly VENV_DIR="${GOOSE_VENV}";
         if [ ! -d "$VENV_DIR" ]; then
           trap "rm -rf $VENV_DIR" ERR;
           echo "Creating virtual environment...";
@@ -146,10 +155,11 @@ let
 in {
   home.packages = with pkgs; [
     code
-    #devenv
+    devenv
     quarto
     
     goose xorg.xhost
+    claude-code
     ollama
     
     gh

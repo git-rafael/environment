@@ -1,6 +1,6 @@
 export EDITOR='vim';
 export TERM='xterm-256color';
-export PATH=${HOME}/.local/bin:${PATH};
+export PATH=${PATH}:${HOME}/.local/bin;
 
 if [ -z "${NIX_PROFILES}" ]; then
   if [ -f /etc/alpine-release ]; then

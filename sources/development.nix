@@ -104,13 +104,13 @@ let
       
       runScript = "${GOOSE_BIN}";
       profile = ''
-        test -f ${GOOSE_BIN} || curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash;
+        test -f ${GOOSE_BIN} || ${curl}/bin/curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash;
       
         readonly VENV_DIR="${GOOSE_VENV}";
         if [ ! -d "$VENV_DIR" ]; then
           trap "rm -rf $VENV_DIR" ERR;
           echo "Creating virtual environment...";
-          python -m venv "$VENV_DIR" && source "$VENV_DIR/bin/activate";
+          ${python}/bin/python -m venv "$VENV_DIR" && source "$VENV_DIR/bin/activate";
           pip install --quiet --no-input --no-cache-dir --upgrade --break-system-packages pip;
         else
           source "$VENV_DIR/bin/activate";
@@ -131,7 +131,7 @@ let
     text = if withUI then ''${xorg.xhost}/bin/xhost +local: >/dev/null && exec ${cli}/bin/goose "$@"''
                       else ''exec ${cli}/bin/goose "$@"'';
   };
-  
+
   code = edgePkgs.vscode.fhsWithPackages (ps: with ps; [ 
     zlib
     libsecret
@@ -153,6 +153,13 @@ let
     ]))
   ]);
 in {
+  home.file = {
+    ".config/goose/.goosehints" = {
+      force = true;
+      text = builtins.readFile ../resources/settings/AGENTS.md;
+    };
+  };
+  
   home.packages = with pkgs; [
     code
     devenv

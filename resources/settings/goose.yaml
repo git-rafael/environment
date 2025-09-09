@@ -1,0 +1,119 @@
+GOOSE_MODE: auto
+GOOSE_CLI_THEME: dark
+GOOSE_SCHEDULER_TYPE: temporal
+
+GOOSE_PROVIDER: openai
+GOOSE_MODEL: gpt-4.1
+OPENAI_HOST: https://api.openai.com
+OPENAI_BASE_PATH: v1/chat/completions
+
+extensions:
+  autovisualiser:
+    available_tools: []
+    bundled: true
+    description: null
+    display_name: Auto Visualiser
+    enabled: true
+    name: autovisualiser
+    timeout: 300
+    type: builtin
+  computercontroller:
+    available_tools: []
+    bundled: true
+    description: null
+    display_name: Computer Controller
+    enabled: true
+    name: computercontroller
+    timeout: 300
+    type: builtin
+  developer:
+    available_tools: []
+    bundled: true
+    description: null
+    display_name: Developer Tools
+    enabled: true
+    name: developer
+    timeout: 300
+    type: builtin
+  fetch:
+    args:
+    - mcp-server-fetch
+    available_tools: []
+    bundled: null
+    cmd: uvx
+    description: null
+    enabled: true
+    env_keys: []
+    envs: {}
+    name: fetch
+    timeout: 300
+    type: stdio
+  home-assistant:
+    args: []
+    available_tools: []
+    bundled: null
+    cmd: mcp-proxy
+    description: null
+    enabled: true
+    env_keys:
+    - SSE_URL
+    - API_ACCESS_TOKEN
+    envs: {}
+    name: home-assistant
+    timeout: 300
+    type: stdio
+  memory:
+    available_tools: []
+    bundled: true
+    description: null
+    display_name: Memory
+    enabled: true
+    name: memory
+    timeout: 300
+    type: builtin
+  puppeteer:
+    args:
+    - -y
+    - '@modelcontextprotocol/server-puppeteer'
+    available_tools: []
+    bundled: null
+    cmd: npx
+    description: null
+    enabled: true
+    env_keys: []
+    envs: {}
+    name: Puppeteer
+    timeout: 300
+    type: stdio
+  slack:
+    args:
+    - -y
+    - '@modelcontextprotocol/server-slack'
+    available_tools: []
+    bundled: null
+    cmd: npx
+    description: null
+    enabled: true
+    env_keys:
+    - SLACK_TEAM_ID
+    - SLACK_BOT_TOKEN
+    - SLACK_CHANNEL_IDS
+    envs: {}
+    name: slack
+    timeout: 300
+    type: stdio
+  youtube-transcript:
+    args:
+    - --from
+    - git+https://github.com/jkawamoto/mcp-youtube-transcript
+    - mcp-youtube-transcript
+    available_tools: []
+    bundled: null
+    cmd: uvx
+    description: null
+    enabled: true
+    env_keys: []
+    envs: {}
+    name: youtube-transcript
+    timeout: 300
+    type: stdio

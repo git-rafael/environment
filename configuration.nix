@@ -78,10 +78,10 @@
     nssmdns4 = true;
     openFirewall = true;
   };
-  services.tailscale = {
-    enable = true;
-    useRoutingFeatures = "client";
-  };
+  #services.tailscale = {
+  #  enable = true;
+  #  useRoutingFeatures = "client";
+  #};
   services.cloudflare-warp.enable = true;
 
   # Enable bluetooth
@@ -172,7 +172,7 @@
     description = "Rafael Oliveira";
     extraGroups = [ "networkmanager" "lp" "scanner" "docker" "wheel" ];
     packages = with pkgs; [
-      tailscale-systray
+      #tailscale-systray
       kdePackages.yakuake
       kdePackages.kdepim-addons
     ];

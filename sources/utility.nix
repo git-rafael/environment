@@ -12,7 +12,7 @@ let
     ]; 
   } (builtins.readFile ../resources/scripts/gtoken);
   
-  chrome = pkgs.google-chrome.override {
+  chrome = pkgs.chromium.override {
     commandLineArgs = [
       "--enable-features=VaapiVideoDecoder,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE,TouchpadOverscrollHistoryNavigation"
       "--ozone-platform-hint=auto"

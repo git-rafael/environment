@@ -5,6 +5,8 @@ let
   forWork = builtins.elem "work" features;
   forServers = builtins.elem "server" features;
   
+  plasmaDnSwitcher = pkgs.writeShellScriptBin "plasma-dn-switcher" (builtins.readFile ../resources/scripts/plasma-dn-switcher);
+  
   gtoken = pkgs.writers.writePython3Bin "gtoken" {
     libraries = with pkgs.python3Packages; [
       google-auth
@@ -19,7 +21,7 @@ let
       "--disable-pinch"
     ];
   };
-    
+
 in  {
   home.packages = with pkgs; [
     ncurses
@@ -57,5 +59,6 @@ in  {
     home-assistant-cli
   ] ++ pkgs.lib.optionals withUI [
     chrome
+    plasmaDnSwitcher
   ];
 }

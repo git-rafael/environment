@@ -1,0 +1,176 @@
+#!/bin/sh
+
+# KDE Plasma Day/Night Theme Switcher
+# Alterna entre temas claro e escuro no KDE Plasma
+
+# Configurações do tema Day
+DAY_COLOR_SCHEME="BreezeLight"
+DAY_PLASMA_STYLE="MacSequoia-Light"
+DAY_WINDOW_DECORATION="ChromeOS-light"
+
+# Configurações do tema Night
+NIGHT_COLOR_SCHEME="BreezeDark"
+NIGHT_PLASMA_STYLE="MacSonoma-Dark"
+NIGHT_WINDOW_DECORATION="ChromeOS-dark"
+
+# Diretórios dos temas
+PLASMA_THEMES_DIR="$HOME/.local/share/plasma/desktoptheme"
+AURORAE_THEMES_DIR="$HOME/.local/share/aurorae/themes"
+COLOR_SCHEMES_DIR="$HOME/.local/share/color-schemes"
+
+# Função para verificar se temas estão instalados
+check_themes() {
+    missing_themes=false
+    
+    # Verificar tema Plasma Day
+    if [ ! -d "$PLASMA_THEMES_DIR/$DAY_PLASMA_STYLE" ]; then
+        echo "⚠️  Tema do Plasma '$DAY_PLASMA_STYLE' não encontrado"
+        missing_themes=true
+    fi
+    
+    # Verificar tema Plasma Night
+    if [ ! -d "$PLASMA_THEMES_DIR/$NIGHT_PLASMA_STYLE" ]; then
+        echo "⚠️  Tema do Plasma '$NIGHT_PLASMA_STYLE' não encontrado"
+        missing_themes=true
+    fi
+    
+    # Verificar decorações das janelas
+    if [ ! -d "$AURORAE_THEMES_DIR" ] || [ ! -f "$AURORAE_THEMES_DIR/$DAY_WINDOW_DECORATION/decoration.svg" ]; then
+        echo "⚠️  Decoração de janelas '$DAY_WINDOW_DECORATION' não encontrada"
+        missing_themes=true
+    fi
+    
+    if [ ! -d "$AURORAE_THEMES_DIR" ] || [ ! -f "$AURORAE_THEMES_DIR/$NIGHT_WINDOW_DECORATION/decoration.svg" ]; then
+        echo "⚠️  Decoração de janelas '$NIGHT_WINDOW_DECORATION' não encontrada"
+        missing_themes=true
+    fi
+    
+    if [ "$missing_themes" = true ]; then
+        echo ""
+        echo "💡 Instale os temas ausentes em: Configurações do Sistema > Aparência"
+        echo ""
+    fi
+}
+
+# Função para aplicar tema Day
+apply_day_theme() {
+    check_themes
+    echo "Aplicando tema Day..."
+    
+    # Definir esquema de cores
+    plasma-apply-colorscheme "$DAY_COLOR_SCHEME"
+    
+    # Definir estilo do Plasma
+    plasma-apply-desktoptheme "$DAY_PLASMA_STYLE"
+    
+    # Definir decoração das janelas
+    if command -v qdbus >/dev/null 2>&1; then
+        # Modificar kwinrc diretamente
+        sed -i "s/theme=__aurorae__svg__.*/theme=__aurorae__svg__${DAY_WINDOW_DECORATION}/" "$HOME/.config/kwinrc"
+        # Recarregar configuração do KWin
+        qdbus org.kde.KWin /KWin reconfigure 2>/dev/null || true
+        echo "Decoração de janelas configurada: $DAY_WINDOW_DECORATION"
+    else
+        echo "Aviso: qdbus não encontrado, pulando decoração das janelas"
+    fi
+    
+    echo "Tema Day aplicado com sucesso!"
+}
+
+# Função para aplicar tema Night
+apply_night_theme() {
+    check_themes
+    echo "Aplicando tema Night..."
+    
+    # Definir esquema de cores
+    plasma-apply-colorscheme "$NIGHT_COLOR_SCHEME"
+    
+    # Definir estilo do Plasma
+    plasma-apply-desktoptheme "$NIGHT_PLASMA_STYLE"
+    
+    # Definir decoração das janelas
+    if command -v qdbus >/dev/null 2>&1; then
+        # Modificar kwinrc diretamente
+        sed -i "s/theme=__aurorae__svg__.*/theme=__aurorae__svg__${NIGHT_WINDOW_DECORATION}/" "$HOME/.config/kwinrc"
+        # Recarregar configuração do KWin
+        qdbus org.kde.KWin /KWin reconfigure 2>/dev/null || true
+        echo "Decoração de janelas configurada: $NIGHT_WINDOW_DECORATION"
+    else
+        echo "Aviso: qdbus não encontrado, pulando decoração das janelas"
+    fi
+    
+    echo "Tema Night aplicado com sucesso!"
+}
+
+# Função para detectar tema atual
+get_current_theme() {
+    # Verificar esquema de cores atual
+    current_colors=$(qdbus org.kde.KWin /ColorCorrect nightColorEnabled 2>/dev/null || echo "false")
+    
+    # Verificar se está usando tema escuro baseado no kwinrc ou plasma
+    if grep -q "BreezeDark\|Dark" ~/.config/plasmarc 2>/dev/null || \
+       grep -q "dark\|Dark" ~/.config/kwinrc 2>/dev/null; then
+        echo "night"
+    elif grep -q "BreezeLight\|Light" ~/.config/plasmarc 2>/dev/null || \
+         grep -q "light\|Light" ~/.config/kwinrc 2>/dev/null; then
+        echo "day"
+    else
+        # Fallback: verificar se Night Color está ativo
+        if [ "$current_colors" = "true" ]; then
+            echo "night"
+        else
+            echo "day"
+        fi
+    fi
+}
+
+# Função para alternar tema
+toggle_theme() {
+    current_theme=$(get_current_theme)
+    
+    case "$current_theme" in
+        "day")
+            apply_night_theme
+            ;;
+        "night")
+            apply_day_theme
+            ;;
+        *)
+            echo "Não foi possível detectar tema atual. Aplicando tema Day como padrão..."
+            apply_day_theme
+            ;;
+    esac
+}
+
+# Função para mostrar uso
+show_usage() {
+    echo "Uso: $0 [day|night]"
+    echo ""
+    echo "Comandos:"
+    echo "  day     - Aplicar tema claro"
+    echo "  night   - Aplicar tema escuro"
+    echo ""
+    echo "Se nenhum argumento for fornecido, alterna automaticamente entre os temas."
+}
+
+
+# Verificar argumentos
+case "${1:-}" in
+    "day")
+        apply_day_theme
+        ;;
+    "night")
+        apply_night_theme
+        ;;
+    "help"|"-h"|"--help")
+        show_usage
+        ;;
+    "")
+        toggle_theme
+        ;;
+    *)
+        echo "Argumento inválido: $1"
+        show_usage
+        exit 1
+        ;;
+esac

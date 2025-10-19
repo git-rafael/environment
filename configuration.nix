@@ -133,6 +133,14 @@
     jack.enable = true;
     alsa.enable = true;
     alsa.support32Bit = true;
+    extraConfig.pipewire-pulse."99-audio-recorder" = {
+      "pulse.cmd" = [
+        { cmd = "load-module"; args = "module-null-sink sink_name=AudioRecorder sink_properties=device.description=Recorder"; }
+        { cmd = "load-module"; args = "module-loopback source=@DEFAULT_SINK@.monitor sink=AudioRecorder"; }
+        { cmd = "load-module"; args = "module-loopback source=@DEFAULT_SOURCE@ sink=AudioRecorder latency_msec=1"; }
+        { cmd = "load-module"; args = "module-virtual-source source_name=RecorderMic master=AudioRecorder.monitor source_properties=device.description=Recorder"; }
+      ];
+    };
   };
 
   # Support for dynamically linked executables 

@@ -15,6 +15,7 @@ let
   } (builtins.readFile ../resources/scripts/gtoken);
   
   chrome = pkgs.chromium.override {
+    enableWideVine = true;
     commandLineArgs = [
       "--enable-features=VaapiVideoDecoder,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE,TouchpadOverscrollHistoryNavigation"
       "--ozone-platform-hint=auto"

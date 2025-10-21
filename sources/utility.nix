@@ -14,15 +14,6 @@ let
     ]; 
   } (builtins.readFile ../resources/scripts/gtoken);
   
-  chrome = pkgs.chromium.override {
-    enableWideVine = true;
-    commandLineArgs = [
-      "--enable-features=VaapiVideoDecoder,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE,TouchpadOverscrollHistoryNavigation"
-      "--ozone-platform-hint=auto"
-      "--disable-pinch"
-    ];
-  };
-
 in  {
   home.packages = with pkgs; [
     ncurses
@@ -59,7 +50,19 @@ in  {
     bitwarden-cli
     home-assistant-cli
   ] ++ pkgs.lib.optionals withUI [
-    chrome
     plasmaDnSwitcher
   ];
+  
+  programs.chromium = {
+    enable = withUI;
+    package = pkgs.chromium.override {
+      enableWideVine = true;
+    };
+    nativeMessagingHosts = [ pkgs.kdePackages.plasma-browser-integration ];
+    commandLineArgs = [
+      "--enable-features=VaapiVideoDecoder,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE,TouchpadOverscrollHistoryNavigation"
+      "--ozone-platform-hint=auto"
+      "--disable-pinch"
+    ];
+  };
 }

@@ -11,11 +11,8 @@ elif [ -e ${HOME}/.nix-profile/etc/profile.d/nix.sh ]; then
     export GC_NPROCS=1;
     export USER=${USER:-null};
   fi
-
-  if [ -z "${NIX_PROFILES}" ]; then
-    . ${HOME}/.nix-profile/etc/profile.d/nix.sh;
-  fi
-
+  
+  . ${HOME}/.nix-profile/etc/profile.d/nix.sh;
   LOCALE_ARCHIVE=/usr/lib/locale/locale-archive exec ${SHELL};
 else
   echo "Environment must be loaded with 'env-load' before running 'env-shell'.";

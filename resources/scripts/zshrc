@@ -8,9 +8,9 @@ if [ -z "${NIX_PROFILES}" ]; then
   elif [ -n "${TERMUX_VERSION}" ]; then
     export GC_NPROCS=1;
     export USER=${USER:-null};
-  fi  
-  . ${HOME}/.nix-profile/etc/profile.d/nix.sh;
+  fi
 fi
+. ${HOME}/.nix-profile/etc/profile.d/nix.sh;
 
 if [ -e ~/.env ]; then
   set -a;

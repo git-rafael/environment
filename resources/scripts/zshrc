@@ -10,7 +10,10 @@ if [ -z "${NIX_PROFILES}" ]; then
     export USER=${USER:-null};
   fi
 fi
-. ${HOME}/.nix-profile/etc/profile.d/nix.sh;
+
+if ! command -v nixos-version &>/dev/null; then
+  . ${HOME}/.nix-profile/etc/profile.d/nix.sh;
+fi
 
 if [ -e ~/.env ]; then
   set -a;

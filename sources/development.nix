@@ -14,31 +14,12 @@ let
     name = "flash-install";
     checkPhase = false;
 
-    runtimeInputs = [ 
+    runtimeInputs = [
       gh
       busybox
     ];
 
-    text = ''
-      set -e;
-      
-      gh auth login --hostname github.com;
-      readonly CTL_VERSION="$(gh release list --repo flash-tecnologia/flashstage.executable.flashctl | grep Latest | cut -f1 -)";
-      gh release download $CTL_VERSION --pattern '*-linux' --output ~/.local/bin/flashctl --clobber --repo flash-tecnologia/flashstage.executable.flashctl;
-      chmod +x ~/.local/bin/flashctl;
-      readonly ADM_VERSION="$(gh release list --repo flash-tecnologia/flashstage.executable.flashadm | grep Latest | cut -f1 -)";
-      gh release download $ADM_VERSION --pattern '*-linux' --output ~/.local/bin/flashadm --clobber --repo flash-tecnologia/flashstage.executable.flashadm;
-      chmod +x ~/.local/bin/flashadm;
-      
-      readonly GH_TOKEN=$(gh auth token);
-      if grep -q '^GH_TOKEN=' ~/.env 2>/dev/null; then
-        sed -i 's/^GH_TOKEN=.*/GH_TOKEN='$GH_TOKEN'/' ~/.env;
-      else
-        echo 'GH_TOKEN='$GH_TOKEN >> ~/.env;
-        chmod 600 ~/.env;
-      fi
-      export $GH_TOKEN;
-    '';
+    text = builtins.readFile ../resources/scripts/flash-install;
   };
   
   
@@ -132,12 +113,14 @@ let
                       else ''exec ${cli}/bin/goose "$@"'';
   };
 
-  code = edgePkgs.vscode.fhsWithPackages (ps: with ps; [ 
+  code = edgePkgs.vscodium.fhsWithPackages (ps: with ps; [
     zlib
     libsecret
     pkg-config
     openssl.dev
-    
+
+    goose
+
     go
     jdk
     rustup
@@ -157,6 +140,16 @@ in {
     ".config/goose/.goosehints" = {
       force = true;
       text = builtins.readFile ../resources/settings/AGENTS.md;
+    };
+
+    ".config/VSCodium/product.json" = {
+      force = true;
+      text = builtins.toJSON {
+        extensionsGallery = {
+          serviceUrl = "https://marketplace.visualstudio.com/_apis/public/gallery";
+          itemUrl = "https://marketplace.visualstudio.com/items";
+        };
+      };
     };
   };
   

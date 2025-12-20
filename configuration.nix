@@ -1,6 +1,6 @@
 # {
 #   inputs = {
-#     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+#     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
 #   };
 
 #   outputs = inputs@{ self, nixpkgs, ... }: {
@@ -16,7 +16,7 @@
 
 { inputs, config, pkgs, ... }:
 {
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
   nixpkgs.config.allowUnfree = true;
 
   nix.settings.trusted-users = [ "root" "@wheel" ];

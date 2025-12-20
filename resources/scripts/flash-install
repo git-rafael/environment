@@ -1,0 +1,36 @@
+set -e
+
+echo "==> Authenticating with GitHub..."
+gh auth login --hostname github.com
+
+echo "==> Downloading flashctl..."
+readonly CTL_VERSION="$(gh release list --repo flash-tecnologia/flashstage.executable.flashctl | grep Latest | cut -f1 -)"
+echo "    Version: $CTL_VERSION"
+gh release download $CTL_VERSION --pattern '*-linux' --output ~/.local/bin/flashctl --clobber --repo flash-tecnologia/flashstage.executable.flashctl
+chmod +x ~/.local/bin/flashctl
+echo "    Installed: ~/.local/bin/flashctl"
+
+echo "==> Downloading flashadm..."
+readonly ADM_VERSION="$(gh release list --repo flash-tecnologia/flashstage.executable.flashadm | grep Latest | cut -f1 -)"
+echo "    Version: $ADM_VERSION"
+gh release download $ADM_VERSION --pattern '*-linux' --output ~/.local/bin/flashadm --clobber --repo flash-tecnologia/flashstage.executable.flashadm
+chmod +x ~/.local/bin/flashadm
+echo "    Installed: ~/.local/bin/flashadm"
+
+echo "==> Configuring GitHub token..."
+readonly GH_TOKEN=$(gh auth token)
+if grep -q '^GH_TOKEN=' ~/.env 2>/dev/null; then
+  sed -i 's/^GH_TOKEN=.*/GH_TOKEN='$GH_TOKEN'/' ~/.env
+  echo "    Updated GH_TOKEN in ~/.env"
+else
+  echo 'GH_TOKEN='$GH_TOKEN >> ~/.env
+  chmod 600 ~/.env
+  echo "    Created ~/.env with GH_TOKEN"
+fi
+export $GH_TOKEN
+
+echo ""
+echo "✓ Flash tools installation completed successfully!"
+echo ""
+echo "  flashctl: $(~/.local/bin/flashctl --version 2>/dev/null || echo 'installed')"
+echo "  flashadm: $(~/.local/bin/flashadm --version 2>/dev/null || echo 'installed')"

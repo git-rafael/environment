@@ -1,0 +1,2 @@
+*.crt filter=lfs diff=lfs merge=lfs -text
+*.pem filter=lfs diff=lfs merge=lfs -text

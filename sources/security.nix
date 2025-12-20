@@ -27,6 +27,6 @@ in {
 
     gitleaks
 
-    oathToolkit
+    oath-toolkit
   ];
 }

@@ -1,6 +1,8 @@
-{ pkgs, ... }:
+{ pkgs, edgePkgs, features, ... }:
 
 let
+  forWork = builtins.elem "work" features;
+
   env-load = pkgs.writeShellScriptBin "env-load" (builtins.readFile ../resources/scripts/env-load);
   env-shell = pkgs.writeShellScriptBin "env-shell" (builtins.readFile ../resources/scripts/env-shell);
 
@@ -145,12 +147,12 @@ in {
       };
     };
   };
-
-  # Configure SSL/TLS to use custom CA bundle with Warp certificate
+} // pkgs.lib.optionalAttrs forWork {
+  # Configure SSL/TLS to use custom CA bundle with Warp certificate (Work only)
   home.sessionVariables = {
     NIX_SSL_CERT_FILE = "$HOME/.local/share/ca-certificates/ca-bundle.crt";
     SSL_CERT_FILE = "$HOME/.local/share/ca-certificates/ca-bundle.crt";
-    CURL_CA_BUNDLE = "$HOME/.local/share/ca-certificates/ca-bundle.crt";
+    CURL_CA_BUNDLE = "$HOME/.local/share/ca-directories/ca-bundle.crt";
     NODE_EXTRA_CA_CERTS = "$HOME/.local/share/ca-certificates/ca-bundle.crt";
   };
 

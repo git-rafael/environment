@@ -147,32 +147,34 @@ in {
       };
     };
   };
-} // (pkgs.lib.optionalAttrs forWork {
+
   # Configure SSL/TLS to use custom CA bundle with Warp certificate (Work only)
-  home.sessionVariables = {
+  home.sessionVariables = pkgs.lib.mkIf forWork {
     NIX_SSL_CERT_FILE = "$HOME/.local/share/ca-certificates/ca-bundle.crt";
     SSL_CERT_FILE = "$HOME/.local/share/ca-certificates/ca-bundle.crt";
     CURL_CA_BUNDLE = "$HOME/.local/share/ca-certificates/ca-bundle.crt";
     NODE_EXTRA_CA_CERTS = "$HOME/.local/share/ca-certificates/ca-bundle.crt";
   };
 
-  home.activation.installWarpCerts = {
-    after = [ "writeBoundary" ];
-    before = [ ];
-    data = ''
-      # Create custom CA bundle combining system certs with Warp certificate
-      run mkdir -p $HOME/.local/share/ca-certificates
-      cat ${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt > $HOME/.local/share/ca-certificates/ca-bundle.crt
-      echo "" >> $HOME/.local/share/ca-certificates/ca-bundle.crt
-      cat ${../resources/certificates/flash_warp_certificate.crt} >> $HOME/.local/share/ca-certificates/ca-bundle.crt
+  home.activation = pkgs.lib.mkIf forWork {
+    installWarpCerts = {
+      after = [ "writeBoundary" ];
+      before = [ ];
+      data = ''
+        # Create custom CA bundle combining system certs with Warp certificate
+        run mkdir -p $HOME/.local/share/ca-certificates
+        cat ${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt > $HOME/.local/share/ca-certificates/ca-bundle.crt
+        echo "" >> $HOME/.local/share/ca-certificates/ca-bundle.crt
+        cat ${../resources/certificates/flash_warp_certificate.crt} >> $HOME/.local/share/ca-certificates/ca-bundle.crt
 
-      # Install Warp certificate in NSS database for Chromium/Firefox
-      run mkdir -p $HOME/.pki/nssdb
-      if [ ! -f "$HOME/.pki/nssdb/cert9.db" ]; then
-        run ${pkgs.nss.tools}/bin/certutil -N -d sql:$HOME/.pki/nssdb --empty-password
-      fi
-      ${pkgs.nss.tools}/bin/certutil -D -d sql:$HOME/.pki/nssdb -n "Cloudflare WARP CA" 2>/dev/null || true
-      run ${pkgs.nss.tools}/bin/certutil -A -d sql:$HOME/.pki/nssdb -n "Cloudflare WARP CA" -t "C,," -i ${../resources/certificates/flash_warp_certificate.crt}
-    '';
+        # Install Warp certificate in NSS database for Chromium/Firefox
+        run mkdir -p $HOME/.pki/nssdb
+        if [ ! -f "$HOME/.pki/nssdb/cert9.db" ]; then
+          run ${pkgs.nss.tools}/bin/certutil -N -d sql:$HOME/.pki/nssdb --empty-password
+        fi
+        ${pkgs.nss.tools}/bin/certutil -D -d sql:$HOME/.pki/nssdb -n "Cloudflare WARP CA" 2>/dev/null || true
+        run ${pkgs.nss.tools}/bin/certutil -A -d sql:$HOME/.pki/nssdb -n "Cloudflare WARP CA" -t "C,," -i ${../resources/certificates/flash_warp_certificate.crt}
+      '';
+    };
   };
-})
+}

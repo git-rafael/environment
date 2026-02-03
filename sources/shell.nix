@@ -147,12 +147,12 @@ in {
       };
     };
   };
-} // pkgs.lib.optionalAttrs forWork {
+} // (pkgs.lib.optionalAttrs forWork {
   # Configure SSL/TLS to use custom CA bundle with Warp certificate (Work only)
   home.sessionVariables = {
     NIX_SSL_CERT_FILE = "$HOME/.local/share/ca-certificates/ca-bundle.crt";
     SSL_CERT_FILE = "$HOME/.local/share/ca-certificates/ca-bundle.crt";
-    CURL_CA_BUNDLE = "$HOME/.local/share/ca-directories/ca-bundle.crt";
+    CURL_CA_BUNDLE = "$HOME/.local/share/ca-certificates/ca-bundle.crt";
     NODE_EXTRA_CA_CERTS = "$HOME/.local/share/ca-certificates/ca-bundle.crt";
   };
 
@@ -175,4 +175,4 @@ in {
       run ${pkgs.nss.tools}/bin/certutil -A -d sql:$HOME/.pki/nssdb -n "Cloudflare WARP CA" -t "C,," -i ${../resources/certificates/flash_warp_certificate.crt}
     '';
   };
-}
+})

@@ -124,11 +124,11 @@ let
     go
     jdk
     rustup
+    nixfmt
     protobuf
     nodejs_22
     stdenv.cc
     dotnet-sdk_8
-    nixfmt-rfc-style
     (python3.withPackages (ps: with ps; [
       pip
       nbformat

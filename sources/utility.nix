@@ -50,6 +50,7 @@ in  {
     bitwarden-cli
     home-assistant-cli
   ] ++ pkgs.lib.optionals withUI [
+    reco
     plasmaDnSwitcher
   ];
   

@@ -22,9 +22,40 @@ let
     text = builtins.readFile ../resources/scripts/flash-install;
   };
   
-  
   ollama = edgePkgs.ollama;
-  
+
+  openwork = pkgs.stdenv.mkDerivation rec {
+    pname = "openwork";
+    version = "0.11.137";
+
+    src = pkgs.fetchurl {
+      url = "https://github.com/different-ai/openwork/releases/download/v${version}/openwork-desktop-linux-amd64.deb";
+      hash = "sha256-vGApxKr86ITTpghPaqUkqYnURPoKw2mVRqvH0jlJbqo=";
+    };
+
+    nativeBuildInputs = with pkgs; [ dpkg autoPatchelfHook wrapGAppsHook3 ];
+
+    buildInputs = with pkgs; [
+      cairo
+      gdk-pixbuf
+      glib
+      gtk3
+      gsettings-desktop-schemas
+      libsoup_3
+      webkitgtk_4_1
+    ];
+
+    unpackPhase = "dpkg-deb -x $src .";
+
+    installPhase = ''
+      mkdir -p $out
+      cp -r usr/bin $out/
+      cp -r usr/share $out/
+    '';
+
+    meta.mainProgram = "openwork";
+  };
+
   goose = with pkgs; let
     QT_QPA_PLATFORM_PLUGIN_PATH="${qt5.qtbase}/lib/qt-${qt5.qtbase.version}/plugins/platforms:${qt5.qtwayland}/lib/qt-${qt5.qtwayland.version}/plugins/platforms";
     python = python3.withPackages (ps: with ps; [
@@ -119,8 +150,6 @@ let
     pkg-config
     openssl.dev
 
-    goose
-
     go
     jdk
     rustup
@@ -158,8 +187,6 @@ in {
     devenv
     quarto
     
-    goose xorg.xhost
-    claude-code
     ollama
     
     gh
@@ -176,6 +203,8 @@ in {
     docker-client
     podman-compose
     docker-compose
+  ] ++ pkgs.lib.optionals withUI [
+    openwork
   ] ++ pkgs.lib.optionals forWork [
     flash-install
   ];

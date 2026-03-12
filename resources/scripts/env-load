@@ -1,71 +1,228 @@
+#!/bin/sh
 set -e;
 
-readonly TARGET_PARAMETER=${1:-${TARGET:-}};
-readonly TARGET_REFERENCE=${2:-${TARGET_REF:-'main'}};
+# ── Constants ────────────────────────────────────────────────────────────────
 
 readonly TARGET_CONFIG="${HOME}/.nix-target";
-if [ -d "${TARGET_REFERENCE}" ]; then
-  readonly TARGET_URL="${TARGET_REFERENCE}";
-else
-  readonly TARGET_URL="github:git-rafael/environment?ref=${TARGET_REFERENCE}";
-fi
+readonly NIX_CONFIG_FILE="${HOME}/.config/nix/nix.conf";
+readonly NIX_EXPERIMENTAL_CONFIG='experimental-features = nix-command flakes';
 
-if [ -z "${TARGET_PARAMETER}" ]; then
-  readonly TARGET="$(cat ${TARGET_CONFIG} 2>/dev/null || printf '???')";
-else
-  readonly TARGET="${TARGET_PARAMETER}";
-fi
+# ── Help ─────────────────────────────────────────────────────────────────────
 
-readonly TARGET_PATH="${TARGET_URL}#homeConfigurations.${TARGET}.activationPackage";
+show_help() {
+  cat <<'EOF'
+Usage:
+  env-load user <target> [<path|ref>] [--update]   Apply a target home environment
+  env-load user clean                               Remove unreferenced user Nix store paths
+  env-load system <device> [<path|ref>] [--update] Apply a device OS environment for NixOS systems
+  env-load system clean                             Remove unreferenced system Nix store paths
+  env-load clean                                    Remove unreferenced user and system Nix store paths
+  env-load purge                                    Delete all old generations and collect garbage (no rollback)
+  env-load help                                     Show this help message
 
-if [ -f /etc/alpine-release ]; then
-  export USER=${USER:-root};
-elif [ -n "${TERMUX_VERSION}" ]; then
-  export GC_NPROCS=1;
-  export USER=${USER:-null};
-fi
-export NIX_INSTALLER_NO_MODIFY_PROFILE=true;
+Options:
+  --update      Update flake inputs before running the command
 
-if ! command -v nix >/dev/null 2>&1; then
+Arguments:
+  <path|ref>    Local path to repo or git ref (branch/tag). Defaults to 'main'.
+                  Local:  env-load user notebook ~/environment
+                  Remote: env-load user notebook my-branch
+EOF
+}
+
+die() {
+  echo "error: $1";
+  echo;
+  show_help;
+  exit 1;
+}
+
+fail() {
+  echo "error: $1";
+  exit 1;
+}
+
+# ── Argument parsing ──────────────────────────────────────────────────────────
+
+parse_args() {
+  local arg1=${1:-${TARGET:-}};
+  local arg2=${2:-};
+  local arg3=${3:-};
+
+  UPDATE=false;
+
+  case "${arg1}" in
+    user|system)
+      COMMAND="${arg1}";
+      COMMAND_ARG="${arg2}";
+      REFERENCE="${arg3:-${TARGET_REF:-'main'}}";
+      ;;
+    help|clean|purge|'')
+      COMMAND="${arg1:-help}";
+      ;;
+    *)
+      COMMAND="user";
+      COMMAND_ARG="${arg1}";
+      REFERENCE="${arg2:-${TARGET_REF:-'main'}}";
+      ;;
+  esac
+
+  for arg in "$@"; do
+    [ "${arg}" = "--update" ] && UPDATE=true;
+  done
+
+  if [ -d "${REFERENCE}" ]; then
+    HOME_URL="${REFERENCE}";
+    DEVICES_URL="${REFERENCE}/devices";
+  else
+    HOME_URL="github:git-rafael/environment?ref=${REFERENCE}";
+    DEVICES_URL="github:git-rafael/environment?dir=devices&ref=${REFERENCE}";
+  fi
+}
+
+# ── Platform setup ────────────────────────────────────────────────────────────
+
+setup_platform() {
   if [ -f /etc/alpine-release ]; then
-    mkdir -p /nix;
-    mkdir -p /etc/nix;
-    printf "sandbox = false\n" > /etc/nix/nix.conf;
-    printf "filter-syscalls = false\n" >> /etc/nix/nix.conf;
-
-    apk --no-cache add sudo xz >/dev/null;
-
-    test $(getent group nixbld) || addgroup -g 30000 -S nixbld;
-    for i in $(seq 1 30); do
-        test $(id -u "nixbld$i" 2>/dev/null) || adduser -S -D -h /var/empty -g "Nix build user $i" -u $((30000 + i)) -G nixbld "nixbld$i";
-    done
+    export USER=${USER:-root};
   elif [ -n "${TERMUX_VERSION}" ]; then
-    mkdir -p /nix;
-    mkdir -p /etc/nix;
-    printf "sandbox = false\n" > /etc/nix/nix.conf;
-    printf "nameserver 1.1.1.1\n" > /etc/resolv.conf;
+    export GC_NPROCS=1;
+    export USER=${USER:-null};
+  fi
+  export NIX_INSTALLER_NO_MODIFY_PROFILE=true;
+}
+
+# ── Nix installation ──────────────────────────────────────────────────────────
+
+prepare_alpine() {
+  mkdir -p /nix /etc/nix;
+  printf "sandbox = false\nfilter-syscalls = false\n" > /etc/nix/nix.conf;
+  apk --no-cache add sudo xz >/dev/null;
+  test $(getent group nixbld) || addgroup -g 30000 -S nixbld;
+  for i in $(seq 1 30); do
+    test $(id -u "nixbld$i" 2>/dev/null) || \
+      adduser -S -D -h /var/empty -g "Nix build user $i" -u $((30000 + i)) -G nixbld "nixbld$i";
+  done
+}
+
+prepare_termux() {
+  mkdir -p /nix /etc/nix;
+  printf "sandbox = false\n" > /etc/nix/nix.conf;
+  printf "nameserver 1.1.1.1\n" > /etc/resolv.conf;
+}
+
+install_nix() {
+  if command -v nix >/dev/null 2>&1; then return; fi
+
+  if [ -f /etc/alpine-release ]; then
+    prepare_alpine;
+  elif [ -n "${TERMUX_VERSION}" ]; then
+    prepare_termux;
   fi
 
   curl -sL https://nixos.org/nix/install | sh -s -- --no-daemon;
   . ${HOME}/.nix-profile/etc/profile.d/nix.sh;
-
   nix-env --set-flag priority 0 nix;
-fi
+}
 
-readonly NIX_CONFIG_PATH="${HOME}/.config/nix";
-readonly NIX_CONFIG_FILE="${NIX_CONFIG_PATH}/nix.conf";
-readonly NIX_EXPERIMENTAL_CONFIG='experimental-features = nix-command flakes';
+# ── Nix configuration ─────────────────────────────────────────────────────────
 
-mkdir -p ${NIX_CONFIG_PATH};
-touch ${NIX_CONFIG_FILE};
-if ! grep -Fxq "${NIX_EXPERIMENTAL_CONFIG}" ${NIX_CONFIG_FILE}; then
-  echo "${NIX_EXPERIMENTAL_CONFIG}" >> ${NIX_CONFIG_FILE};
-fi
+configure_nix() {
+  mkdir -p "$(dirname ${NIX_CONFIG_FILE})";
+  touch "${NIX_CONFIG_FILE}";
+  if ! grep -Fxq "${NIX_EXPERIMENTAL_CONFIG}" "${NIX_CONFIG_FILE}"; then
+    echo "${NIX_EXPERIMENTAL_CONFIG}" >> "${NIX_CONFIG_FILE}";
+  fi
+}
 
-trap 'ec=$?; nix-collect-garbage --quiet; exit $ec' EXIT;
-if [ "${TARGET}" = 'update' ]; then
-  nix flake update --flake ${TARGET_URL};
-else
-  nix build ${TARGET_PATH} --no-link && $(nix path-info ${TARGET_PATH})/activate;
-  printf "${TARGET}" > ${TARGET_CONFIG};
-fi
+# ── Commands ──────────────────────────────────────────────────────────────────
+
+clean_home() {
+  nix-collect-garbage ${1:-} --quiet;
+}
+
+clean_os() {
+  sudo nix-collect-garbage ${1:-} --quiet;
+}
+
+cmd_system() {
+  if [ "${COMMAND_ARG}" = "clean" ]; then
+    clean_os;
+    return;
+  fi
+
+  [ -z "${COMMAND_ARG}" ] && die "'system' requires a device name or 'clean'.";
+
+  require_sudo;
+
+  [ -d "${REFERENCE}" ] && sudo git config --global --add safe.directory "$(realpath "${REFERENCE}")";
+  [ "${UPDATE}" = true ] && nix flake update --flake "${DEVICES_URL}";
+  sudo nixos-rebuild switch --flake "${DEVICES_URL}#${COMMAND_ARG}";
+  clean_home;
+  clean_os;
+}
+
+cmd_user() {
+  if [ "${COMMAND_ARG}" = "clean" ]; then
+    clean_home;
+    return;
+  fi
+
+  local target="${COMMAND_ARG}";
+  if [ -z "${target}" ]; then
+    target="$(cat ${TARGET_CONFIG} 2>/dev/null || true)";
+    [ -z "${target}" ] && die "'user' requires a target name or 'clean'.";
+  fi
+
+  [ "${UPDATE}" = true ] && nix flake update --flake "${HOME_URL}";
+
+  local target_path="${HOME_URL}#homeConfigurations.${target}.activationPackage";
+  nix build "${target_path}" --no-link && $(nix path-info "${target_path}")/activate;
+  printf "${target}" > "${TARGET_CONFIG}";
+  clean_home;
+}
+
+require_sudo() {
+  if [ "$(id -u)" -ne 0 ] && ! sudo -n true 2>/dev/null; then
+    fail "'env-load ${COMMAND}' requires sudo access.";
+  fi
+}
+
+cmd_clean() {
+  require_sudo;
+  clean_home;
+  clean_os;
+}
+
+cmd_purge() {
+  require_sudo;
+  echo "WARNING: This will delete ALL old Nix generations for both user and system.";
+  echo "You will lose the ability to roll back to any previous configuration.";
+  echo;
+  printf "Type 'yes' to confirm: ";
+  read confirm;
+  [ "${confirm}" = "yes" ] || { echo "Aborted."; exit 0; };
+  clean_home -d;
+  clean_os -d;
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+parse_args "$@";
+
+case "${COMMAND}" in
+  help) show_help; exit 0 ;;
+esac
+
+setup_platform;
+install_nix;
+configure_nix;
+
+
+case "${COMMAND}" in
+  system) cmd_system ;;
+  user)   cmd_user   ;;
+  clean)  cmd_clean  ;;
+  purge)  cmd_purge  ;;
+  *)      die "unknown command '${COMMAND}'." ;;
+esac

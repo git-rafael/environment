@@ -1,0 +1,86 @@
+# AGENTS.md
+
+This file provides guidance to AI agents when working with code in this repository. This repository is a personal Linux environment containing [Nix](https://nixos.org/) modules and resources for various targets and devices.
+
+## Applying Environments
+
+The central command is `env-load`, defined in [resources/scripts/env-load](resources/scripts/env-load) and packaged via [sources/shell.nix](sources/shell.nix).
+
+```sh
+# Apply a home-manager user environment (from this repo locally)
+env-load user <target> ~/path/to/environment
+
+# Apply and update flake inputs first
+env-load user <target> ~/path/to/environment --update
+
+# Apply a NixOS system configuration
+env-load system <device> ~/path/to/environment
+
+# Garbage collect (safe)
+env-load clean
+
+# Delete ALL generations and collect garbage (no rollback possible)
+env-load purge
+```
+
+When `env-load` is not yet installed, use:
+```sh
+nix build 'github:git-rafael/environment#homeConfigurations.<target>.activationPackage' --no-link && \
+  $(nix path-info 'github:git-rafael/environment#homeConfigurations.<target>.activationPackage')/activate
+```
+
+## Architecture
+
+### Two separate flakes
+
+- **Root flake** ([flake.nix](flake.nix)): Home Manager configurations. Uses `nixpkgs/release-25.11` (stable) and `nixpkgs/nixos-unstable` (edge). Each device maps to a `homeConfigurations.<name>` output.
+- **Devices flake** ([devices/flake.nix](devices/flake.nix)): NixOS system configurations. Lives in `devices/` with its own `flake.lock`. Each hostname maps to a `nixosConfigurations.<hostname>` output.
+
+### Home Manager modules (sources/)
+
+All modules are functions with the signature `{ pkgs, edgePkgs, features, ... }`. They are imported directly (not as flake modules) and instantiated with an `env` attrset in [flake.nix](flake.nix).
+
+| File | Purpose |
+|------|---------|
+| [sources/shell.nix](sources/shell.nix) | zsh, tmux, starship, direnv, broot, git, fonts, `env-load`/`env-shell` scripts |
+| [sources/development.nix](sources/development.nix) | VSCodium (FHS), devbox, devenv, podman/docker, ollama, goose, openwork, gh, quarto |
+| [sources/utility.nix](sources/utility.nix) | claude-code, chromium, bitwarden-cli, common CLI tools, `gtoken` script |
+| [sources/operation.nix](sources/operation.nix) | Cloud/infra tools: AWS, k8s, helm, Kafka, Databricks, CircleCI, steampipe |
+| [sources/security.nix](sources/security.nix) | Security tools: metasploit, nmap, tor, socat, sshuttle, gitleaks, etc. |
+
+### Features system
+
+Features are a list of strings passed per-device. Modules gate packages/config with:
+- `withUI = builtins.elem "ui" features` — desktop/GUI apps (Plasma, Chromium, etc.)
+- `forWork = builtins.elem "work" features` — work-specific tooling
+- `forServers = builtins.elem "server" features` — server-only packages
+
+Current devices and their features:
+| Target | Features |
+|--------|----------|
+| `notebook` | `os`, `ui`, `work` |
+| `tablet`, `portable` | `ui` |
+| `corehub` | `server` |
+| `phone` | _(none)_ |
+
+The `os` feature sets `targets.genericLinux.enable = false`, meaning Home Manager integrates with NixOS instead of running standalone.
+
+### NixOS system configurations (devices/)
+
+Device-specific configs import shared modules:
+- [devices/os.nix](devices/os.nix) — base OS: boot, networking, pipewire, virtualisation (docker, waydroid, libvirtd), nix-ld
+- [devices/ui.nix](devices/ui.nix) — KDE Plasma 6 + SDDM, printing (CUPS/Epson), scanning (SANE)
+- Per-device subfolder: `configuration.nix` (imports os.nix + ui.nix + hardware) and `hardware-configuration.nix`
+
+### Custom packages and scripts in resources/
+
+Support resource files:
+- Scripts embedded via `builtins.readFile`.
+- Settings deployed via `home.file`.
+- General files like binaries, certificates, images and so on.
+
+## Nix Packaging Notes
+
+- Use `pkgs.lib.optionals withUI [...]` to guard GUI-only packages in `home.packages`.
+- Use `pkgs.lib.optionals forWork [...]` to guard user work only packages in `home.packages`. Confirm with the user what is or isn't for work beforehand.
+- `edgePkgs` (nixos-unstable) is available for packages that need a newer version than stable provides.

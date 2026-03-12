@@ -51,7 +51,7 @@
 
             home.username = username;
             home.stateVersion = "25.05";
-            targets.genericLinux.enable = true;
+            targets.genericLinux.enable = !(builtins.elem "os" features);
             programs.home-manager.enable = true;
           }
         ];
@@ -63,6 +63,6 @@
     homeConfigurations.phone = mkDeviceDerivation "aarch64-linux" "null" [];
     homeConfigurations.tablet = mkDeviceDerivation "x86_64-linux" "rafael" [ "ui" ];
     homeConfigurations.portable = mkDeviceDerivation "x86_64-linux" "rafael" [ "ui" ];
-    homeConfigurations.notebook = mkDeviceDerivation "x86_64-linux" "rafael" [ "ui" "work" ];
+    homeConfigurations.notebook = mkDeviceDerivation "x86_64-linux" "rafael" [ "os" "ui" "work" ];
   };
 }

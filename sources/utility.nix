@@ -6,6 +6,16 @@ let
   forServers = builtins.elem "server" features;
   
   plasmaDnSwitcher = pkgs.writeShellScriptBin "plasma-dn-switcher" (builtins.readFile ../resources/scripts/plasma-dn-switcher);
+
+  claude-code = pkgs.symlinkJoin {
+    name = "claude-code";
+    paths = [ edgePkgs.claude-code ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/claude \
+        --set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1
+    '';
+  };
   
   gtoken = pkgs.writers.writePython3Bin "gtoken" {
     libraries = with pkgs.python3Packages; [
@@ -49,11 +59,12 @@ in  {
     
     bitwarden-cli
     home-assistant-cli
+    claude-code
   ] ++ pkgs.lib.optionals withUI [
     reco
     plasmaDnSwitcher
   ];
-  
+
   programs.chromium = {
     enable = withUI;
     package = pkgs.chromium.override {

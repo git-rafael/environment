@@ -67,14 +67,15 @@ in  {
 
   programs.chromium = {
     enable = withUI;
-    package = pkgs.chromium.override {
-      enableWideVine = true;
-    };
-    nativeMessagingHosts = [ pkgs.kdePackages.plasma-browser-integration ];
+    package = pkgs.google-chrome;
     commandLineArgs = [
       "--enable-features=VaapiVideoDecoder,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE,TouchpadOverscrollHistoryNavigation"
       "--ozone-platform-hint=auto"
       "--disable-pinch"
     ];
+  };
+  home.file = pkgs.lib.mkIf withUI {
+    ".config/google-chrome/NativeMessagingHosts/org.kde.plasma.browser_integration.json".source =
+      "${pkgs.kdePackages.plasma-browser-integration}/etc/chromium/native-messaging-hosts/org.kde.plasma.browser_integration.json";
   };
 }

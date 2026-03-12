@@ -15,7 +15,7 @@
   services.fprintd.enable = true;
   security.pam.services.sddm = {
     fprintAuth = true;
-    rules.auth.fprintd.args = [ "try_first_identified" ];
+    kwallet.enable = true;
   };
 
   # Cloudflare warp

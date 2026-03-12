@@ -55,7 +55,7 @@ parse_args() {
     user|system)
       COMMAND="${arg1}";
       COMMAND_ARG="${arg2}";
-      REFERENCE="${arg3:-${TARGET_REF:-'main'}}";
+      REFERENCE="${arg3:-${TARGET_REF:-main}}";
       ;;
     help|clean|purge|'')
       COMMAND="${arg1:-help}";
@@ -63,7 +63,7 @@ parse_args() {
     *)
       COMMAND="user";
       COMMAND_ARG="${arg1}";
-      REFERENCE="${arg2:-${TARGET_REF:-'main'}}";
+      REFERENCE="${arg2:-${TARGET_REF:-main}}";
       ;;
   esac
 

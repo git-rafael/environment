@@ -20,6 +20,9 @@
 
   # Cloudflare warp
   services.cloudflare-warp.enable = true;
+  security.pki.certificateFiles = [
+    ../../resources/certificates/flash_warp_certificate.crt
+  ];
 
   # Users
   users.users.rafael = {

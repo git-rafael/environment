@@ -91,16 +91,16 @@ in  {
 
   systemd.user.services.btproximity = pkgs.lib.mkIf onOS {
     Unit.Description = "Bluetooth proximity screen lock";
+    Install.WantedBy = [ "default.target" ];
     Service = {
       ExecStart = "${btproximityScript}/bin/btproximity";
       Restart = "always";
       RestartSec = "5s";
       Environment = [
-        "PATH=/run/wrappers/bin:/run/current-system/sw/bin"
-        "BT_DEVICE_MACS=${builtins.concatStringsSep " " btproximityMacs}"
         "BT_THRESHOLD=${toString btproximityThreshold}"
+        "PATH=${pkgs.lib.makeBinPath (with pkgs; [ bluez gnugrep coreutils systemd ])}"
+        (let macsStr = builtins.concatStringsSep " " btproximityMacs; in "\"BT_DEVICE_MACS=${macsStr}\"")
       ];
     };
-    Install.WantedBy = [ "default.target" ];
   };
 }

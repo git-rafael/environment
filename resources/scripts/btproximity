@@ -32,25 +32,41 @@ any_in_range() {
   return 1;
 }
 
+wait_for_device() {
+  until any_in_range; do
+    sleep "$POLL_INTERVAL";
+  done
+}
+
+monitor() {
+  local consecutive=0;
+  while true; do
+    if any_in_range; then
+      consecutive=0;
+    else
+      consecutive=$((consecutive + 1));
+      log "All devices out of range ($consecutive/$LOCK_AFTER)";
+      if [[ "$consecutive" -ge "$LOCK_AFTER" ]]; then
+        log "Locking session";
+        loginctl lock-session;
+        consecutive=0;
+        log "Waiting for a device to come back...";
+        wait_for_device;
+        log "Device back in range, unlocking session";
+        loginctl unlock-session;
+        dbus-send --session --dest=org.freedesktop.ScreenSaver /org/freedesktop/ScreenSaver org.freedesktop.ScreenSaver.SimulateUserActivity;
+      fi
+    fi
+    sleep "$POLL_INTERVAL";
+  done
+}
+
 log "Starting (devices: $BT_DEVICE_MACS, threshold: $THRESHOLD dBm)";
 
-while true; do
-  if any_in_range; then
-    consecutive=0;
-  else
-    consecutive=$((consecutive + 1));
-    log "All devices out of range ($consecutive/$LOCK_AFTER)";
-    if [[ "$consecutive" -ge "$LOCK_AFTER" ]]; then
-      log "Locking session";
-      loginctl lock-session;
-      consecutive=0;
-      log "Waiting for a device to come back...";
-      until any_in_range; do
-        sleep "$POLL_INTERVAL";
-      done
-      log "Device back in range, unlocking session";
-      loginctl unlock-session;
-    fi
-  fi
-  sleep "$POLL_INTERVAL";
-done
+if ! any_in_range; then
+  log "No devices in range at startup, waiting...";
+  wait_for_device;
+  log "Device in range, starting monitoring";
+fi
+
+monitor;

@@ -1,4 +1,4 @@
-{ pkgs, edgePkgs, features, ... }:
+{ pkgs, edgePkgs, features, self, ... }:
 
 let
   forWork = builtins.elem "work" features;
@@ -43,22 +43,22 @@ in {
 
     # Agent Skills — cross-client convention (~/.agents/skills/)
     ".agents/skills" = {
-      source = ../resources/skills;
+      source = "${self}/resources/skills";
     };
 
     # Agent Skills — XDG cross-client convention, used by Goose and Amp (~/.config/agents/skills/)
     ".config/agents/skills" = {
-      source = ../resources/skills;
+      source = "${self}/resources/skills";
     };
 
     # Agent Skills — Claude Code convention (~/.claude/skills/)
     ".claude/skills" = {
-      source = ../resources/skills;
+      source = "${self}/resources/skills";
     };
 
     # Agent Skills — Gemini CLI convention (~/.gemini/skills/)
     ".gemini/skills" = {
-      source = ../resources/skills;
+      source = "${self}/resources/skills";
     };
   };
 

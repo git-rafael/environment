@@ -30,7 +30,7 @@
             config.allowUnfree = true;
             config.allowUnsupportedSystem = true;
           };
-          env = { inherit pkgs edgePkgs features; };
+          env = { inherit pkgs edgePkgs features self; };
           
           developmentInstallation = (development env);
           operationInstallation = (operation env);

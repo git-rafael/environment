@@ -199,7 +199,7 @@ cmd_user() {
 
   local target_path="${HOME_URL}#homeConfigurations.${target}.activationPackage";
   local out;
-  out=$(nix build "${target_path}" --no-link --print-out-paths) && ${out}/activate;
+  out=$(nix build "${target_path}" --no-link --print-out-paths --quiet --quiet) && ${out}/activate;
 
   if [ -d "${REFERENCE}" ]; then
     printf "${target}@$(git -C "${REFERENCE}" rev-parse HEAD)" > "${TARGET_CONFIG}";

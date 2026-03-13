@@ -18,6 +18,10 @@ Usage:
   env-load system clean                             Remove unreferenced system Nix store paths
   env-load clean                                    Remove unreferenced user and system Nix store paths
   env-load purge                                    Delete all old generations and collect garbage (no rollback)
+  env-load refs list                                List tracked refs and their symlinks
+  env-load refs sync                                Update all refs to latest upstream
+  env-load refs add <org/repo> <repo-path> [<name>] Add a resource from a GitHub ref
+  env-load refs rm <name>                           Remove a resource symlink
   env-load help                                     Show this help message
 
 Options:
@@ -27,6 +31,9 @@ Arguments:
   <path|ref>    Local path to repo or git ref (branch/tag). Defaults to 'main'.
                   Local:  env-load user notebook ~/environment
                   Remote: env-load user notebook my-branch
+  <org/repo>    GitHub organization and repository (e.g. anthropic/skills)
+  <repo-path>   Path to resource within the repository (e.g. skills/skill-creator)
+  <name>        Local name for the symlink, defaults to last component of repo-path
 EOF
 }
 
@@ -57,8 +64,11 @@ parse_args() {
       COMMAND_ARG="${arg2}";
       REFERENCE="${arg3:-${TARGET_REF:-main}}";
       ;;
-    help|clean|purge|'')
+    help|clean|purge|refs|'')
       COMMAND="${arg1:-help}";
+      COMMAND_ARG="${arg2}";
+      REFS_ARG1="${arg3:-}";
+      REFS_ARG2="${4:-}";
       ;;
     *)
       COMMAND="user";
@@ -194,6 +204,149 @@ cmd_clean() {
   clean_os;
 }
 
+cmd_refs() {
+  local subcmd="${COMMAND_ARG:-}";
+  local repo_ref="${REFS_ARG1:-}";
+  local repo_path="${REFS_ARG2:-}";
+
+  local repo_root;
+  repo_root="$(git -C "$(dirname "$0")" rev-parse --show-toplevel)";
+  local refs_dir="${repo_root}/.refs";
+  local skills_dir="${repo_root}/resources/skills";
+
+  case "${subcmd}" in
+    list)
+      refs_list "${refs_dir}" "${skills_dir}";
+      ;;
+    sync)
+      refs_sync "${refs_dir}";
+      ;;
+    add)
+      [ -z "${repo_ref}" ]  && die "'refs add' requires <org/repo>.";
+      [ -z "${repo_path}" ] && die "'refs add' requires <repo-path>.";
+      local name="${5:-$(basename "${repo_path}")}";
+      refs_add "${refs_dir}" "${skills_dir}" "${repo_ref}" "${repo_path}" "${name}";
+      ;;
+    rm)
+      [ -z "${repo_ref}" ] && die "'refs rm' requires <name>.";
+      refs_rm "${refs_dir}" "${skills_dir}" "${repo_ref}";
+      ;;
+    *)
+      die "'refs' requires a subcommand: list, sync, add, rm.";
+      ;;
+  esac
+}
+
+refs_list() {
+  local refs_dir="$1" skills_dir="$2";
+
+  echo "Refs:";
+  if [ -d "${refs_dir}" ]; then
+    find "${refs_dir}" -mindepth 2 -maxdepth 2 -type d | sort | while read -r ref_path; do
+      local org repo remote;
+      org="$(basename "$(dirname "${ref_path}")")";
+      repo="$(basename "${ref_path}")";
+      remote="$(git -C "${ref_path}" remote get-url origin 2>/dev/null || echo '?')";
+      local sparse;
+      sparse="$(git -C "${ref_path}" sparse-checkout list 2>/dev/null | tr '\n' ' ' | sed 's/ *$//')";
+      echo "  ${org}/${repo}  ${remote}";
+      [ -n "${sparse}" ] && echo "    paths: ${sparse}";
+    done
+  else
+    echo "  (none)";
+  fi
+
+  echo "";
+  echo "Symlinks:";
+  if [ -d "${skills_dir}" ]; then
+    find "${skills_dir}" -maxdepth 1 -type l | sort | while read -r link; do
+      local target;
+      target="$(readlink "${link}")";
+      echo "  $(basename "${link}")  →  ${target}";
+    done
+  else
+    echo "  (none)";
+  fi
+}
+
+refs_sync() {
+  local refs_dir="$1";
+  echo "Syncing refs...";
+  git -C "$(dirname "${refs_dir}")" submodule update --remote --merge -- \
+    $(git -C "$(dirname "${refs_dir}")" submodule foreach --quiet 'echo $sm_path' | grep "^\.refs/" | tr '\n' ' ');
+  echo "Done.";
+}
+
+refs_add() {
+  local refs_dir="$1" skills_dir="$2" org_repo="$3" repo_path="$4" name="$5";
+  local org repo submodule_path url link_path link_target;
+
+  org="$(echo "${org_repo}" | cut -d/ -f1)";
+  repo="$(echo "${org_repo}" | cut -d/ -f2)";
+  submodule_path=".refs/${org}/${repo}";
+  url="https://github.com/${org}/${repo}.git";
+  link_path="${skills_dir}/${name}";
+  # relative path from resources/skills/ to .refs/<org>/<repo>/<repo-path>
+  link_target="../../.refs/${org}/${repo}/${repo_path}";
+
+  local repo_root;
+  repo_root="$(dirname "${refs_dir}")";
+
+  if [ ! -d "${repo_root}/${submodule_path}" ]; then
+    echo "Adding submodule ${org}/${repo}...";
+    git -C "${repo_root}" submodule add --depth=1 "${url}" "${submodule_path}";
+    git -C "${repo_root}/${submodule_path}" sparse-checkout init --cone;
+  fi
+
+  echo "Adding sparse-checkout path: ${repo_path}";
+  git -C "${repo_root}/${submodule_path}" sparse-checkout add "${repo_path}";
+
+  if [ -e "${link_path}" ] || [ -L "${link_path}" ]; then
+    fail "symlink '${name}' already exists in resources/skills/. Use 'refs rm ${name}' first.";
+  fi
+
+  mkdir -p "${skills_dir}";
+  ln -s "${link_target}" "${link_path}";
+  echo "Added: resources/skills/${name}  →  ${link_target}";
+}
+
+refs_rm() {
+  local refs_dir="$1" skills_dir="$2" name="$3";
+  local link_path="${skills_dir}/${name}";
+
+  if [ ! -L "${link_path}" ]; then
+    fail "no symlink '${name}' found in resources/skills/.";
+  fi
+
+  local target org repo repo_path submodule_path;
+  target="$(readlink "${link_path}")";
+  # target format: ../../.refs/<org>/<repo>/<repo-path>
+  repo_path="$(echo "${target}" | sed 's|.*\.refs/[^/]*/[^/]*/||')";
+  org="$(echo "${target}" | sed 's|.*\.refs/\([^/]*\)/.*|\1|')";
+  repo="$(echo "${target}" | sed 's|.*\.refs/[^/]*/\([^/]*\)/.*|\1|')";
+  submodule_path=".refs/${org}/${repo}";
+
+  rm "${link_path}";
+  echo "Removed symlink: resources/skills/${name}";
+
+  local repo_root;
+  repo_root="$(dirname "${refs_dir}")";
+
+  if [ -d "${repo_root}/${submodule_path}" ]; then
+    echo "Removing sparse-checkout path: ${repo_path}";
+    local remaining;
+    remaining="$(git -C "${repo_root}/${submodule_path}" sparse-checkout list 2>/dev/null | grep -v "^${repo_path}$" || true)";
+    if [ -z "${remaining}" ]; then
+      echo "No more paths tracked from ${org}/${repo}. Removing submodule...";
+      git -C "${repo_root}" submodule deinit -f "${submodule_path}";
+      git -C "${repo_root}" rm -f "${submodule_path}";
+      rm -rf "${repo_root}/.git/modules/${submodule_path}";
+    else
+      git -C "${repo_root}/${submodule_path}" sparse-checkout set ${remaining};
+    fi
+  fi
+}
+
 cmd_purge() {
   require_sudo;
   echo "WARNING: This will delete ALL old Nix generations for both user and system.";
@@ -212,12 +365,12 @@ parse_args "$@";
 
 case "${COMMAND}" in
   help) show_help; exit 0 ;;
+  refs) cmd_refs;  exit 0 ;;
 esac
 
 setup_platform;
 install_nix;
 configure_nix;
-
 
 case "${COMMAND}" in
   system) cmd_system ;;

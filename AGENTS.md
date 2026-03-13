@@ -79,6 +79,30 @@ Support resource files:
 - Settings deployed via `home.file`.
 - General files like binaries, certificates, images and so on.
 
+### External references (.refs/)
+
+`.refs/` holds git submodules tracking upstream repositories, organized as `.refs/<org>/<repo>/`. Each submodule uses sparse-checkout so only selected paths are fetched.
+
+Consumable resources in `resources/` reference these via symlinks. Currently:
+
+| Symlink | Points to |
+|---------|-----------|
+| [resources/skills/skill-creator](resources/skills/skill-creator) | `.refs/anthropic/skills/skills/skill-creator` |
+
+Manage refs with `env-load refs` — no Nix required:
+
+```sh
+env-load refs list                                     # list tracked refs and symlinks
+env-load refs sync                                     # pull latest from all upstreams
+env-load refs add anthropic/skills skills/mcp-builder  # add a new skill from anthropics/skills
+env-load refs rm mcp-builder                           # remove a skill (and submodule if empty)
+```
+
+When cloning this repo, initialise submodules with:
+```sh
+git submodule update --init --recursive
+```
+
 ## Nix Packaging Notes
 
 - Use `pkgs.lib.optionals withUI [...]` to guard GUI-only packages in `home.packages`.

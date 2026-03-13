@@ -8,7 +8,7 @@ This is my personal Linux environment repository containing [Nix](https://nixos.
 environment/
   sources/         # Nix modules (development, shell, security, utility, operation)
   devices/         # NixOS system configurations per device
-  resources/       # Scripts, settings and certificates
+  resources/       # Scripts, settings, certificates and skills
 ```
 
 ## env-load
@@ -114,6 +114,25 @@ EOF
 ```
 
 Restart the container for changes to take place.
+
+## External References (.refs/)
+
+`.refs/` holds git submodules organized as `.refs/<org>/<repo>/` with sparse-checkout. Symlinks in `resources/` expose selected paths without duplicating files.
+
+Managed via `env-load refs` (no Nix required):
+
+```sh
+env-load refs list                                     # list tracked refs and symlinks
+env-load refs sync                                     # pull latest from all upstreams
+env-load refs add anthropic/skills skills/mcp-builder  # add a path from a ref
+env-load refs rm mcp-builder                           # remove a symlink
+```
+
+After cloning, initialize submodules with:
+
+```sh
+git submodule update --init --recursive
+```
 
 ## Notes
 

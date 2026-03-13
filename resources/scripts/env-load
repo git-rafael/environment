@@ -198,7 +198,8 @@ cmd_user() {
   [ "${UPDATE}" = true ] && nix flake update --flake "${HOME_URL}";
 
   local target_path="${HOME_URL}#homeConfigurations.${target}.activationPackage";
-  nix build "${target_path}" --no-link && $(nix path-info "${target_path}")/activate;
+  local out;
+  out=$(nix build "${target_path}" --no-link --print-out-paths) && ${out}/activate;
 
   if [ -d "${REFERENCE}" ]; then
     printf "${target}@$(git -C "${REFERENCE}" rev-parse HEAD)" > "${TARGET_CONFIG}";

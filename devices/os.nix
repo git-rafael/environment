@@ -71,6 +71,15 @@
     powerOnBoot = true;
   };
 
+  # For Bluetooth proximity lock
+  security.wrappers.hcitool = {
+    source = "${pkgs.bluez}/bin/hcitool";
+    capabilities = "cap_net_raw+ep";
+    owner = "root";
+    group = "root";
+    permissions = "u+rx,g+rx,o+rx";
+  };
+
   # Enable sound with pipewire
   security.rtkit.enable = true;
   services.pulseaudio.enable = false;
@@ -98,4 +107,12 @@
     git
     qemu
   ];
+
+  # Primary user
+  users.users.${config.device.username} = {
+    shell = pkgs.zsh;
+    isNormalUser = true;
+    description = config.device.userDescription;
+    extraGroups = [ "networkmanager" "lp" "scanner" "docker" "wheel" ];
+  };
 }

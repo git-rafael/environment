@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+set -euo pipefail;
+
+# Bluetooth Proximity Screen Lock
+# Locks the session when ALL paired devices move out of range.
+# Configuration via environment variables (set by systemd service):
+#   BT_DEVICE_MACS   - Space-separated list of Bluetooth MAC addresses
+#   BT_THRESHOLD     - RSSI threshold in dBm
+#   BT_POLL_INTERVAL - Seconds between readings
+#   BT_LOCK_AFTER    - Consecutive readings with all devices out of range before locking (default: 3)
+
+readonly THRESHOLD="${BT_THRESHOLD:--10}";
+readonly LOCK_AFTER="${BT_LOCK_AFTER:-3}";
+readonly POLL_INTERVAL="${BT_POLL_INTERVAL:-5}";
+
+consecutive=0;
+
+if [[ -z "$BT_DEVICE_MACS" ]]; then
+  echo "BT_DEVICE_MACS is not set" >&2;
+  exit 1;
+fi
+
+log() { echo "[$(date '+%H:%M:%S')] $*"; }
+
+any_in_range() {
+  # word splitting intentional: iterates space-separated MACs
+  for mac in $BT_DEVICE_MACS; do
+    local rssi;
+    rssi=$(hcitool rssi "$mac" 2>/dev/null | grep -oP '[-]?\d+');
+    [[ -n "$rssi" ]] && [[ "$rssi" -ge "$THRESHOLD" ]] && return 0;
+  done
+  return 1;
+}
+
+log "Starting (devices: $BT_DEVICE_MACS, threshold: $THRESHOLD dBm)";
+
+while true; do
+  if any_in_range; then
+    consecutive=0;
+  else
+    consecutive=$((consecutive + 1));
+    log "All devices out of range ($consecutive/$LOCK_AFTER)";
+    if [[ "$consecutive" -ge "$LOCK_AFTER" ]]; then
+      log "Locking session";
+      loginctl lock-session;
+      consecutive=0;
+      log "Waiting for a device to come back...";
+      until any_in_range; do
+        sleep "$POLL_INTERVAL";
+      done
+      log "Device back in range, unlocking session";
+      loginctl unlock-session;
+    fi
+  fi
+  sleep "$POLL_INTERVAL";
+done

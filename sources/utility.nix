@@ -4,6 +4,16 @@ let
   withUI = builtins.elem "ui" features;
   forWork = builtins.elem "work" features;
   forServers = builtins.elem "server" features;
+  onOS = builtins.elem "os" features;
+
+  btproximityMacs = [
+    "98:D7:42:71:93:C5"
+    "40:35:E6:1E:19:DF"
+  ];
+
+  btproximityThreshold = -5;
+  btproximityScript = pkgs.writeShellScriptBin "btproximity"
+    (builtins.readFile ../resources/scripts/btproximity);
   
   plasmaDnSwitcher = pkgs.writeShellScriptBin "plasma-dn-switcher" (builtins.readFile ../resources/scripts/plasma-dn-switcher);
 
@@ -77,5 +87,20 @@ in  {
   home.file = pkgs.lib.mkIf withUI {
     ".config/google-chrome/NativeMessagingHosts/org.kde.plasma.browser_integration.json".source =
       "${pkgs.kdePackages.plasma-browser-integration}/etc/chromium/native-messaging-hosts/org.kde.plasma.browser_integration.json";
+  };
+
+  systemd.user.services.btproximity = pkgs.lib.mkIf onOS {
+    Unit.Description = "Bluetooth proximity screen lock";
+    Service = {
+      ExecStart = "${btproximityScript}/bin/btproximity";
+      Restart = "always";
+      RestartSec = "5s";
+      Environment = [
+        "PATH=/run/wrappers/bin:/run/current-system/sw/bin"
+        "BT_DEVICE_MACS=${builtins.concatStringsSep " " btproximityMacs}"
+        "BT_THRESHOLD=${toString btproximityThreshold}"
+      ];
+    };
+    Install.WantedBy = [ "default.target" ];
   };
 }

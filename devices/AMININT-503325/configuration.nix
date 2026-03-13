@@ -8,7 +8,10 @@
 
   networking.hostName = "AMININT-503325";
 
-  # Options
+  # Device options
+  device.username = "rafael";
+  device.userDescription = "Rafael Oliveira";
+
   device.hasFingerprint = true;
 
   # ThinkPad keyboard layout variant
@@ -19,12 +22,4 @@
   security.pki.certificateFiles = [
     ../../resources/certificates/flash_warp_certificate.crt
   ];
-
-  # Users
-  users.users.rafael = {
-    shell = pkgs.zsh;
-    isNormalUser = true;
-    description = "Rafael Oliveira";
-    extraGroups = [ "networkmanager" "lp" "scanner" "docker" "wheel" ];
-  };
 }

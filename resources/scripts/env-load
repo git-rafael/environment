@@ -71,9 +71,10 @@ parse_args() {
       REFS_ARG2="${4:-}";
       ;;
     *)
+      [ -n "${arg2}" ] && die "unknown command '${arg1}'.";
       COMMAND="user";
       COMMAND_ARG="${arg1}";
-      REFERENCE="${arg2:-${TARGET_REF:-main}}";
+      REFERENCE="${TARGET_REF:-main}";
       ;;
   esac
 
@@ -210,7 +211,7 @@ cmd_refs() {
   local repo_path="${REFS_ARG2:-}";
 
   local repo_root;
-  repo_root="$(git -C "$(dirname "$0")" rev-parse --show-toplevel)";
+  repo_root="$(git rev-parse --show-toplevel)";
   local refs_dir="${repo_root}/.refs";
   local skills_dir="${repo_root}/resources/skills";
 

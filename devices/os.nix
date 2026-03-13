@@ -1,5 +1,7 @@
-{ inputs, config, pkgs, ... }:
+{ inputs, config, pkgs, lib, ... }:
 {
+  imports = [ ./options.nix ];
+
   system.stateVersion = "25.11";
   nixpkgs.config.allowUnfree = true;
 
@@ -28,13 +30,20 @@
     ];
   };
 
+  # Home directory encryption
+  security.pam.enableFscrypt = true;
+
+  # Fingerprint reader
+  services.fprintd.enable = lib.mkIf config.device.hasFingerprint true;
+  security.pam.services.sudo.fprintAuth = lib.mkIf config.device.hasFingerprint true;
+
   # Configure console keymap
   console.keyMap = "br-abnt2";
 
-  # Set your time zone.
+  # Set the time zone.
   time.timeZone = "America/Sao_Paulo";
 
-  # Select internationalisation properties.
+  # Select internationalisation properties
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
     LC_ADDRESS = "pt_BR.UTF-8";
@@ -62,7 +71,7 @@
     powerOnBoot = true;
   };
 
-  # Enable sound with pipewire.
+  # Enable sound with pipewire
   security.rtkit.enable = true;
   services.pulseaudio.enable = false;
   services.pipewire = {
@@ -88,6 +97,5 @@
   environment.systemPackages = with pkgs; [
     git
     qemu
-    ecryptfs
   ];
 }

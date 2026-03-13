@@ -1,10 +1,11 @@
-{ inputs, config, pkgs, ... }:
+{ inputs, config, pkgs, lib, ... }:
 {
-  # Enable the X11 windowing system (for XWayland apps).
+  # Enable the X11 windowing system (for XWayland apps)
   services.xserver.enable = true;
   services.xserver.xkb.layout = "br";
 
-  # Enable Plasma Desktop Environment.
+  # Enable Plasma Desktop Environment
+  services.desktopManager.plasma6.enable = true;
   services.displayManager.sddm = let
     theme-conf = pkgs.writeText "sddm-breeze-theme" ''
       [General]
@@ -22,7 +23,11 @@
     theme = "breeze";
     settings.Theme.ThemeDir = "${breeze-black}/share/sddm/themes";
   };
-  services.desktopManager.plasma6.enable = true;
+
+  security.pam.services = {
+    sddm.kwallet.enable = true;
+    login.fprintAuth = lib.mkIf config.device.hasFingerprint false;
+  };
 
   programs.kde-pim = {
     enable = true;
@@ -33,11 +38,13 @@
   programs.kdeconnect.enable = true;
 
   environment.systemPackages = with pkgs; [
-    qt6.qtwebengine
     wl-clipboard
+    qt6.qtwebengine
+    kdePackages.yakuake
+    kdePackages.kdepim-addons
   ];
 
-  # Enable print service with CUPS.
+  # Enable print service with CUPS
   services.printing = {
     enable = true;
     drivers = [
@@ -45,7 +52,7 @@
     ];
   };
 
-  # Enable scan services with SANE.
+  # Enable scan services with SANE
   hardware.sane = {
     enable = true;
     extraBackends = [

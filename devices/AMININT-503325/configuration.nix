@@ -8,15 +8,11 @@
 
   networking.hostName = "AMININT-503325";
 
+  # Options
+  device.hasFingerprint = true;
+
   # ThinkPad keyboard layout variant
   services.xserver.xkb.variant = "thinkpad";
-
-  # Fingerprint reader
-  services.fprintd.enable = true;
-  security.pam.services.sddm = {
-    fprintAuth = true;
-    kwallet.enable = true;
-  };
 
   # Cloudflare warp
   services.cloudflare-warp.enable = true;
@@ -30,9 +26,5 @@
     isNormalUser = true;
     description = "Rafael Oliveira";
     extraGroups = [ "networkmanager" "lp" "scanner" "docker" "wheel" ];
-    packages = with pkgs; [
-      kdePackages.yakuake
-      kdePackages.kdepim-addons
-    ];
   };
 }

@@ -4,6 +4,7 @@ set -e;
 # ── Constants ────────────────────────────────────────────────────────────────
 
 readonly TARGET_CONFIG="${HOME}/.nix-target";
+readonly DEVICE_CONFIG="${HOME}/.nix-device";
 readonly NIX_CONFIG_FILE="${HOME}/.config/nix/nix.conf";
 readonly NIX_EXPERIMENTAL_CONFIG='experimental-features = nix-command flakes';
 
@@ -18,6 +19,7 @@ Usage:
   env-load system clean                             Remove unreferenced system Nix store paths
   env-load clean                                    Remove unreferenced user and system Nix store paths
   env-load purge                                    Delete all old generations and collect garbage (no rollback)
+  env-load push                                     Squash unpushed commits since last apply and push
   env-load refs list                                List tracked refs and their symlinks
   env-load refs sync                                Update all refs to latest upstream
   env-load refs add <org/repo> <repo-path> [<name>] Add a resource from a GitHub ref
@@ -64,7 +66,7 @@ parse_args() {
       COMMAND_ARG="${arg2}";
       REFERENCE="${arg3:-${TARGET_REF:-main}}";
       ;;
-    help|clean|purge|refs|'')
+    help|clean|purge|push|refs|'')
       COMMAND="${arg1:-help}";
       COMMAND_ARG="${arg2}";
       REFS_ARG1="${arg3:-}";
@@ -83,8 +85,8 @@ parse_args() {
   done
 
   if [ -d "${REFERENCE}" ]; then
-    HOME_URL="${REFERENCE}";
-    DEVICES_URL="${REFERENCE}/devices";
+    HOME_URL="git+file://$(realpath "${REFERENCE}")?submodules=1";
+    DEVICES_URL="git+file://$(realpath "${REFERENCE}/devices")?submodules=1";
   else
     HOME_URL="github:git-rafael/environment?ref=${REFERENCE}";
     DEVICES_URL="github:git-rafael/environment?dir=devices&ref=${REFERENCE}";
@@ -165,10 +167,16 @@ cmd_system() {
   [ -z "${COMMAND_ARG}" ] && die "'system' requires a device name or 'clean'.";
 
   require_sudo;
+  require_clean_repo;
 
   [ -d "${REFERENCE}" ] && sudo git config --global --add safe.directory "$(realpath "${REFERENCE}")";
   [ "${UPDATE}" = true ] && nix flake update --flake "${DEVICES_URL}";
   sudo nixos-rebuild switch --flake "${DEVICES_URL}#${COMMAND_ARG}";
+
+  if [ -d "${REFERENCE}" ]; then
+    printf "${COMMAND_ARG}@$(git -C "${REFERENCE}" rev-parse HEAD)" > "${DEVICE_CONFIG}";
+  fi
+
   clean_home;
   clean_os;
 }
@@ -181,15 +189,23 @@ cmd_user() {
 
   local target="${COMMAND_ARG}";
   if [ -z "${target}" ]; then
-    target="$(cat ${TARGET_CONFIG} 2>/dev/null || true)";
+    target="$(cut -d@ -f1 "${TARGET_CONFIG}" 2>/dev/null || true)";
     [ -z "${target}" ] && die "'user' requires a target name or 'clean'.";
   fi
+
+  require_clean_repo;
 
   [ "${UPDATE}" = true ] && nix flake update --flake "${HOME_URL}";
 
   local target_path="${HOME_URL}#homeConfigurations.${target}.activationPackage";
   nix build "${target_path}" --no-link && $(nix path-info "${target_path}")/activate;
-  printf "${target}" > "${TARGET_CONFIG}";
+
+  if [ -d "${REFERENCE}" ]; then
+    printf "${target}@$(git -C "${REFERENCE}" rev-parse HEAD)" > "${TARGET_CONFIG}";
+  else
+    printf "${target}" > "${TARGET_CONFIG}";
+  fi
+
   clean_home;
 }
 
@@ -197,6 +213,59 @@ require_sudo() {
   if [ "$(id -u)" -ne 0 ] && ! sudo -n true 2>/dev/null; then
     fail "'env-load ${COMMAND}' requires sudo access.";
   fi
+}
+
+require_clean_repo() {
+  [ -d "${REFERENCE:-}" ] || return 0;
+  local status;
+  status="$(git -C "${REFERENCE}" status --porcelain 2>/dev/null)";
+  [ -z "${status}" ] || fail "repository has uncommitted changes. Commit before applying.";
+}
+
+cmd_push() {
+  local repo_root;
+  repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || fail "not inside a git repository.";
+
+  local target_hash="" device_hash="" oldest_hash="";
+
+  if [ -f "${TARGET_CONFIG}" ]; then
+    target_hash="$(cut -d@ -f2 "${TARGET_CONFIG}" 2>/dev/null || true)";
+  fi
+  if [ -f "${DEVICE_CONFIG}" ]; then
+    device_hash="$(cut -d@ -f2 "${DEVICE_CONFIG}" 2>/dev/null || true)";
+  fi
+
+  [ -z "${target_hash}" ] && [ -z "${device_hash}" ] && \
+    fail "no apply history found. Run 'env-load user' or 'env-load system' with a local path first.";
+
+  if [ -z "${target_hash}" ]; then
+    oldest_hash="${device_hash}";
+  elif [ -z "${device_hash}" ]; then
+    oldest_hash="${target_hash}";
+  elif git -C "${repo_root}" merge-base --is-ancestor "${target_hash}" "${device_hash}" 2>/dev/null; then
+    oldest_hash="${target_hash}";
+  else
+    oldest_hash="${device_hash}";
+  fi
+
+  local commits;
+  commits="$(git -C "${repo_root}" log --oneline "${oldest_hash}..HEAD" 2>/dev/null)";
+  [ -z "${commits}" ] && { echo "Nothing to push."; return; };
+
+  echo "Commits to squash:";
+  echo "${commits}";
+  echo;
+  printf "Squash and push? [y/N] ";
+  read confirm;
+  [ "${confirm}" = "y" ] || { echo "Aborted."; exit 0; };
+
+  local msg;
+  msg="$(git -C "${repo_root}" log --format="%s" --reverse "${oldest_hash}..HEAD")";
+
+  git -C "${repo_root}" reset --soft "${oldest_hash}";
+  git -C "${repo_root}" commit -m "${msg}";
+  git -C "${repo_root}" push;
+  echo "Done.";
 }
 
 cmd_clean() {
@@ -367,6 +436,7 @@ parse_args "$@";
 case "${COMMAND}" in
   help) show_help; exit 0 ;;
   refs) cmd_refs;  exit 0 ;;
+  push) cmd_push;  exit 0 ;;
 esac
 
 setup_platform;

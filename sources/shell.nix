@@ -40,6 +40,26 @@ in {
       force = true;
       text = builtins.readFile ../resources/settings/zsh_codex.ini;
     };
+
+    # Agent Skills — cross-client convention (~/.agents/skills/)
+    ".agents/skills" = {
+      source = ../resources/skills;
+    };
+
+    # Agent Skills — XDG cross-client convention, used by Goose and Amp (~/.config/agents/skills/)
+    ".config/agents/skills" = {
+      source = ../resources/skills;
+    };
+
+    # Agent Skills — Claude Code convention (~/.claude/skills/)
+    ".claude/skills" = {
+      source = ../resources/skills;
+    };
+
+    # Agent Skills — Gemini CLI convention (~/.gemini/skills/)
+    ".gemini/skills" = {
+      source = ../resources/skills;
+    };
   };
 
   fonts.fontconfig = {

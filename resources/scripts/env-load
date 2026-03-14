@@ -3,9 +3,16 @@ set -e;
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
-readonly TARGET_CONFIG="${HOME}/.nix-target";
-readonly DEVICE_CONFIG="${HOME}/.nix-device";
-readonly NIX_CONFIG_FILE="${HOME}/.config/nix/nix.conf";
+# When invoked via `sudo`, HOME becomes /root; recover the real user's home.
+if [ -n "${SUDO_USER:-}" ]; then
+  REAL_HOME="$(getent passwd "${SUDO_USER}" | cut -d: -f6)";
+else
+  REAL_HOME="${HOME}";
+fi
+
+readonly TARGET_CONFIG="${REAL_HOME}/.nix-target";
+readonly DEVICE_CONFIG="${REAL_HOME}/.nix-device";
+readonly NIX_CONFIG_FILE="${REAL_HOME}/.config/nix/nix.conf";
 readonly NIX_EXPERIMENTAL_CONFIG='experimental-features = nix-command flakes';
 
 # ── Help ─────────────────────────────────────────────────────────────────────

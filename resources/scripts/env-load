@@ -169,7 +169,13 @@ cmd_system() {
   require_sudo;
   require_clean_repo;
 
-  [ -d "${REFERENCE}" ] && sudo git config --global --add safe.directory "$(realpath "${REFERENCE}")";
+  if [ -d "${REFERENCE}" ]; then
+    sudo git config --global --add safe.directory "$(realpath "${REFERENCE}")";
+    git -C "${REFERENCE}" submodule foreach --quiet --recursive 'printf "%s\n" "$toplevel/$sm_path"' | \
+      while IFS= read -r sm; do
+        sudo git config --global --add safe.directory "$(realpath "$sm")";
+      done;
+  fi;
   [ "${UPDATE}" = true ] && nix flake update --flake "${DEVICES_URL}";
   sudo nixos-rebuild switch --flake "${DEVICES_URL}#${COMMAND_ARG}";
 

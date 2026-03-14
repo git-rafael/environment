@@ -177,7 +177,7 @@ cmd_system() {
       done;
   fi;
   [ "${UPDATE}" = true ] && nix flake update --flake "${DEVICES_URL}";
-  sudo nixos-rebuild switch --flake "${DEVICES_URL}#${COMMAND_ARG}";
+  sudo nixos-rebuild switch --flake "${DEVICES_URL}#${COMMAND_ARG}" --quiet --quiet;
 
   if [ -d "${REFERENCE}" ]; then
     printf "${COMMAND_ARG}@$(git -C "${REFERENCE}" rev-parse HEAD)" > "${DEVICE_CONFIG}";

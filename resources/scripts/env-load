@@ -183,7 +183,6 @@ cmd_system() {
     printf "${COMMAND_ARG}@$(git -C "${REFERENCE}" rev-parse HEAD)" > "${DEVICE_CONFIG}";
   fi
 
-  clean_home;
   clean_os;
 }
 

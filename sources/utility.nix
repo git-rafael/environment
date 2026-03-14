@@ -98,7 +98,7 @@ in  {
       RestartSec = "5s";
       Environment = [
         "BT_THRESHOLD=${toString btproximityThreshold}"
-        "PATH=${pkgs.lib.makeBinPath (with pkgs; [ bluez gnugrep coreutils systemd ])}"
+        "PATH=${pkgs.lib.makeBinPath (with pkgs; [ bluez gnugrep coreutils systemd dbus ])}"
         (let macsStr = builtins.concatStringsSep " " btproximityMacs; in "\"BT_DEVICE_MACS=${macsStr}\"")
       ];
     };

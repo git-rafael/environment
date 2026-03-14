@@ -186,7 +186,7 @@ cmd_system() {
         sudo git config --global --add safe.directory "$(realpath "$sm")";
       done;
   fi;
-  [ "${UPDATE}" = true ] && nix flake update --flake "${DEVICES_URL}";
+  if [ "${UPDATE}" = true ]; then update_submodules; nix flake update --flake "${DEVICES_URL}"; fi;
   sudo nixos-rebuild switch --flake "${DEVICES_URL}#${COMMAND_ARG}" --quiet --quiet;
 
   if [ -d "${REFERENCE}" ]; then
@@ -210,7 +210,7 @@ cmd_user() {
 
   require_clean_repo;
 
-  [ "${UPDATE}" = true ] && nix flake update --flake "${HOME_URL}";
+  if [ "${UPDATE}" = true ]; then update_submodules; nix flake update --flake "${HOME_URL}"; fi;
 
   local target_path="${HOME_URL}#homeConfigurations.${target}.activationPackage";
   local out;
@@ -223,6 +223,15 @@ cmd_user() {
   fi
 
   clean_home;
+}
+
+update_submodules() {
+  [ -d "${REFERENCE}" ] || return 0;
+  git -C "${REFERENCE}" submodule update --remote --merge --quiet;
+  local changed;
+  changed="$(git -C "${REFERENCE}" status --porcelain 2>/dev/null)";
+  [ -n "${changed}" ] && git -C "${REFERENCE}" add -u \
+    && git -C "${REFERENCE}" commit -m "Update submodules";
 }
 
 require_sudo() {

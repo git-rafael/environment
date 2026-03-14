@@ -264,6 +264,14 @@ cmd_push() {
     oldest_hash="${device_hash}";
   fi
 
+  # Never squash commits already on the remote — use the more recent of oldest_hash and origin/main.
+  local remote_hash;
+  remote_hash="$(git -C "${repo_root}" rev-parse origin/main 2>/dev/null || true)";
+  if [ -n "${remote_hash}" ] && \
+     git -C "${repo_root}" merge-base --is-ancestor "${oldest_hash}" "${remote_hash}" 2>/dev/null; then
+    oldest_hash="${remote_hash}";
+  fi
+
   local commits;
   commits="$(git -C "${repo_root}" log --oneline "${oldest_hash}..HEAD" 2>/dev/null)";
   [ -z "${commits}" ] && { echo "Nothing to push."; return; };
@@ -280,7 +288,7 @@ cmd_push() {
 
   git -C "${repo_root}" reset --soft "${oldest_hash}";
   git -C "${repo_root}" commit -m "${msg}";
-  git -C "${repo_root}" push;
+  git -C "${repo_root}" push --force-with-lease;
   echo "Done.";
 }
 

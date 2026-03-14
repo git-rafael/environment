@@ -92,6 +92,9 @@ parse_args() {
   done
 
   if [ -d "${REFERENCE}" ]; then
+    [ -f "${REFERENCE}/flake.nix" ] || die "'${REFERENCE}' does not appear to be the environment repo (no flake.nix found).";
+    git -C "${REFERENCE}" remote -v 2>/dev/null | grep -q "git-rafael/environment" \
+      || die "'${REFERENCE}' is not the git-rafael/environment repository.";
     HOME_URL="git+file://$(realpath "${REFERENCE}")?submodules=1";
     DEVICES_URL="git+file://$(realpath "${REFERENCE}")?submodules=1&dir=devices";
   else

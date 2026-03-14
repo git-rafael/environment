@@ -86,7 +86,7 @@ parse_args() {
 
   if [ -d "${REFERENCE}" ]; then
     HOME_URL="git+file://$(realpath "${REFERENCE}")?submodules=1";
-    DEVICES_URL="git+file://$(realpath "${REFERENCE}/devices")?submodules=1";
+    DEVICES_URL="git+file://$(realpath "${REFERENCE}")?submodules=1&dir=devices";
   else
     HOME_URL="github:git-rafael/environment?ref=${REFERENCE}";
     DEVICES_URL="github:git-rafael/environment?dir=devices&ref=${REFERENCE}";

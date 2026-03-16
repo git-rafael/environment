@@ -74,15 +74,32 @@ The install command uses `env-load refs add`, which adds an upstream GitHub repo
 env-load refs add <source> <path-to-skill>
 ```
 
-Where `<source>` is the `source` field from the API (e.g. `vercel-labs/agent-skills`) and `<path-to-skill>` is the path within that repo to the skill directory (which matches the `id` field minus the `source` prefix — e.g. for id `vercel-labs/agent-skills/vercel-react-best-practices`, the path is `vercel-react-best-practices`).
+Where `<source>` is the `source` field from the API (e.g. `vercel-labs/agent-skills`) and `<path-to-skill>` is the path within that repo to the skill directory.
+
+**The `id` field is NOT always the correct repo path.** The API `id` is `<source>/<skill-name>`, but skills are often nested inside a subdirectory (e.g. `skills/skill-name`). Always verify the actual path before presenting the install command.
+
+### Verifying the correct repo path
+
+Before suggesting the install command, check the repo's directory structure via the GitHub API:
+
+```bash
+curl -s "https://api.github.com/repos/<org>/<repo>/contents/" | jq -r '.[] | "\(.type)\t\(.name)"'
+```
+
+If the root listing doesn't show the skill directory directly, look for a `skills/` or similar subdirectory and check inside it:
+
+```bash
+curl -s "https://api.github.com/repos/<org>/<repo>/contents/skills" | jq -r '.[] | "\(.type)\t\(.name)"'
+```
+
+Use whichever path actually contains the skill's `SKILL.md`.
 
 **Example:**
 ```bash
-# For a skill with id "vercel-labs/agent-skills/vercel-react-best-practices"
-env-load refs add vercel-labs/agent-skills vercel-react-best-practices
+# Repo vercel-labs/agent-browser has skills under skills/, not at root:
+env-load refs add vercel-labs/agent-browser skills/agent-browser
+# NOT: env-load refs add vercel-labs/agent-browser agent-browser  ← broken symlink
 ```
-
-However, the skill path inside the repo may be nested (e.g. `skills/skill-name` rather than just `skill-name`). Since the API doesn't expose the full repo path, present the command with the skill name as the path and note that the user should check the repo structure if it fails.
 
 Do NOT run the install command yourself — present it to the user and let them run it, since it modifies git submodules and the repo state.
 

@@ -26,6 +26,25 @@ let
         --set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1
     '';
   };
+
+  agent-browser = pkgs.stdenv.mkDerivation {
+    pname = "agent-browser";
+    version = "0.20.13";
+    src = pkgs.fetchurl {
+      url = "https://github.com/vercel-labs/agent-browser/releases/download/v0.20.13/agent-browser-linux-x64";
+      hash = "sha256-NcS6RcK0X8faGfPxDTMNMo53Vc/HyHO2IBoIOtbQrZk=";
+    };
+    nativeBuildInputs = [ pkgs.autoPatchelfHook pkgs.makeWrapper ];
+    dontUnpack = true;
+    installPhase = ''
+      mkdir -p $out/bin
+      cp $src $out/bin/agent-browser
+      chmod +x $out/bin/agent-browser
+    '' + pkgs.lib.optionalString withUI ''
+      wrapProgram $out/bin/agent-browser \
+        --set AGENT_BROWSER_EXECUTABLE_PATH "${pkgs.google-chrome}/bin/google-chrome-stable"
+    '';
+  };
   
   gtoken = pkgs.writers.writePython3Bin "gtoken" {
     libraries = with pkgs.python3Packages; [
@@ -70,6 +89,7 @@ in  {
     bitwarden-cli
     home-assistant-cli
     claude-code
+    agent-browser
   ] ++ pkgs.lib.optionals withUI [
     reco
     plasmaDnSwitcher

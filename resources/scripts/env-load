@@ -92,6 +92,12 @@ parse_args() {
   done
 
   if [ -d "${REFERENCE}" ]; then
+    if [ ! -f "${REFERENCE}/flake.nix" ]; then
+      local git_root;
+      git_root="$(git -C "${REFERENCE}" rev-parse --show-toplevel 2>/dev/null)" \
+        || die "'${REFERENCE}' does not appear to be the environment repo (no flake.nix found).";
+      REFERENCE="${git_root}";
+    fi
     [ -f "${REFERENCE}/flake.nix" ] || die "'${REFERENCE}' does not appear to be the environment repo (no flake.nix found).";
     git -C "${REFERENCE}" remote -v 2>/dev/null | grep -q "git-rafael/environment" \
       || die "'${REFERENCE}' is not the git-rafael/environment repository.";

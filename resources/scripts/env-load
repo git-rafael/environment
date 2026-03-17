@@ -395,8 +395,12 @@ refs_add() {
   submodule_path=".refs/${org}/${repo}";
   url="https://github.com/${org}/${repo}.git";
   link_path="${skills_dir}/${name}";
-  # relative path from resources/skills/ to .refs/<org>/<repo>/<repo-path>
-  link_target="../../.refs/${org}/${repo}/${repo_path}";
+  # relative path from link location back to .refs/<org>/<repo>/<repo-path>
+  # count extra depth from slashes in name (e.g. gws/gws-gmail needs ../../../ instead of ../../)
+  local depth; depth="$(echo "${name}" | tr -cd '/' | wc -c)";
+  local prefix="../../";
+  local i; for i in $(seq 1 "${depth}"); do prefix="../${prefix}"; done;
+  link_target="${prefix}.refs/${org}/${repo}/${repo_path}";
 
   local repo_root;
   repo_root="$(dirname "${refs_dir}")";
@@ -414,7 +418,7 @@ refs_add() {
     fail "symlink '${name}' already exists in resources/skills/. Use 'refs rm ${name}' first.";
   fi
 
-  mkdir -p "${skills_dir}";
+  mkdir -p "$(dirname "${link_path}")";
   ln -s "${link_target}" "${link_path}";
   echo "Added: resources/skills/${name}  →  ${link_target}";
 }

@@ -78,6 +78,7 @@ parse_args() {
       COMMAND_ARG="${arg2}";
       REFS_ARG1="${arg3:-}";
       REFS_ARG2="${4:-}";
+      REFS_ARG3="${5:-}";
       ;;
     *)
       [ -n "${arg2}" ] && die "unknown command '${arg1}'.";
@@ -333,7 +334,7 @@ cmd_refs() {
     add)
       [ -z "${repo_ref}" ]  && die "'refs add' requires <org/repo>.";
       [ -z "${repo_path}" ] && die "'refs add' requires <repo-path>.";
-      local name="${5:-$(basename "${repo_path}")}";
+      local name="${REFS_ARG3:-$(basename "${repo_path}")}";
       refs_add "${refs_dir}" "${skills_dir}" "${repo_ref}" "${repo_path}" "${name}";
       ;;
     rm)

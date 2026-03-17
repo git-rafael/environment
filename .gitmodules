@@ -4,3 +4,6 @@
 [submodule ".refs/vercel-labs/agent-browser"]
 	path = .refs/vercel-labs/agent-browser
 	url = https://github.com/vercel-labs/agent-browser.git
+[submodule ".refs/googleworkspace/cli"]
+	path = .refs/googleworkspace/cli
+	url = https://github.com/googleworkspace/cli.git

@@ -122,6 +122,12 @@ in
     pkgs.sane-airscan
   ];
 
+  # Symlink required by hardcoded path in epson-printer-utility binary
+  system.activationScripts.epson-printer-utility = ''
+    mkdir -p /opt
+    ln -sfn ${epson-printer-utility} /opt/epson-printer-utility
+  '';
+
   # Epson Communication Backend Daemon (required by epson-printer-utility)
   systemd.services.ecbd = {
     description = "Epson Printer Utility Daemon";

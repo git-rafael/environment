@@ -19,6 +19,7 @@ let
     ];
 
     dontUnpack = true;
+    dontWrapQtApps = true;
 
     installPhase = ''
       mkdir -p $out/extracted

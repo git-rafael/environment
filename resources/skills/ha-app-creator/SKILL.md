@@ -17,7 +17,8 @@ Ask the user:
 2. **Authentication needed?** If yes, provision Traefik as reverse proxy + TinyAuth for Google OAuth.
 3. **What ports?** Identify which ports the app exposes (web UI, API, etc.).
 4. **What data to persist?** Identify volumes/data directories that need to survive rebuilds.
-5. **App-specific options?** Any environment variables the user wants configurable from the HA UI.
+5. **Git sync needed?** If the app manages files (wiki, notes, etc.), offer git sync with GitHub.
+6. **App-specific options?** Any environment variables the user wants configurable from the HA UI.
 
 ### Step 2: Determine Base Image Strategy
 
@@ -66,31 +67,40 @@ ln -s /data/myapp-db /original/path
 
 The `rm -rf` is necessary because the directory may already exist in the Docker image and `ln -s` won't replace a directory.
 
-### Step 5: Deploy and Test
+### Step 5: Validate Required Options
+
+Add validation at the top of the init script to fail fast if required options are missing. HA does not prevent starting an addon with empty required fields.
+
+```bash
+OPTIONS="/data/options.json"
+REQUIRED="host google_client_id google_client_secret"
+for key in $REQUIRED; do
+  val=$(jq -r ".$key" "$OPTIONS")
+  if [ -z "$val" ] || [ "$val" = "null" ]; then
+    echo "[init] ERROR: required option '$key' is not set. Configure it in the addon settings." >&2
+    exit 1
+  fi
+done
+```
+
+### Step 6: Deploy and Test
 
 Deploy to the HA server:
 
 ```bash
-# Copy files to the addons directory
+# Copy files to the addons directory (use * to avoid creating a subdirectory)
 scp -r my-addon/* root@<ha-host>:/addons/my-addon/
 
-# Reload the addon store so Supervisor picks up the new addon
-curl -s -X POST -H "Authorization: Bearer $SUPERVISOR_TOKEN" http://supervisor/store/reload
-
-# Install (first time) or rebuild (updates)
+# First install
 ha apps install local_my-addon
-# or
-ha apps rebuild local_my-addon
 
-# Set options via API (needed when schema changes)
-curl -s -X POST -H "Authorization: Bearer $SUPERVISOR_TOKEN" \
-  -H "Content-Type: application/json" \
-  http://supervisor/addons/local_my-addon/options \
-  -d '{"options":{...}}'
+# For updates: remove old image to bust cache, then rebuild
+docker rmi -f $(docker images -q --filter 'reference=*my-addon*')
+ha apps rebuild local_my-addon
 
 # Start and check logs
 ha apps start local_my-addon
-ha apps logs local_my-addon
+docker logs addon_local_my-addon
 ```
 
 ## Key Lessons and Gotchas
@@ -101,12 +111,28 @@ The HA Supervisor injects `--init` (tini as PID 1) regardless of `init: false` i
 ### Port Conflicts
 Without `host_network: true` (which should be avoided), each container has its own network namespace. However, ports inside the container can still conflict — for example, if the app image already uses a port that TinyAuth wants. Always check what ports the base image uses internally and choose a non-conflicting port for TinyAuth (default 3001, fallback 3011, etc.).
 
-### Schema Changes Require Reinstall
-When you change the options schema in `config.yaml`, the Supervisor caches the old schema. A rebuild alone won't pick up schema changes. You must:
-1. Uninstall: `ha apps uninstall local_my-addon`
-2. Reinstall: `ha apps install local_my-addon`
-3. Set options via Supervisor API
-4. Start: `ha apps start local_my-addon`
+### Schema and Image Cache
+The Supervisor caches addon schema from the built Docker image. When you change `config.yaml`:
+1. Remove the old image: `docker rmi -f $(docker images -q --filter 'reference=*my-addon*')`
+2. Rebuild: `ha apps rebuild local_my-addon`
+3. If schema still stale: `docker restart hassio_supervisor`, wait 20s, then rebuild again
+4. If that fails: uninstall + reinstall (loses `/data/` — back up first)
+
+**IMPORTANT:** `scp -r my-addon/ host:/addons/my-addon/` creates `/addons/my-addon/my-addon/` (nested). Use `scp -r my-addon/* host:/addons/my-addon/` instead. A stale subdirectory can cause the Docker build to use the wrong files.
+
+### Docker Build Layer Cache
+The `COPY init /init` layer is cached by Docker based on the file checksum. However, if stale copies of init exist in subdirectories (from bad scp), Docker may pick the wrong one. Always verify after rebuild:
+```bash
+docker exec addon_local_my-addon md5sum /init
+```
+
+### Password Fields in UI
+Use `password` type in schema to mask sensitive fields in the HA UI:
+```yaml
+schema:
+  my_token: password
+  my_secret: password?  # optional password
+```
 
 ### NPM (Nginx Proxy Manager) Caching
 If there's an NPM reverse proxy in front of the addon, it may cache 401 responses aggressively. After fixing auth issues, clear the NPM cache:
@@ -134,3 +160,20 @@ When using `export VAR=value` in the init script, all subsequent processes inher
 The user needs to configure a Google OAuth consent screen and credentials in GCP Console:
 - APIs & Services → Credentials → Create OAuth 2.0 Client ID
 - Authorized redirect URI: `https://auth.<host>/api/oauth/callback/google`
+
+### set -e in Subshells
+The `set -e` from the main script propagates to subshells (background loops). Any command failure inside a `( ... ) &` subshell kills the entire loop silently. Always add `set +e` at the top of background subshells that should be resilient.
+
+### Git Sync for File-Based Apps
+For apps that manage files (wikis, notes, knowledge bases), implement git sync as a background loop. Key patterns:
+- **Init order matters:** Clone/checkout the repo BEFORE starting the app, so it finds content on first boot
+- **`git config --global --add safe.directory`** is required because the data volume may have different ownership
+- **`git config --global init.defaultBranch main`** avoids the `master` default branch warning
+- **Git LFS:** If the repo uses LFS, add `git-lfs` to Dockerfile dependencies and run `git lfs install --force` + `git lfs pull` during clone
+- **Commit before rebase:** The sync loop must commit local changes BEFORE fetching/rebasing, otherwise dirty working tree causes rebase to fail
+- **`set +e` in the loop:** Prevents the background sync from dying on transient errors
+- **Silent when idle:** Only log when changes are pushed or errors occur
+- **Fatal on init, resilient on sync:** Git init/clone errors should abort the addon; sync loop errors should log and continue
+- **Detect existing credentials:** If the git remote URL already contains `@` (embedded token), skip overriding with addon options
+
+See `references/templates-auth.md` for the full git sync template.

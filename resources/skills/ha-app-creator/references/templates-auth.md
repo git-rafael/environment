@@ -33,10 +33,10 @@ schema:
   host: str
   oauth_whitelist: str
   google_client_id: str
-  google_client_secret: str
+  google_client_secret: password
 ```
 
-Add app-specific options to both `options` and `schema` sections as needed.
+Add app-specific options to both `options` and `schema` sections as needed. Use `password` type for secrets (tokens, API keys) to mask them in the HA UI. All fields without `?` suffix are required — HA does not enforce this, so validate in the init script.
 
 ## build.yaml (Only for Strategy A — HA base image)
 
@@ -74,6 +74,8 @@ RUN mkdir -p /data/tinyauth
 COPY init /init
 RUN chmod +x /init
 ```
+
+Add `git` and `git-lfs` to system dependencies if git sync is needed.
 
 ## Dockerfile — Strategy B (App image as base)
 
@@ -113,9 +115,17 @@ The `CMD ["/init"]` is critical for Strategy B — it overrides the app image's 
 set -e
 
 # ---------------------------------------------------------------
-# Source options from HA
+# Validate required options
 # ---------------------------------------------------------------
 OPTIONS="/data/options.json"
+REQUIRED="host oauth_whitelist google_client_id google_client_secret"
+for key in $REQUIRED; do
+  val=$(jq -r ".$key" "$OPTIONS")
+  if [ -z "$val" ] || [ "$val" = "null" ]; then
+    echo "[init] ERROR: required option '$key' is not set. Configure it in the addon settings." >&2
+    exit 1
+  fi
+done
 
 # ---------------------------------------------------------------
 # Traefik config generation
@@ -305,3 +315,130 @@ services:
 ```
 
 This is needed when the frontend does client-side API calls and auto-detects the API URL by appending a port to the current hostname. Setting `API_URL` to the public HTTPS URL (`https://${TRAEFIK_HOST}`) and routing `/api` directly to the API backend avoids this.
+
+## Git Sync Pattern
+
+For file-based apps (wikis, knowledge bases, notes), add git sync to back up content to GitHub automatically.
+
+### Additional config.yaml options
+
+```yaml
+options:
+  git_repo: ""
+  git_token: ""
+  git_sync_interval: 60
+schema:
+  git_repo: str
+  git_token: password
+  git_sync_interval: int
+```
+
+### Additional Dockerfile dependencies
+
+```dockerfile
+RUN apk add --no-cache git git-lfs
+```
+
+### Git init block (add BEFORE app starts)
+
+Place this after `mkdir -p "$DATA_DIR"` but before starting the app, so the data directory has content on first boot:
+
+```bash
+# ---------------------------------------------------------------
+# Git repo init (before app starts, so data dir has content)
+# ---------------------------------------------------------------
+GIT_REPO=$(jq -r '.git_repo' "$OPTIONS")
+GIT_TOKEN=$(jq -r '.git_token' "$OPTIONS")
+GIT_SYNC_INTERVAL=$(jq -r '.git_sync_interval // 60' "$OPTIONS")
+
+git config --global --add safe.directory "$DATA_DIR"
+
+if [ -d "$DATA_DIR/.git" ]; then
+  cd "$DATA_DIR"
+  EXISTING_URL=$(git remote get-url origin 2>/dev/null || true)
+  if echo "$EXISTING_URL" | grep -q '@'; then
+    echo "[init] Git remote already has credentials, skipping credential override."
+  elif [ -n "$GIT_TOKEN" ] && [ "$GIT_TOKEN" != "null" ]; then
+    GIT_AUTH_URL=$(echo "$GIT_REPO" | sed "s|https://|https://${GIT_TOKEN}@|")
+    git remote set-url origin "$GIT_AUTH_URL"
+  fi
+elif [ -n "$GIT_REPO" ] && [ "$GIT_REPO" != "null" ] && \
+     [ -n "$GIT_TOKEN" ] && [ "$GIT_TOKEN" != "null" ]; then
+  # Fresh clone — errors here are fatal
+  GIT_AUTH_URL=$(echo "$GIT_REPO" | sed "s|https://|https://${GIT_TOKEN}@|")
+  git config --global init.defaultBranch main
+  cd "$DATA_DIR"
+  git init
+  git lfs install --force
+  git remote add origin "$GIT_AUTH_URL"
+  git fetch origin
+  git checkout main 2>/dev/null || git checkout -b main origin/main
+  git lfs pull
+fi
+
+if [ -d "$DATA_DIR/.git" ]; then
+  cd "$DATA_DIR"
+  git config user.email "addon@home-assistant.local"
+  git config user.name "{{APP_NAME}} Addon"
+
+  if ! git ls-remote --exit-code origin HEAD >/dev/null 2>&1; then
+    echo "[init] ERROR: cannot reach git remote. Aborting." >&2
+    exit 1
+  fi
+fi
+cd /
+```
+
+### Git sync loop (add AFTER all services start, before wait)
+
+```bash
+# ---------------------------------------------------------------
+# Git sync (background loop)
+# ---------------------------------------------------------------
+if [ -d "$DATA_DIR/.git" ]; then
+  echo "[init] Starting git sync (every ${GIT_SYNC_INTERVAL}s)..."
+  (
+    set +e
+    while true; do
+      sleep "$GIT_SYNC_INTERVAL"
+      cd "$DATA_DIR"
+
+      # Commit local changes first
+      git add -A
+      if ! git diff --cached --quiet; then
+        git commit -m "sync $(date -u +%Y-%m-%dT%H:%M:%SZ)" >/dev/null 2>&1
+      fi
+
+      # Then pull remote changes
+      if ! git fetch origin >/dev/null 2>&1; then
+        echo "[git-sync] ERROR: fetch failed" >&2
+        continue
+      fi
+
+      if ! git rebase origin/main >/dev/null 2>&1; then
+        echo "[git-sync] ERROR: rebase failed, aborting rebase" >&2
+        git rebase --abort 2>/dev/null
+        continue
+      fi
+
+      # Push if ahead of remote
+      LOCAL=$(git rev-parse HEAD 2>/dev/null)
+      REMOTE=$(git rev-parse origin/main 2>/dev/null)
+      if [ "$LOCAL" != "$REMOTE" ]; then
+        if ! git push origin main >/dev/null 2>&1; then
+          echo "[git-sync] ERROR: push failed" >&2
+        else
+          echo "[git-sync] Changes pushed."
+        fi
+      fi
+    done
+  ) &
+  SYNC_PID=$!
+fi
+```
+
+Update the wait/kill section to include `${SYNC_PID:+"$SYNC_PID"}`:
+
+```bash
+kill $CORE_PIDS ${SYNC_PID:+"$SYNC_PID"} 2>/dev/null || true
+```

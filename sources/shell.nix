@@ -6,6 +6,7 @@ let
 
   env-load = pkgs.writeShellScriptBin "env-load" (builtins.readFile ../resources/scripts/env-load);
   env-shell = pkgs.writeShellScriptBin "env-shell" (builtins.readFile ../resources/scripts/env-shell);
+  oliver = pkgs.writeShellScriptBin "oliver" (builtins.readFile ../resources/scripts/oliver);
 
   python = pkgs.python3.withPackages (ps: with ps; [
     boto3
@@ -22,6 +23,7 @@ in {
   home.packages = with pkgs; [
     env-load
     env-shell
+    oliver
 
     vim
     eza

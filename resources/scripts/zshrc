@@ -1,6 +1,5 @@
 export EDITOR='vim';
 export TERM='xterm-256color';
-export PATH=${HOME}/.local/bin:${PATH};
 
 if [ -z "${NIX_PROFILES}" ]; then
   if [ -f /etc/alpine-release ]; then
@@ -20,6 +19,8 @@ if [ -e ~/.env ]; then
   source ~/.env;
   set +a;
 fi
+
+export PATH=${HOME}/.local/bin:${PATH};
 
 # keybindings
 bindkey "^[[1;5C" forward-word;

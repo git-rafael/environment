@@ -5,11 +5,13 @@ set -euo pipefail;
 # Locks the session when ALL paired devices move out of range.
 # Configuration via environment variables (set by systemd service):
 #   BT_DEVICE_MACS   - Space-separated list of Bluetooth MAC addresses
-#   BT_THRESHOLD     - RSSI threshold in dBm
-#   BT_POLL_INTERVAL - Seconds between readings
-#   BT_LOCK_AFTER    - Consecutive readings with all devices out of range before locking (default: 3)
+#   BT_LOCK_THRESHOLD   - RSSI threshold for locking (default: -20 dBm)
+#   BT_UNLOCK_THRESHOLD - RSSI threshold for unlocking (default: -10 dBm)
+#   BT_POLL_INTERVAL    - Seconds between readings
+#   BT_LOCK_AFTER       - Consecutive readings with all devices out of range before locking (default: 3)
 
-readonly THRESHOLD="${BT_THRESHOLD:--10}";
+readonly LOCK_THRESHOLD="${BT_LOCK_THRESHOLD:--20}";
+readonly UNLOCK_THRESHOLD="${BT_UNLOCK_THRESHOLD:--10}";
 readonly LOCK_AFTER="${BT_LOCK_AFTER:-3}";
 readonly POLL_INTERVAL="${BT_POLL_INTERVAL:-5}";
 
@@ -23,17 +25,18 @@ fi
 log() { echo "[$(date '+%H:%M:%S')] $*"; }
 
 any_in_range() {
+  local threshold="${1:-$LOCK_THRESHOLD}";
   # word splitting intentional: iterates space-separated MACs
   for mac in $BT_DEVICE_MACS; do
     local rssi;
     rssi=$(hcitool rssi "$mac" 2>/dev/null | grep -oP '[-]?\d+');
-    [[ -n "$rssi" ]] && [[ "$rssi" -ge "$THRESHOLD" ]] && return 0;
+    [[ -n "$rssi" ]] && [[ "$rssi" -ge "$threshold" ]] && return 0;
   done
   return 1;
 }
 
 wait_for_device() {
-  until any_in_range; do
+  until any_in_range "$UNLOCK_THRESHOLD"; do
     sleep "$POLL_INTERVAL";
   done
 }
@@ -41,7 +44,7 @@ wait_for_device() {
 monitor() {
   local consecutive=0;
   while true; do
-    if any_in_range; then
+    if any_in_range "$LOCK_THRESHOLD"; then
       consecutive=0;
     else
       consecutive=$((consecutive + 1));
@@ -61,9 +64,9 @@ monitor() {
   done
 }
 
-log "Starting (devices: $BT_DEVICE_MACS, threshold: $THRESHOLD dBm)";
+log "Starting (devices: $BT_DEVICE_MACS, lock: $LOCK_THRESHOLD dBm, unlock: $UNLOCK_THRESHOLD dBm)";
 
-if ! any_in_range; then
+if ! any_in_range "$UNLOCK_THRESHOLD"; then
   log "No devices in range at startup, waiting...";
   wait_for_device;
   log "Device in range, starting monitoring";

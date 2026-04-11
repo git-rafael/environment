@@ -5,10 +5,6 @@
 
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "github:nix-community/home-manager/release-25.11";
-
-    plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
-    plasma-manager.inputs.home-manager.follows = "home-manager";
-    plasma-manager.url = "github:nix-community/plasma-manager";
   };
 
   outputs = inputs@{ self, nixpkgs, nixpkgs-unstable, home-manager, ... }:
@@ -19,7 +15,6 @@
     security = import ./sources/security.nix;
     utility = import ./sources/utility.nix;
     shell = import ./sources/shell.nix;
-    ui = import ./sources/ui.nix;
 
     mkDeviceDerivation = system: username: features: home-manager.lib.homeManagerConfiguration rec {
       pkgs = import nixpkgs {
@@ -28,28 +23,26 @@
         config.allowUnsupportedSystem = true;
       };
 
-      modules =
+      modules = 
         let
           edgePkgs = import nixpkgs-unstable {
             inherit system;
             config.allowUnfree = true;
             config.allowUnsupportedSystem = true;
           };
-          env = { inherit pkgs edgePkgs features self inputs; };
-
+          env = { inherit pkgs edgePkgs features self; };
+          
           developmentInstallation = (development env);
           operationInstallation = (operation env);
           securityInstallation = (security env);
           utilityInstallation = (utility env);
           shellInstallation = (shell env);
-          uiInstallation = (ui env);
         in [
           developmentInstallation
           operationInstallation
           securityInstallation
           utilityInstallation
           shellInstallation
-          uiInstallation
           {
             home.homeDirectory =
               if username == "null" then "/home"

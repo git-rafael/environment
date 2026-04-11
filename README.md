@@ -53,6 +53,21 @@ Omitting the target reuses the last one saved in `~/.nix-target`.
 
 After loading, `env-shell` initializes the environment for interactive use (sources Nix profile and starts tmux). On NixOS devices, it drops straight into tmux.
 
+#### Plasma / UI layer
+
+Targets with the `ui` feature pull in `sources/ui.nix`, which uses [`plasma-manager`](https://github.com/nix-community/plasma-manager) to manage KDE Plasma configuration declaratively. The generated state lives in `sources/ui-settings.nix` and is refreshed with:
+
+```sh
+env-load user ui-update           # from inside the repo
+env-load user ui-update <path>    # from anywhere
+```
+
+`ui-update` runs `rc2nix` against the current Plasma session, rewrites `sources/ui-settings.nix`, and shows a diff. Commit and then apply with `env-load user <target>` to lock the new state in.
+
+`overrideConfig` is set to `false`, so anything **not** declared in `ui-settings.nix` can still be changed through the Plasma UI and will persist across `env-load` runs. Keys that **are** declared get rewritten on every rebuild — to tweak those, change them via the UI and run `ui-update` again.
+
+Caveats: `rc2nix` only captures `~/.config/*rc` files. Konsole profiles, custom wallpapers/themes/icons installed via "Get New…" (living under `~/.local/share/`) are not captured — package them through `nixpkgs` or `home.file` if they need to roam between machines.
+
 ### NixOS System Configuration
 
 NixOS device configurations live in `devices/`. Each device has its own subfolder with `configuration.nix` and `hardware-configuration.nix`.

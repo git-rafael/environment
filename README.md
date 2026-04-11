@@ -16,10 +16,11 @@ environment/
 `env-load` is the central command for managing both Home Manager and NixOS configurations.
 
 ```sh
-env-load user <target>           # apply a Nix user environment
-env-load user <target> --update  # update flake inputs then apply
-env-load system <device>         # apply a NixOS system environment
+env-load user <target>             # apply a Nix user environment
+env-load user <target> --update    # update flake inputs then apply
+env-load system <device>           # apply a NixOS system environment
 env-load system <device> --update  # update flake inputs then apply
+env-load system init <path>        # bootstrap a new NixOS device in the repo and apply it
 ```
 
 ### Home Manager
@@ -63,13 +64,14 @@ NixOS device configurations live in `devices/`. Each device has its own subfolde
 
 #### Fresh install
 
-On first boot, flakes need to be enabled explicitly:
+After the user environment is applied (via the bootstrap above), clone the repo locally and run `system init`. It prompts for hostname/username/description/features, generates `devices/<hostname>/{configuration,hardware-configuration}.nix`, injects the new entry in `devices/flake.nix`, commits the change, and runs `nixos-rebuild switch`.
 
 ```sh
-sudo nixos-rebuild switch \
-  --flake github:git-rafael/environment?dir=devices#<hostname> \
-  --experimental-features "nix-command flakes"
+git clone --recurse-submodules git@github.com:git-rafael/environment.git ~/Desktop/Codebase/environment
+sudo env-load system init ~/Desktop/Codebase/environment
 ```
+
+Any LUKS entries that `nixos-generate-config` wrote to `/etc/nixos/configuration.nix` are merged into the device's `hardware-configuration.nix` automatically.
 
 #### Applying updates
 

@@ -16,6 +16,9 @@ env-load user <target> ~/path/to/environment --update
 # Apply a NixOS system configuration
 env-load system <device> ~/path/to/environment
 
+# Bootstrap a new NixOS device in the repo and apply it (prompts for hostname/features)
+sudo env-load system init ~/path/to/environment
+
 # Garbage collect (safe)
 env-load clean
 
@@ -71,6 +74,8 @@ Device-specific configs import shared modules:
 - [devices/os.nix](devices/os.nix) — base OS: boot, networking, pipewire, virtualisation (docker, waydroid, libvirtd), nix-ld
 - [devices/ui.nix](devices/ui.nix) — KDE Plasma 6 + SDDM, printing (CUPS/Epson), scanning (SANE)
 - Per-device subfolder: `configuration.nix` (imports os.nix + ui.nix + hardware) and `hardware-configuration.nix`
+
+New devices are bootstrapped with `env-load system init <path>`, which scaffolds the subfolder (copying `/etc/nixos/hardware-configuration.nix` and merging any LUKS entries from `/etc/nixos/configuration.nix`), injects the new `nixosConfigurations.<hostname>` entry into [devices/flake.nix](devices/flake.nix), commits the change, and applies it.
 
 ### Custom packages and scripts in resources/
 

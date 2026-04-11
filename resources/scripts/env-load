@@ -423,6 +423,23 @@ cmd_user() {
   fi
 
   clean_home;
+
+  suggest_system_init;
+}
+
+# On fresh NixOS installs (no .nix-device yet), nudge the user to run
+# 'system init' so this device gets registered in the repo and its
+# NixOS configuration applied.
+suggest_system_init() {
+  [ -f /etc/NIXOS ] || return 0;
+  [ -f "${DEVICE_CONFIG}" ] && return 0;
+  echo;
+  echo "This NixOS device has no system configuration applied yet.";
+  echo "To register it in the environment repo and apply it, clone the repo and run 'system init':";
+  echo;
+  echo "  git clone --recurse-submodules https://github.com/git-rafael/environment.git ~/Desktop/Codebase/environment";
+  echo "  sudo env-load system init ~/Desktop/Codebase/environment";
+  echo;
 }
 
 update_submodules() {

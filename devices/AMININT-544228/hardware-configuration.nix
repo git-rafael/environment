@@ -19,6 +19,7 @@
     };
 
   boot.initrd.luks.devices."luks-92560649-e630-4a01-a7bf-8ce4af613ac0".device = "/dev/disk/by-uuid/92560649-e630-4a01-a7bf-8ce4af613ac0";
+  boot.initrd.luks.devices."luks-92560649-e630-4a01-a7bf-8ce4af613ac0".crypttabExtraOpts = [ "tpm2-device=auto" ];
 
   fileSystems."/boot" =
     { device = "/dev/disk/by-uuid/571B-0982";
@@ -31,6 +32,7 @@
     ];
 
   boot.initrd.luks.devices."luks-40c5ac48-ebaa-4f96-97c1-a6aee16fa448".device = "/dev/disk/by-uuid/40c5ac48-ebaa-4f96-97c1-a6aee16fa448";
+  boot.initrd.luks.devices."luks-40c5ac48-ebaa-4f96-97c1-a6aee16fa448".crypttabExtraOpts = [ "tpm2-device=auto" ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;

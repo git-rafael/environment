@@ -77,6 +77,39 @@ Device-specific configs import shared modules:
 
 New devices are bootstrapped with `env-load system init <path>`, which scaffolds the subfolder (copying `/etc/nixos/hardware-configuration.nix` and merging any LUKS entries from `/etc/nixos/configuration.nix`), injects the new `nixosConfigurations.<hostname>` entry into [devices/flake.nix](devices/flake.nix), commits the change, and applies it.
 
+#### TPM2-based LUKS auto-unlock
+
+Devices with encrypted root and a TPM2 chip can skip the LUKS passphrase prompt at boot. Setup is two-part: NixOS config (declarative, in the device's subfolder) plus runtime enrollment into the LUKS header (imperative, done once per machine with `systemd-cryptenroll`).
+
+Declarative config — set in the device's `configuration.nix`:
+```nix
+# Required: TPM2 unlock only works with the systemd-based initrd.
+boot.initrd.systemd.enable = true;
+```
+
+And in the device's `hardware-configuration.nix`, for each LUKS volume that should auto-unlock (root and, if present, encrypted swap):
+```nix
+boot.initrd.luks.devices."luks-<uuid>".crypttabExtraOpts = [ "tpm2-device=auto" ];
+```
+
+Runtime enrollment — after the config is applied, run once per volume:
+```sh
+sudo systemd-cryptenroll --tpm2-device=list                                 # sanity check (should show /dev/tpmrm0)
+sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 /dev/disk/by-uuid/<uuid>
+```
+
+This adds a new keyslot in the LUKS header bound to the TPM2; the original passphrase slot is preserved as fallback. Verify with:
+```sh
+sudo cryptsetup luksDump /dev/disk/by-uuid/<uuid> | grep -E '^Tokens:|systemd-tpm2|Keyslot:'
+```
+
+PCR choice: `0+7` (firmware + Secure Boot state) is the recommended default. If a BIOS/UEFI update changes PCR 0, the TPM2 unlock will fail gracefully and the boot falls back to the passphrase prompt — in that case, re-enroll with `--wipe-slot=tpm2` to replace the stale token:
+```sh
+sudo systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=0+7 /dev/disk/by-uuid/<uuid>
+```
+
+Current status: enabled on `AMININT-544228` (root + swap).
+
 ### Custom packages and scripts in resources/
 
 Support resource files:

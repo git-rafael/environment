@@ -63,6 +63,6 @@
     homeConfigurations.phone = mkDeviceDerivation "aarch64-linux" "null" [];
     homeConfigurations.tablet = mkDeviceDerivation "x86_64-linux" "rafael" [ "ui" ];
     homeConfigurations.portable = mkDeviceDerivation "x86_64-linux" "rafael" [ "ui" ];
-    homeConfigurations.notebook = mkDeviceDerivation "x86_64-linux" "rafael" [ "os" "ui" "work" ];
+    homeConfigurations.notebook = mkDeviceDerivation "x86_64-linux" "rafaeloliveira" [ "os" "ui" "work" ];
   };
 }

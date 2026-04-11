@@ -23,6 +23,7 @@ Usage:
   env-load user <target> [<path|ref>] [--update]   Apply a target home environment
   env-load user clean                               Remove unreferenced user Nix store paths
   env-load system <device> [<path|ref>] [--update] Apply a device OS environment for NixOS systems
+  env-load system init <path>                      Initialize a new NixOS device in the repo and apply it
   env-load system clean                             Remove unreferenced system Nix store paths
   env-load clean                                    Remove unreferenced user and system Nix store paths
   env-load purge                                    Delete all old generations and collect garbage (no rollback)
@@ -56,6 +57,44 @@ die() {
 fail() {
   echo "error: $1";
   exit 1;
+}
+
+# ── Interactive prompts ──────────────────────────────────────────────────────
+
+ask_text() {
+  local prompt="$1" default="$2" ans;
+  if [ -n "${default}" ]; then
+    printf "%s [%s] " "${prompt}" "${default}" >&2;
+  else
+    printf "%s " "${prompt}" >&2;
+  fi
+  read ans || ans="";
+  [ -z "${ans}" ] && ans="${default}";
+  printf "%s" "${ans}";
+}
+
+ask_yesno() {
+  local prompt="$1" default="$2" ans;
+  printf "%s [%s] " "${prompt}" "${default}" >&2;
+  read ans || ans="";
+  [ -z "${ans}" ] && ans="${default}";
+  case "${ans}" in
+    y|Y|yes|YES) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# ── Validation & escaping ────────────────────────────────────────────────────
+
+validate_name() {
+  case "$1" in
+    ''|*[!a-zA-Z0-9_-]*) return 1 ;;
+    *) return 0 ;;
+  esac
+}
+
+nix_escape() {
+  printf "%s" "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\${/\\${/g';
 }
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
@@ -175,13 +214,151 @@ clean_os() {
   sudo nix-collect-garbage ${1:-} --quiet;
 }
 
-cmd_system() {
-  if [ "${COMMAND_ARG}" = "clean" ]; then
-    clean_os;
-    return;
+cmd_system_init() {
+  [ -f /etc/NIXOS ] || fail "'system init' only works on NixOS.";
+  [ -f /etc/nixos/hardware-configuration.nix ] || fail "/etc/nixos/hardware-configuration.nix not found.";
+  [ -f /etc/nixos/configuration.nix ] || fail "/etc/nixos/configuration.nix not found.";
+  [ -d "${REFERENCE}" ] || fail "'system init' requires a local clone of git-rafael/environment. Clone it first and re-run: git clone --recurse-submodules https://github.com/git-rafael/environment.git <path>";
+
+  require_sudo;
+  require_clean_repo;
+
+  git -C "${REFERENCE}" config user.email >/dev/null 2>&1 \
+    || fail "git identity not configured. Run: git -C ${REFERENCE} config user.name 'Your Name' && git -C ${REFERENCE} config user.email 'you@example.com'";
+
+  echo "Initializing new system device...";
+  echo;
+
+  local default_user="${SUDO_USER:-${USER}}";
+  local default_desc;
+  default_desc="$(getent passwd "${default_user}" | cut -d: -f5 | cut -d, -f1)";
+
+  local hostname username description description_esc;
+  hostname="$(ask_text "Hostname:" "")";
+  validate_name "${hostname}" || fail "invalid hostname. Allowed: letters, digits, '_', '-'.";
+
+  local device_dir="${REFERENCE}/devices/${hostname}";
+  if [ -e "${device_dir}" ]; then
+    fail "devices/${hostname} already exists. Remove it first: rm -rf ${device_dir}";
   fi
 
-  [ -z "${COMMAND_ARG}" ] && die "'system' requires a device name or 'clean'.";
+  username="$(ask_text "Username:" "${default_user}")";
+  validate_name "${username}" || fail "invalid username. Allowed: letters, digits, '_', '-'.";
+
+  description="$(ask_text "Description:" "${default_desc}")";
+  description_esc="$(nix_escape "${description}")";
+
+  local has_fingerprint=false use_thinkpad_kbd=false enable_warp=false;
+  if ask_yesno "Has fingerprint reader?" "N"; then has_fingerprint=true; fi
+  if ask_yesno "Use ThinkPad keyboard xkb variant?" "N"; then use_thinkpad_kbd=true; fi
+  if ask_yesno "Enable cloudflare-warp?" "N"; then enable_warp=true; fi
+
+  mkdir -p "${device_dir}";
+
+  # hardware-configuration.nix: copy scan result and merge any boot.initrd.luks.devices
+  # lines that nixos-generate-config placed in /etc/nixos/configuration.nix.
+  cp /etc/nixos/hardware-configuration.nix "${device_dir}/hardware-configuration.nix";
+  local luks_lines;
+  luks_lines="$(grep -E '^[[:space:]]*boot\.initrd\.luks\.devices\.' /etc/nixos/configuration.nix 2>/dev/null || true)";
+  if [ -n "${luks_lines}" ]; then
+    local tmp_hw;
+    tmp_hw="$(mktemp)" || fail "failed to create temp file.";
+    LUKS_LINES="${luks_lines}" awk '
+      BEGIN { inserted = 0 }
+      /^}$/ && !inserted { print ""; print ENVIRON["LUKS_LINES"]; inserted = 1 }
+      { print }
+    ' "${device_dir}/hardware-configuration.nix" > "${tmp_hw}";
+    mv "${tmp_hw}" "${device_dir}/hardware-configuration.nix";
+  fi
+
+  # configuration.nix: render from template, mirroring the existing device style.
+  {
+    cat <<EOF
+{ inputs, config, pkgs, ... }:
+{
+  imports = [
+    ./hardware-configuration.nix
+    ../os.nix
+    ../ui.nix
+  ];
+
+  networking.hostName = "${hostname}";
+
+  # Device options
+  device.username = "${username}";
+  device.userDescription = "${description_esc}";
+
+  device.hasFingerprint = ${has_fingerprint};
+EOF
+    if [ "${use_thinkpad_kbd}" = true ]; then
+      cat <<'EOF'
+
+  # ThinkPad keyboard layout variant
+  services.xserver.xkb.variant = "thinkpad";
+EOF
+    fi
+    if [ "${enable_warp}" = true ]; then
+      cat <<'EOF'
+
+  # Cloudflare warp
+  services.cloudflare-warp.enable = true;
+  security.pki.certificateFiles = [
+    ../../resources/certificates/flash_warp_certificate.crt
+  ];
+EOF
+    fi
+    echo '}';
+  } > "${device_dir}/configuration.nix";
+
+  # devices/flake.nix: inject new nixosConfigurations entry right before the
+  # outputs-closing brace (detected as the last `  };` line).
+  local flake="${REFERENCE}/devices/flake.nix";
+  local tmp_flake;
+  tmp_flake="$(mktemp)" || fail "failed to create temp file.";
+  NEW_HOST="${hostname}" awk '
+    { lines[NR] = $0 }
+    END {
+      host = ENVIRON["NEW_HOST"];
+      close_line = 0;
+      for (i = NR; i >= 1; i--) {
+        if (lines[i] == "  };") { close_line = i; break }
+      }
+      for (i = 1; i <= NR; i++) {
+        if (i == close_line) {
+          print "    nixosConfigurations.\"" host "\" = nixpkgs.lib.nixosSystem {";
+          print "      specialArgs = { inherit inputs; };";
+          print "      system = \"x86_64-linux\";";
+          print "      modules = [";
+          print "        ./" host "/configuration.nix";
+          print "      ];";
+          print "    };";
+        }
+        print lines[i];
+      }
+    }
+  ' "${flake}" > "${tmp_flake}";
+  if ! grep -q "nixosConfigurations\\.\"${hostname}\"" "${tmp_flake}"; then
+    rm -f "${tmp_flake}";
+    fail "failed to inject new device into devices/flake.nix (no '  };' insertion point found).";
+  fi
+  mv "${tmp_flake}" "${flake}";
+
+  git -C "${REFERENCE}" add "devices/flake.nix" "devices/${hostname}";
+  git -C "${REFERENCE}" commit -m "Add ${hostname} device" --quiet;
+
+  echo;
+  echo "Device committed. Applying nixos-rebuild switch...";
+  echo;
+
+  apply_system "${hostname}";
+
+  echo;
+  echo "Device '${hostname}' initialized.";
+  echo "To publish to GitHub, run: git -C ${REFERENCE} push origin main";
+}
+
+apply_system() {
+  local device="$1";
 
   require_sudo;
   require_clean_repo;
@@ -194,13 +371,29 @@ cmd_system() {
       done;
   fi;
   if [ "${UPDATE}" = true ]; then update_submodules; nix flake update --flake "${DEVICES_URL}"; fi;
-  sudo nixos-rebuild switch --flake "${DEVICES_URL}#${COMMAND_ARG}" --quiet --quiet;
+  sudo nixos-rebuild switch --flake "${DEVICES_URL}#${device}" --quiet --quiet;
 
   if [ -d "${REFERENCE}" ]; then
-    printf "${COMMAND_ARG}@$(git -C "${REFERENCE}" rev-parse HEAD)" > "${DEVICE_CONFIG}";
+    printf "${device}@$(git -C "${REFERENCE}" rev-parse HEAD)" > "${DEVICE_CONFIG}";
   fi
 
   clean_os;
+}
+
+cmd_system() {
+  if [ "${COMMAND_ARG}" = "clean" ]; then
+    clean_os;
+    return;
+  fi
+
+  if [ "${COMMAND_ARG}" = "init" ]; then
+    cmd_system_init;
+    return;
+  fi
+
+  [ -z "${COMMAND_ARG}" ] && die "'system' requires a device name, 'init', or 'clean'.";
+
+  apply_system "${COMMAND_ARG}";
 }
 
 cmd_user() {

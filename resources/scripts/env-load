@@ -500,21 +500,6 @@ cmd_user_ui_update() {
     echo "Review with: git -C ${repo_root} diff sources/ui-settings.nix";
     echo "Apply with:  env-load user <target> ${repo_root}";
   fi
-  echo;
-  echo "NOTE: rc2nix only captures ~/.config/*rc files. The following are NOT";
-  echo "refreshed by this command and must be updated by hand in sources/ui.nix";
-  echo "if you changed them through the Plasma UI:";
-  echo;
-  echo "  * programs.plasma.panels          (panel layout, widgets, widget config)";
-  echo "  * programs.plasma.workspace       (wallpaper, theme, icons, cursor)";
-  echo "  * desktop containments            (per-activity wallpapers)";
-  echo;
-  echo "Source of truth lives in:";
-  echo "  ~/.config/plasma-org.kde.plasma.desktop-appletsrc";
-  echo;
-  echo "Assets under ~/.local/share (icon themes, aurorae, kwin scripts, yakuake";
-  echo "skins, custom wallpaper plugins) are not managed declaratively at all —";
-  echo "install them on the target machine through their usual channels.";
 }
 
 update_submodules() {

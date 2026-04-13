@@ -14,9 +14,17 @@
 
   device.hasFingerprint = true;
 
+  # Secure Boot via Lanzaboote (replaces systemd-boot)
+  boot.lanzaboote = {
+    enable = true;
+    pkiBundle = "/etc/secureboot";
+  };
+
   # TPM2-based LUKS auto-unlock (requires systemd initrd; enrollment done
   # at runtime via systemd-cryptenroll, see hardware-configuration.nix).
   boot.initrd.systemd.enable = true;
+
+  environment.systemPackages = [ pkgs.sbctl ];
 
   # Cloudflare warp
   services.cloudflare-warp.enable = true;

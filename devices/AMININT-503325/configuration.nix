@@ -14,6 +14,9 @@
 
   device.hasFingerprint = true;
 
+  # Bootloader
+  boot.loader.systemd-boot.enable = true;
+
   # ThinkPad keyboard layout variant
   services.xserver.xkb.variant = "thinkpad";
 

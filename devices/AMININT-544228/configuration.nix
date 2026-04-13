@@ -17,7 +17,7 @@
   # Secure Boot via Lanzaboote (replaces systemd-boot)
   boot.lanzaboote = {
     enable = true;
-    pkiBundle = "/etc/secureboot";
+    pkiBundle = "/var/lib/sbctl";
   };
 
   # TPM2-based LUKS auto-unlock (requires systemd initrd; enrollment done

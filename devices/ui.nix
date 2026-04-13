@@ -37,6 +37,9 @@
   };
   programs.kdeconnect.enable = true;
 
+  # Input remapper (mouse button remapping on Wayland)
+  services.input-remapper.enable = true;
+
   environment.systemPackages = with pkgs; [
     wl-clipboard
     qt6.qtwebengine

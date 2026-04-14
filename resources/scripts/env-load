@@ -220,7 +220,6 @@ cmd_system_init() {
   [ -f /etc/nixos/configuration.nix ] || fail "/etc/nixos/configuration.nix not found.";
   [ -d "${REFERENCE}" ] || fail "'system init' requires a local clone of git-rafael/environment. Clone it first and re-run: git clone --recurse-submodules https://github.com/git-rafael/environment.git <path>";
 
-  require_sudo;
   require_clean_repo;
 
   ensure_git_identity;

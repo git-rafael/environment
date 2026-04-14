@@ -248,7 +248,7 @@ cmd_system_init() {
       awk -v host="${hostname}" '
         BEGIN { skip = 0 }
         $0 ~ "nixosConfigurations\\.\"" host "\"" { skip = 1; next }
-        skip && /};/ { skip = 0; next }
+        skip && /^    };$/ { skip = 0; next }
         !skip { print }
       ' "${flake}" > "${tmp_flake}";
       mv "${tmp_flake}" "${flake}";
@@ -265,9 +265,10 @@ cmd_system_init() {
   description="$(ask_text "Description:" "${default_desc}")";
   description_esc="$(nix_escape "${description}")";
 
-  local has_fingerprint=false use_thinkpad_kbd=false enable_warp=false;
+  local has_fingerprint=false use_thinkpad_kbd=false enable_warp=false enable_lanzaboote=false;
   if ask_yesno "Has fingerprint reader?" "N"; then has_fingerprint=true; fi
   if ask_yesno "Use ThinkPad keyboard xkb variant?" "N"; then use_thinkpad_kbd=true; fi
+  if ask_yesno "Enable Secure Boot (lanzaboote)?" "N"; then enable_lanzaboote=true; fi
   if ask_yesno "Enable cloudflare-warp?" "N"; then enable_warp=true; fi
 
   mkdir -p "${device_dir}";
@@ -284,6 +285,22 @@ cmd_system_init() {
       BEGIN { inserted = 0 }
       /^}$/ && !inserted { print ""; print ENVIRON["LUKS_LINES"]; inserted = 1 }
       { print }
+    ' "${device_dir}/hardware-configuration.nix" > "${tmp_hw}";
+    mv "${tmp_hw}" "${device_dir}/hardware-configuration.nix";
+  fi
+
+  # Lanzaboote/TPM2: add crypttabExtraOpts to every LUKS volume.
+  if [ "${enable_lanzaboote}" = true ]; then
+    local tmp_hw;
+    tmp_hw="$(mktemp)" || fail "failed to create temp file.";
+    awk '
+      { print }
+      /boot\.initrd\.luks\.devices\."[^"]*"\.device[[:space:]]*=/ {
+        name = $0;
+        sub(/.*boot\.initrd\.luks\.devices\./, "", name);
+        sub(/\.device[[:space:]]*=.*/, "", name);
+        print "  boot.initrd.luks.devices." name ".crypttabExtraOpts = [ \"tpm2-device=auto\" ];";
+      }
     ' "${device_dir}/hardware-configuration.nix" > "${tmp_hw}";
     mv "${tmp_hw}" "${device_dir}/hardware-configuration.nix";
   fi
@@ -307,6 +324,22 @@ cmd_system_init() {
 
   device.hasFingerprint = ${has_fingerprint};
 EOF
+    if [ "${enable_lanzaboote}" = true ]; then
+      cat <<'EOF'
+
+  # Secure Boot via Lanzaboote (replaces systemd-boot)
+  boot.lanzaboote = {
+    enable = true;
+    pkiBundle = "/var/lib/sbctl";
+  };
+
+  # TPM2-based LUKS auto-unlock (requires systemd initrd; enrollment done
+  # at runtime via systemd-cryptenroll, see hardware-configuration.nix).
+  boot.initrd.systemd.enable = true;
+
+  environment.systemPackages = [ pkgs.sbctl ];
+EOF
+    fi
     if [ "${use_thinkpad_kbd}" = true ]; then
       cat <<'EOF'
 
@@ -332,10 +365,11 @@ EOF
   local flake="${REFERENCE}/devices/flake.nix";
   local tmp_flake;
   tmp_flake="$(mktemp)" || fail "failed to create temp file.";
-  NEW_HOST="${hostname}" awk '
+  NEW_HOST="${hostname}" LANZABOOTE="${enable_lanzaboote}" awk '
     { lines[NR] = $0 }
     END {
       host = ENVIRON["NEW_HOST"];
+      lanza = ENVIRON["LANZABOOTE"];
       close_line = 0;
       for (i = NR; i >= 1; i--) {
         if (lines[i] == "  };") { close_line = i; break }
@@ -346,6 +380,9 @@ EOF
           print "      specialArgs = { inherit inputs; };";
           print "      system = \"x86_64-linux\";";
           print "      modules = [";
+          if (lanza == "true") {
+            print "        lanzaboote.nixosModules.lanzaboote";
+          }
           print "        ./" host "/configuration.nix";
           print "      ];";
           print "    };";

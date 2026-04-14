@@ -46,6 +46,9 @@
     kdePackages.yakuake
     kdePackages.kdepim-addons
     gutenprint
+    kdePackages.kaccounts-integration
+    kdePackages.kaccounts-providers
+    kdePackages.signon-kwallet-extension
     hunspell
     hunspellDicts.en_US
     hunspellDicts.pt_BR

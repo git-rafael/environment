@@ -12,13 +12,5 @@
         ./AMININT-503325/configuration.nix
       ];
     };
-    nixosConfigurations."AMININT-544228" = nixpkgs.lib.nixosSystem {
-      specialArgs = { inherit inputs; };
-      system = "x86_64-linux";
-      modules = [
-        lanzaboote.nixosModules.lanzaboote
-        ./AMININT-544228/configuration.nix
-      ];
-    };
   };
 }

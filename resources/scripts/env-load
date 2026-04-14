@@ -553,7 +553,12 @@ enroll_tpm2() {
       continue;
     fi
     if sudo cryptsetup luksDump "${dev}" 2>/dev/null | grep -q "systemd-tpm2"; then
-      echo "  ${uuid}: TPM2 already enrolled, skipping.";
+      if ask_yesno "  ${uuid}: TPM2 already enrolled. Re-enroll?" "N"; then
+        echo "  ${uuid}: Wiping old TPM2 token and re-enrolling (PCRs 0+7)...";
+        printf '%s' "${luks_pass}" | sudo systemd-cryptenroll --unlock-key-file=/dev/stdin --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=0+7 "${dev}";
+      else
+        echo "  ${uuid}: skipping.";
+      fi
     else
       echo "  ${uuid}: Enrolling TPM2 (PCRs 0+7)...";
       printf '%s' "${luks_pass}" | sudo systemd-cryptenroll --unlock-key-file=/dev/stdin --tpm2-device=auto --tpm2-pcrs=0+7 "${dev}";

@@ -17,7 +17,7 @@ env-load user <target> ~/path/to/environment --update
 env-load system <device> ~/path/to/environment
 
 # Bootstrap a new NixOS device in the repo and apply it (prompts for hostname/features)
-sudo env-load system init ~/path/to/environment
+env-load system init ~/path/to/environment
 
 # Garbage collect (safe)
 env-load clean

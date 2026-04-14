@@ -68,7 +68,7 @@ After the user environment is applied (via the bootstrap above), clone the repo 
 
 ```sh
 git clone --recurse-submodules git@github.com:git-rafael/environment.git ~/Desktop/Codebase/environment
-sudo env-load system init ~/Desktop/Codebase/environment
+env-load system init ~/Desktop/Codebase/environment
 ```
 
 Any LUKS entries that `nixos-generate-config` wrote to `/etc/nixos/configuration.nix` are merged into the device's `hardware-configuration.nix` automatically.

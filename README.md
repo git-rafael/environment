@@ -65,22 +65,32 @@ NixOS device configurations live in `devices/`. Each device has its own subfolde
 
 #### Fresh install
 
-After the user environment is applied (via the bootstrap above), clone the repo locally and run `system init`. It prompts for hostname/username/description/features (including Secure Boot and TPM2), generates `devices/<hostname>/{configuration,hardware-configuration}.nix`, injects the new entry in `devices/flake.nix`, and commits. LUKS entries from `/etc/nixos/configuration.nix` are merged into the device's `hardware-configuration.nix` automatically.
+After the user environment is applied (via the bootstrap above), follow these steps:
+
+**1. Clone the repo and initialize the device**
+
+`system init` prompts for hostname, username, description and features (fingerprint, Secure Boot, TPM2, Cloudflare WARP, etc.), generates `devices/<hostname>/{configuration,hardware-configuration}.nix`, injects the new entry in `devices/flake.nix`, and commits. LUKS entries from `/etc/nixos/configuration.nix` are merged into the device's `hardware-configuration.nix` automatically.
 
 ```sh
 git clone --recurse-submodules git@github.com:git-rafael/environment.git ~/Desktop/Codebase/environment
 env-load system init ~/Desktop/Codebase/environment
-# review generated files, then apply:
+```
+
+**2. Review the generated files, then apply**
+
+```sh
 sudo env-load system <hostname> ~/Desktop/Codebase/environment
 ```
 
-If the device uses Secure Boot (lanzaboote) or TPM2 LUKS auto-unlock, complete enrollment after applying:
+**3. Enroll Secure Boot and TPM2 (if enabled)**
+
+For devices with Secure Boot (lanzaboote) and/or TPM2 LUKS auto-unlock, complete enrollment after applying:
 
 ```sh
 sudo env-load system enroll ~/Desktop/Codebase/environment
 ```
 
-This enrolls sbctl Secure Boot keys (with Microsoft + firmware built-in keys) and TPM2 tokens for each LUKS volume. The BIOS must be in Setup Mode for Secure Boot enrollment — if not, the command will guide you through enabling it.
+This creates sbctl keys, removes immutable EFI variable attributes, enrolls Secure Boot keys (with Microsoft + firmware built-in keys), and enrolls TPM2 tokens for each LUKS volume. The BIOS must be in Setup Mode for Secure Boot enrollment — if not, the command will guide you through enabling it.
 
 #### Applying updates
 

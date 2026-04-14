@@ -510,8 +510,8 @@ enroll_tpm2() {
 
   # Extract LUKS UUIDs from hardware-configuration.nix.
   local uuids;
-  uuids="$(awk -F'"' '/boot\.initrd\.luks\.devices\."luks-.*"\.device[[:space:]]*=/ {
-    for (i = 1; i <= NF; i++) if ($i ~ /^[0-9a-f]+-/) print $i
+  uuids="$(awk -F'by-uuid/' '/boot\.initrd\.luks\.devices\."luks-.*"\.device[[:space:]]*=/ {
+    split($2, a, "\""); print a[1]
   }' "${hw_config}")";
 
   [ -z "${uuids}" ] && { echo "No LUKS volumes found in ${hw_config}."; return; };

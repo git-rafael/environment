@@ -477,7 +477,7 @@ enroll_secureboot() {
 
   # If keys are already enrolled (Setup Mode disabled, but Secure Boot not yet
   # enabled), the user just needs to enable Secure Boot in BIOS.
-  if echo "${sb_status}" | grep -qi "installed:.*true\|vendor keys:.*custom"; then
+  if echo "${sb_status}" | grep -qi "installed:.*sbctl is installed"; then
     echo "Secure Boot keys are already enrolled but Secure Boot is not enabled.";
     echo "Enable Secure Boot in BIOS on next reboot.";
     sudo sbctl verify;
@@ -494,7 +494,8 @@ enroll_secureboot() {
     echo "  3. Delete the Platform Key (PK) or enable 'Custom Mode' / 'Expert Key Management'";
     echo "  4. Save, exit, and re-run this command";
     echo;
-    fail "BIOS not in Setup Mode. Enter Setup Mode first.";
+    echo "warning: BIOS not in Setup Mode. Skipping Secure Boot enrollment.";
+    return 1;
   fi
 
   # Remove immutable attribute from EFI variables if set (some firmware
@@ -561,7 +562,7 @@ cmd_system_enroll() {
   local did_something=false;
 
   if grep -q 'lanzaboote' "${config}" 2>/dev/null; then
-    enroll_secureboot;
+    enroll_secureboot || true;
     did_something=true;
   fi
 

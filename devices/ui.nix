@@ -45,6 +45,7 @@
     qt6.qtwebengine
     kdePackages.yakuake
     kdePackages.kdepim-addons
+    kdePackages.akonadi-calendar
     gutenprint
     hunspell
     hunspellDicts.en_US

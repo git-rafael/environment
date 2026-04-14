@@ -468,14 +468,23 @@ enroll_secureboot() {
   local sb_status;
   sb_status="$(sudo sbctl status 2>&1)";
 
-  # If Secure Boot is already enabled and verified, nothing to do.
+  # If Secure Boot is already enabled, nothing to do.
   if echo "${sb_status}" | grep -qi "secure boot:.*enabled"; then
-    echo "Secure Boot is already enabled and keys are enrolled.";
+    echo "Secure Boot is already enabled.";
     sudo sbctl verify;
     return;
   fi
 
-  # Check Setup Mode — required for key enrollment.
+  # If keys are already enrolled (Setup Mode disabled, but Secure Boot not yet
+  # enabled), the user just needs to enable Secure Boot in BIOS.
+  if echo "${sb_status}" | grep -qi "installed:.*true\|vendor keys:.*custom"; then
+    echo "Secure Boot keys are already enrolled but Secure Boot is not enabled.";
+    echo "Enable Secure Boot in BIOS on next reboot.";
+    sudo sbctl verify;
+    return;
+  fi
+
+  # Setup Mode required for first-time key enrollment.
   if echo "${sb_status}" | grep -qi "setup mode:.*disabled"; then
     echo;
     echo "Secure Boot Setup Mode is not enabled.";

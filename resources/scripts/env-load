@@ -526,6 +526,25 @@ enroll_tpm2() {
 
   [ -z "${uuids}" ] && { echo "No LUKS volumes found in ${hw_config}."; return; };
 
+  # Prompt for LUKS passphrase once (hidden input) and validate.
+  local luks_pass luks_pass_confirm;
+  while true; do
+    printf "Enter LUKS passphrase: " >&2;
+    stty -echo 2>/dev/null || true;
+    read luks_pass;
+    stty echo 2>/dev/null || true;
+    echo >&2;
+    printf "Confirm LUKS passphrase: " >&2;
+    stty -echo 2>/dev/null || true;
+    read luks_pass_confirm;
+    stty echo 2>/dev/null || true;
+    echo >&2;
+    if [ "${luks_pass}" = "${luks_pass_confirm}" ]; then
+      break;
+    fi
+    echo "Passphrases do not match. Try again." >&2;
+  done
+
   echo "Enrolling TPM2 for LUKS volumes...";
   echo "${uuids}" | while IFS= read -r uuid; do
     local dev="/dev/disk/by-uuid/${uuid}";
@@ -537,7 +556,7 @@ enroll_tpm2() {
       echo "  ${uuid}: TPM2 already enrolled, skipping.";
     else
       echo "  ${uuid}: Enrolling TPM2 (PCRs 0+7)...";
-      sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 "${dev}";
+      printf '%s' "${luks_pass}" | sudo systemd-cryptenroll --unlock-key-file=/dev/stdin --tpm2-device=auto --tpm2-pcrs=0+7 "${dev}";
     fi
   done
 }

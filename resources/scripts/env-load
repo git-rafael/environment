@@ -476,12 +476,12 @@ enroll_secureboot() {
   fi
 
   # If keys are already enrolled (Setup Mode disabled, but Secure Boot not yet
-  # enabled), the user just needs to enable Secure Boot in BIOS.
+  # enabled), the user needs to enable Secure Boot in BIOS first.
   if echo "${sb_status}" | grep -qi "installed:.*sbctl is installed"; then
-    echo "Secure Boot keys are already enrolled but Secure Boot is not enabled.";
-    echo "Enable Secure Boot in BIOS on next reboot.";
+    echo "Secure Boot keys are enrolled but Secure Boot is not yet enabled in BIOS.";
+    echo "Enable Secure Boot in BIOS, reboot, then re-run this command for TPM2 enrollment.";
     sudo sbctl verify;
-    return;
+    return 2;
   fi
 
   # Setup Mode required for first-time key enrollment.
@@ -579,14 +579,27 @@ cmd_system_enroll() {
   [ -f "${config}" ] || fail "device config not found: ${config}";
 
   local did_something=false;
+  local sb_pending=false;
 
   if grep -q 'lanzaboote' "${config}" 2>/dev/null; then
-    enroll_secureboot || true;
+    local sb_rc=0;
+    enroll_secureboot || sb_rc=$?;
     did_something=true;
+    # Return code 2 means keys enrolled but Secure Boot not yet enabled in BIOS.
+    # TPM2 enrollment must wait until Secure Boot is active (PCR 7 would change).
+    [ "${sb_rc}" = 2 ] && sb_pending=true;
   fi
 
   if grep -q 'tpm2-device=auto' "${hw_config}" 2>/dev/null; then
-    enroll_tpm2 "${hw_config}";
+    if [ "${sb_pending}" = true ]; then
+      echo;
+      echo "TPM2 enrollment skipped — Secure Boot must be enabled first.";
+      echo "After enabling Secure Boot and rebooting, re-run:";
+      echo;
+      echo "  sudo env-load system enroll ${REFERENCE}";
+    else
+      enroll_tpm2 "${hw_config}";
+    fi
     did_something=true;
   fi
 

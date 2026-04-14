@@ -401,14 +401,11 @@ EOF
   git -C "${REFERENCE}" commit -m "Add ${hostname} device" --quiet;
 
   echo;
-  echo "Device committed. Applying nixos-rebuild switch...";
+  echo "Device '${hostname}' initialized and committed.";
+  echo "Review the generated files, then apply with:";
   echo;
-
-  apply_system "${hostname}";
-
+  echo "  sudo env-load system ${hostname} ${REFERENCE}";
   echo;
-  echo "Device '${hostname}' initialized.";
-  echo "To publish to GitHub, run: git -C ${REFERENCE} push origin main";
 }
 
 apply_system() {

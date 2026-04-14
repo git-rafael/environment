@@ -46,6 +46,9 @@
     kdePackages.yakuake
     kdePackages.kdepim-addons
     gutenprint
+    hunspell
+    hunspellDicts.en_US
+    hunspellDicts.pt_BR
   ];
 
   # Enable print service with CUPS

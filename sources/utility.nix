@@ -92,6 +92,7 @@ in  {
     agent-browser
   ] ++ pkgs.lib.optionals onOS [
     sbctl
+    efibootmgr
   ] ++ pkgs.lib.optionals withUI [
     reco
     plasmaDnSwitcher

@@ -69,7 +69,7 @@ ask_text() {
   else
     printf "%s " "${prompt}" >&2;
   fi
-  read ans || ans="";
+  read ans </dev/tty || ans="";
   [ -z "${ans}" ] && ans="${default}";
   printf "%s" "${ans}";
 }
@@ -77,7 +77,7 @@ ask_text() {
 ask_yesno() {
   local prompt="$1" default="$2" ans;
   printf "%s [%s] " "${prompt}" "${default}" >&2;
-  read ans || ans="";
+  read ans </dev/tty || ans="";
   [ -z "${ans}" ] && ans="${default}";
   case "${ans}" in
     y|Y|yes|YES) return 0 ;;
@@ -531,12 +531,12 @@ enroll_tpm2() {
   while true; do
     printf "Enter LUKS passphrase: " >&2;
     stty -echo 2>/dev/null || true;
-    read luks_pass;
+    read luks_pass </dev/tty;
     stty echo 2>/dev/null || true;
     echo >&2;
     printf "Confirm LUKS passphrase: " >&2;
     stty -echo 2>/dev/null || true;
-    read luks_pass_confirm;
+    read luks_pass_confirm </dev/tty;
     stty echo 2>/dev/null || true;
     echo >&2;
     if [ "${luks_pass}" = "${luks_pass_confirm}" ]; then

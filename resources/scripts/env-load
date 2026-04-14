@@ -223,8 +223,7 @@ cmd_system_init() {
   require_sudo;
   require_clean_repo;
 
-  git -C "${REFERENCE}" config user.email >/dev/null 2>&1 \
-    || fail "git identity not configured. Run: git -C ${REFERENCE} config user.name 'Your Name' && git -C ${REFERENCE} config user.email 'you@example.com'";
+  ensure_git_identity;
 
   echo "Initializing new system device...";
   echo;
@@ -239,7 +238,25 @@ cmd_system_init() {
 
   local device_dir="${REFERENCE}/devices/${hostname}";
   if [ -e "${device_dir}" ]; then
-    fail "devices/${hostname} already exists. Remove it first: rm -rf ${device_dir}";
+    echo "devices/${hostname} already exists.";
+    if ask_yesno "Delete it and re-initialize?" "N"; then
+      rm -rf "${device_dir}";
+      # Remove the existing nixosConfigurations entry from devices/flake.nix
+      local flake="${REFERENCE}/devices/flake.nix";
+      local tmp_flake;
+      tmp_flake="$(mktemp)" || fail "failed to create temp file.";
+      awk -v host="${hostname}" '
+        BEGIN { skip = 0 }
+        $0 ~ "nixosConfigurations\\.\"" host "\"" { skip = 1; next }
+        skip && /};/ { skip = 0; next }
+        !skip { print }
+      ' "${flake}" > "${tmp_flake}";
+      mv "${tmp_flake}" "${flake}";
+      git -C "${REFERENCE}" add "devices/";
+      git -C "${REFERENCE}" commit -m "Remove ${hostname} device for re-init" --quiet;
+    else
+      fail "aborted.";
+    fi
   fi
 
   username="$(ask_text "Username:" "${default_user}")";
@@ -371,6 +388,16 @@ apply_system() {
       done;
   fi;
   if [ "${UPDATE}" = true ]; then update_submodules; nix flake update --flake "${DEVICES_URL}"; fi;
+
+  # Lanzaboote (Secure Boot): ensure sbctl keys exist before rebuilding.
+  if [ -d "${REFERENCE}" ] && grep -rq 'lanzaboote' "${REFERENCE}/devices/${device}/configuration.nix" 2>/dev/null; then
+    if ! [ -f /var/lib/sbctl/keys/db/db.key ]; then
+      echo "Lanzaboote detected but sbctl keys not found. Creating Secure Boot keys...";
+      command -v sbctl >/dev/null 2>&1 || fail "sbctl is not installed. Run 'env-load user' first to install it.";
+      sudo sbctl create-keys;
+    fi
+  fi
+
   sudo nixos-rebuild switch --flake "${DEVICES_URL}#${device}" --quiet --quiet;
 
   if [ -d "${REFERENCE}" ]; then
@@ -454,6 +481,22 @@ update_submodules() {
 require_sudo() {
   if [ "$(id -u)" -ne 0 ] && ! sudo -n true 2>/dev/null; then
     fail "'env-load ${COMMAND}' requires sudo access.";
+  fi
+}
+
+ensure_git_identity() {
+  [ -d "${REFERENCE:-}" ] || return 0;
+  if ! git -C "${REFERENCE}" config user.name >/dev/null 2>&1; then
+    local name;
+    name="$(ask_text "Git user.name not set. Enter your name:" "")";
+    [ -z "${name}" ] && fail "git user.name is required.";
+    git -C "${REFERENCE}" config user.name "${name}";
+  fi
+  if ! git -C "${REFERENCE}" config user.email >/dev/null 2>&1; then
+    local email;
+    email="$(ask_text "Git user.email not set. Enter your email:" "")";
+    [ -z "${email}" ] && fail "git user.email is required.";
+    git -C "${REFERENCE}" config user.email "${email}";
   fi
 }
 

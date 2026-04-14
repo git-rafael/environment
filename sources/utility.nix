@@ -90,6 +90,8 @@ in  {
     home-assistant-cli
     claude-code
     agent-browser
+  ] ++ pkgs.lib.optionals onOS [
+    sbctl
   ] ++ pkgs.lib.optionals withUI [
     reco
     plasmaDnSwitcher

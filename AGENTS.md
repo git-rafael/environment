@@ -16,8 +16,11 @@ env-load user <target> ~/path/to/environment --update
 # Apply a NixOS system configuration
 env-load system <device> ~/path/to/environment
 
-# Bootstrap a new NixOS device in the repo and apply it (prompts for hostname/features)
+# Bootstrap a new NixOS device in the repo (prompts for hostname/features)
 env-load system init ~/path/to/environment
+
+# Enroll Secure Boot keys and TPM2 LUKS tokens (after system apply)
+sudo env-load system enroll ~/path/to/environment
 
 # Garbage collect (safe)
 env-load clean
@@ -75,35 +78,21 @@ Device-specific configs import shared modules:
 - [devices/ui.nix](devices/ui.nix) — KDE Plasma 6 + SDDM, printing (CUPS/Epson), scanning (SANE)
 - Per-device subfolder: `configuration.nix` (imports os.nix + ui.nix + hardware) and `hardware-configuration.nix`
 
-New devices are bootstrapped with `env-load system init <path>`, which scaffolds the subfolder (copying `/etc/nixos/hardware-configuration.nix` and merging any LUKS entries from `/etc/nixos/configuration.nix`), injects the new `nixosConfigurations.<hostname>` entry into [devices/flake.nix](devices/flake.nix), commits the change, and applies it.
+New devices are bootstrapped with `env-load system init <path>`, which scaffolds the subfolder (copying `/etc/nixos/hardware-configuration.nix` and merging any LUKS entries from `/etc/nixos/configuration.nix`), injects the new `nixosConfigurations.<hostname>` entry into [devices/flake.nix](devices/flake.nix), and commits. The init prompts for Secure Boot (lanzaboote) and adds `crypttabExtraOpts` for TPM2 on all LUKS volumes when enabled.
 
-#### TPM2-based LUKS auto-unlock
+#### Secure Boot and TPM2 enrollment
 
-Devices with encrypted root and a TPM2 chip can skip the LUKS passphrase prompt at boot. Setup is two-part: NixOS config (declarative, in the device's subfolder) plus runtime enrollment into the LUKS header (imperative, done once per machine with `systemd-cryptenroll`).
+Devices with lanzaboote (Secure Boot) and/or TPM2-based LUKS auto-unlock require a one-time enrollment step after the first `env-load system <device>`:
 
-Declarative config — set in the device's `configuration.nix`:
-```nix
-# Required: TPM2 unlock only works with the systemd-based initrd.
-boot.initrd.systemd.enable = true;
-```
-
-And in the device's `hardware-configuration.nix`, for each LUKS volume that should auto-unlock (root and, if present, encrypted swap):
-```nix
-boot.initrd.luks.devices."luks-<uuid>".crypttabExtraOpts = [ "tpm2-device=auto" ];
-```
-
-Runtime enrollment — after the config is applied, run once per volume:
 ```sh
-sudo systemd-cryptenroll --tpm2-device=list                                 # sanity check (should show /dev/tpmrm0)
-sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 /dev/disk/by-uuid/<uuid>
+sudo env-load system enroll ~/path/to/environment
 ```
 
-This adds a new keyslot in the LUKS header bound to the TPM2; the original passphrase slot is preserved as fallback. Verify with:
-```sh
-sudo cryptsetup luksDump /dev/disk/by-uuid/<uuid> | grep -E '^Tokens:|systemd-tpm2|Keyslot:'
-```
+This command:
+1. **Secure Boot**: creates sbctl keys if missing, removes immutable EFI variable attributes, enrolls keys with `--microsoft --firmware-builtin`. Requires BIOS to be in Setup Mode (delete PK or enable Custom/Expert Key Management).
+2. **TPM2 LUKS**: enrolls each LUKS volume from `hardware-configuration.nix` via `systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7`. The original passphrase slot is preserved as fallback.
 
-PCR choice: `0+7` (firmware + Secure Boot state) is the recommended default. If a BIOS/UEFI update changes PCR 0, the TPM2 unlock will fail gracefully and the boot falls back to the passphrase prompt — in that case, re-enroll with `--wipe-slot=tpm2` to replace the stale token:
+PCR choice: `0+7` (firmware + Secure Boot state) is the default. If a BIOS/UEFI update changes PCR 0, the TPM2 unlock falls back to the passphrase prompt — re-enroll with:
 ```sh
 sudo systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=0+7 /dev/disk/by-uuid/<uuid>
 ```

@@ -20,7 +20,8 @@ env-load user <target>             # apply a Nix user environment
 env-load user <target> --update    # update flake inputs then apply
 env-load system <device>           # apply a NixOS system environment
 env-load system <device> --update  # update flake inputs then apply
-env-load system init <path>        # bootstrap a new NixOS device in the repo and apply it
+env-load system init <path>        # bootstrap a new NixOS device in the repo
+sudo env-load system enroll <path> # enroll Secure Boot keys and TPM2 LUKS tokens
 ```
 
 ### Home Manager
@@ -64,19 +65,27 @@ NixOS device configurations live in `devices/`. Each device has its own subfolde
 
 #### Fresh install
 
-After the user environment is applied (via the bootstrap above), clone the repo locally and run `system init`. It prompts for hostname/username/description/features, generates `devices/<hostname>/{configuration,hardware-configuration}.nix`, injects the new entry in `devices/flake.nix`, commits the change, and runs `nixos-rebuild switch`.
+After the user environment is applied (via the bootstrap above), clone the repo locally and run `system init`. It prompts for hostname/username/description/features (including Secure Boot and TPM2), generates `devices/<hostname>/{configuration,hardware-configuration}.nix`, injects the new entry in `devices/flake.nix`, and commits. LUKS entries from `/etc/nixos/configuration.nix` are merged into the device's `hardware-configuration.nix` automatically.
 
 ```sh
 git clone --recurse-submodules git@github.com:git-rafael/environment.git ~/Desktop/Codebase/environment
 env-load system init ~/Desktop/Codebase/environment
+# review generated files, then apply:
+sudo env-load system <hostname> ~/Desktop/Codebase/environment
 ```
 
-Any LUKS entries that `nixos-generate-config` wrote to `/etc/nixos/configuration.nix` are merged into the device's `hardware-configuration.nix` automatically.
+If the device uses Secure Boot (lanzaboote) or TPM2 LUKS auto-unlock, complete enrollment after applying:
+
+```sh
+sudo env-load system enroll ~/Desktop/Codebase/environment
+```
+
+This enrolls sbctl Secure Boot keys (with Microsoft + firmware built-in keys) and TPM2 tokens for each LUKS volume. The BIOS must be in Setup Mode for Secure Boot enrollment — if not, the command will guide you through enabling it.
 
 #### Applying updates
 
 ```sh
-env-load system <hostname>
+sudo env-load system <hostname>
 ```
 
 ## Platform Notes

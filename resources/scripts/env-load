@@ -23,7 +23,8 @@ Usage:
   env-load user <target> [<path|ref>] [--update]   Apply a target home environment
   env-load user clean                               Remove unreferenced user Nix store paths
   env-load system <device> [<path|ref>] [--update] Apply a device OS environment for NixOS systems
-  env-load system init <path>                      Initialize a new NixOS device in the repo and apply it
+  env-load system init <path>                      Initialize a new NixOS device in the repo
+  env-load system enroll <path>                    Enroll Secure Boot keys and TPM2 LUKS tokens
   env-load system clean                             Remove unreferenced system Nix store paths
   env-load clean                                    Remove unreferenced user and system Nix store paths
   env-load purge                                    Delete all old generations and collect garbage (no rollback)
@@ -438,6 +439,131 @@ apply_system() {
   fi
 
   clean_os;
+
+  # Suggest enrollment if Secure Boot or TPM2 is configured.
+  if [ -d "${REFERENCE}" ]; then
+    local needs_enroll=false;
+    grep -q 'lanzaboote' "${REFERENCE}/devices/${device}/configuration.nix" 2>/dev/null && needs_enroll=true;
+    grep -q 'tpm2-device=auto' "${REFERENCE}/devices/${device}/hardware-configuration.nix" 2>/dev/null && needs_enroll=true;
+    if [ "${needs_enroll}" = true ]; then
+      echo;
+      echo "Secure Boot / TPM2 detected. To complete enrollment, run:";
+      echo;
+      echo "  sudo env-load system enroll ${REFERENCE}";
+      echo;
+    fi
+  fi
+}
+
+enroll_secureboot() {
+  command -v sbctl >/dev/null 2>&1 || fail "sbctl is not installed. Run 'env-load user' first.";
+
+  # Ensure keys exist.
+  if ! [ -f /var/lib/sbctl/keys/db/db.key ]; then
+    echo "Creating Secure Boot keys...";
+    sudo sbctl create-keys;
+  fi
+
+  # Check current status.
+  local sb_status;
+  sb_status="$(sudo sbctl status 2>&1)";
+
+  # If Secure Boot is already enabled and verified, nothing to do.
+  if echo "${sb_status}" | grep -qi "secure boot:.*enabled"; then
+    echo "Secure Boot is already enabled and keys are enrolled.";
+    sudo sbctl verify;
+    return;
+  fi
+
+  # Check Setup Mode — required for key enrollment.
+  if echo "${sb_status}" | grep -qi "setup mode:.*disabled"; then
+    echo;
+    echo "Secure Boot Setup Mode is not enabled.";
+    echo "To enroll keys, your BIOS must be in Setup Mode:";
+    echo "  1. Reboot and enter BIOS/UEFI settings";
+    echo "  2. Find Secure Boot / Key Management settings";
+    echo "  3. Delete the Platform Key (PK) or enable 'Custom Mode' / 'Expert Key Management'";
+    echo "  4. Save, exit, and re-run this command";
+    echo;
+    fail "BIOS not in Setup Mode. Enter Setup Mode first.";
+  fi
+
+  # Remove immutable attribute from EFI variables if set (some firmware
+  # marks them read-only, which blocks key enrollment).
+  for efiv in /sys/firmware/efi/efivars/{PK,KEK,db,dbx}-*; do
+    [ -e "${efiv}" ] && sudo chattr -i "${efiv}" 2>/dev/null || true;
+  done
+
+  echo "Enrolling Secure Boot keys (Microsoft + firmware built-in)...";
+  sudo sbctl enroll-keys --microsoft --firmware-builtin;
+  echo "Secure Boot keys enrolled.";
+  echo;
+  sudo sbctl verify;
+  echo;
+  echo "Enable Secure Boot in BIOS on next reboot.";
+}
+
+enroll_tpm2() {
+  local hw_config="$1";
+
+  command -v systemd-cryptenroll >/dev/null 2>&1 || fail "systemd-cryptenroll is not available.";
+
+  # Extract LUKS UUIDs from hardware-configuration.nix.
+  local uuids;
+  uuids="$(awk -F'"' '/boot\.initrd\.luks\.devices\."luks-.*"\.device[[:space:]]*=/ {
+    for (i = 1; i <= NF; i++) if ($i ~ /^[0-9a-f]+-/) print $i
+  }' "${hw_config}")";
+
+  [ -z "${uuids}" ] && { echo "No LUKS volumes found in ${hw_config}."; return; };
+
+  echo "Enrolling TPM2 for LUKS volumes...";
+  echo "${uuids}" | while IFS= read -r uuid; do
+    local dev="/dev/disk/by-uuid/${uuid}";
+    if [ ! -e "${dev}" ]; then
+      echo "  ${uuid}: device not found, skipping.";
+      continue;
+    fi
+    if sudo cryptsetup luksDump "${dev}" 2>/dev/null | grep -q "systemd-tpm2"; then
+      echo "  ${uuid}: TPM2 already enrolled, skipping.";
+    else
+      echo "  ${uuid}: Enrolling TPM2 (PCRs 0+7)...";
+      sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 "${dev}";
+    fi
+  done
+}
+
+cmd_system_enroll() {
+  [ -f /etc/NIXOS ] || fail "'system enroll' only works on NixOS.";
+  [ -d "${REFERENCE}" ] || fail "'system enroll' requires a local repo path.";
+
+  require_sudo;
+
+  # Resolve device name from DEVICE_CONFIG or hostname.
+  local device="";
+  if [ -f "${DEVICE_CONFIG}" ]; then
+    device="$(cut -d@ -f1 "${DEVICE_CONFIG}")";
+  fi
+  [ -z "${device}" ] && device="$(hostname)";
+
+  local config="${REFERENCE}/devices/${device}/configuration.nix";
+  local hw_config="${REFERENCE}/devices/${device}/hardware-configuration.nix";
+  [ -f "${config}" ] || fail "device config not found: ${config}";
+
+  local did_something=false;
+
+  if grep -q 'lanzaboote' "${config}" 2>/dev/null; then
+    enroll_secureboot;
+    did_something=true;
+  fi
+
+  if grep -q 'tpm2-device=auto' "${hw_config}" 2>/dev/null; then
+    enroll_tpm2 "${hw_config}";
+    did_something=true;
+  fi
+
+  if [ "${did_something}" = false ]; then
+    echo "No Secure Boot or TPM2 enrollment needed for '${device}'.";
+  fi
 }
 
 cmd_system() {
@@ -451,7 +577,12 @@ cmd_system() {
     return;
   fi
 
-  [ -z "${COMMAND_ARG}" ] && die "'system' requires a device name, 'init', or 'clean'.";
+  if [ "${COMMAND_ARG}" = "enroll" ]; then
+    cmd_system_enroll;
+    return;
+  fi
+
+  [ -z "${COMMAND_ARG}" ] && die "'system' requires a device name, 'init', 'enroll', or 'clean'.";
 
   apply_system "${COMMAND_ARG}";
 }

@@ -48,6 +48,7 @@
     gutenprint
     kdePackages.kaccounts-integration
     kdePackages.kaccounts-providers
+    kdePackages.signond
     kdePackages.signon-kwallet-extension
     hunspell
     hunspellDicts.en_US

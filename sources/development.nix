@@ -187,9 +187,6 @@ in {
     devenv
     quarto
     
-    ollama
-    codex
-
     gh
     tldr
     httpie

@@ -88,8 +88,11 @@ in  {
     
     bitwarden-cli
     home-assistant-cli
+
+    ollama
     claude-code
     agent-browser
+    edgePkgs.codex
   ] ++ pkgs.lib.optionals onOS [
     sbctl
     efibootmgr

@@ -188,7 +188,8 @@ in {
     quarto
     
     ollama
-    
+    codex
+
     gh
     tldr
     httpie

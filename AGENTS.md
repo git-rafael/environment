@@ -35,6 +35,8 @@ nix build 'github:git-rafael/environment#homeConfigurations.<target>.activationP
   $(nix path-info 'github:git-rafael/environment#homeConfigurations.<target>.activationPackage')/activate
 ```
 
+Before suggesting `env-load` for local changes in this repository, always suggest creating a local git commit first, because the user cannot apply those changes here without a commit.
+
 ## Architecture
 
 ### Two separate flakes

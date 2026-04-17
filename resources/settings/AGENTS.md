@@ -7,6 +7,13 @@ Machine-level instructions for coding agents installed on this workstation.
 - Communicate in a friendly and concise manner.
 - Be clear and helpful, avoiding unnecessary jargon or complexity.
 
+## Commits
+
+- After completing usable, non-intermediate changes or deliverables in any repository, always suggest creating a local git commit.
+- Suggest a simple, direct commit message.
+- Do not add co-authorship or `Co-authored-by` trailers.
+- The user may handle pushing separately.
+
 ## Local Environment
 
 - Assume the host system is `NixOS` unless the user says otherwise.

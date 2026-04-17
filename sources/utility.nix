@@ -12,6 +12,7 @@ let
   ];
 
   btproximityThreshold = -5;
+  btproximityConnectRetrySecs = 30;
   btproximityScript = pkgs.writeShellScriptBin "btproximity"
     (builtins.readFile ../resources/scripts/btproximity);
   
@@ -123,7 +124,8 @@ in  {
       Restart = "always";
       RestartSec = "5s";
       Environment = [
-        "BT_THRESHOLD=${toString btproximityThreshold}"
+        "BT_LOCK_THRESHOLD=${toString btproximityThreshold}"
+        "BT_CONNECT_RETRY_SECS=${toString btproximityConnectRetrySecs}"
         "PATH=${pkgs.lib.makeBinPath (with pkgs; [ bluez gnugrep coreutils systemd dbus ])}"
         (let macsStr = builtins.concatStringsSep " " btproximityMacs; in "\"BT_DEVICE_MACS=${macsStr}\"")
       ];

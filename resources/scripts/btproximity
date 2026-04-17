@@ -14,8 +14,10 @@ readonly LOCK_THRESHOLD="${BT_LOCK_THRESHOLD:--20}";
 readonly UNLOCK_THRESHOLD="${BT_UNLOCK_THRESHOLD:--10}";
 readonly LOCK_AFTER="${BT_LOCK_AFTER:-3}";
 readonly POLL_INTERVAL="${BT_POLL_INTERVAL:-5}";
+readonly CONNECT_RETRY_SECS="${BT_CONNECT_RETRY_SECS:-30}";
 
 consecutive=0;
+declare -A last_connect_attempt=();
 
 if [[ -z "$BT_DEVICE_MACS" ]]; then
   echo "BT_DEVICE_MACS is not set" >&2;
@@ -24,11 +26,36 @@ fi
 
 log() { echo "[$(date '+%H:%M:%S')] $*"; }
 
+is_connected() {
+  bluetoothctl info "$1" 2>/dev/null | grep -q "Connected: yes";
+}
+
+maybe_connect() {
+  local mac="$1";
+  local now last;
+
+  now=$(date +%s);
+  last="${last_connect_attempt[$mac]:-0}";
+
+  if (( now - last < CONNECT_RETRY_SECS )); then
+    return 1;
+  fi
+
+  last_connect_attempt["$mac"]="$now";
+  log "Requesting Bluetooth connection to $mac";
+  bluetoothctl connect "$mac" >/dev/null 2>&1 || true;
+}
+
 any_in_range() {
   local threshold="${1:-$LOCK_THRESHOLD}";
   # word splitting intentional: iterates space-separated MACs
   for mac in $BT_DEVICE_MACS; do
     local rssi;
+    if ! is_connected "$mac"; then
+      maybe_connect "$mac";
+      continue;
+    fi
+
     rssi=$(hcitool rssi "$mac" 2>/dev/null | grep -oP '[-]?\d+');
     [[ -n "$rssi" ]] && [[ "$rssi" -ge "$threshold" ]] && return 0;
   done

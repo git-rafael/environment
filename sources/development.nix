@@ -166,11 +166,6 @@ let
   ]);
 in {
   home.file = {
-    ".config/goose/.goosehints" = {
-      force = true;
-      text = builtins.readFile ../resources/settings/AGENTS.md;
-    };
-
     ".config/VSCodium/product.json" = {
       force = true;
       text = builtins.toJSON {

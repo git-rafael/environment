@@ -43,8 +43,31 @@ in {
       text = builtins.readFile ../resources/settings/zsh_codex.ini;
     };
 
+    # Agent instructions — Codex convention (~/.codex/AGENTS.md)
+    ".codex/AGENTS.md" = {
+      force = true;
+      source = ../resources/settings/AGENTS.md;
+    };
+
+    # Agent instructions — Claude Code convention (~/.claude/CLAUDE.md)
+    ".claude/CLAUDE.md" = {
+      force = true;
+      source = ../resources/settings/AGENTS.md;
+    };
+
+    # Agent instructions — Goose convention (~/.config/goose/AGENTS.md)
+    ".config/goose/AGENTS.md" = {
+      force = true;
+      source = ../resources/settings/AGENTS.md;
+    };
+
     # Agent Skills — cross-client convention (~/.agents/skills/)
     ".agents/skills" = {
+      source = "${self}/resources/skills";
+    };
+
+    # Agent Skills — Codex user convention (~/.codex/skills/user/)
+    ".codex/skills/user" = {
       source = "${self}/resources/skills";
     };
 

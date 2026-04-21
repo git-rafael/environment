@@ -82,6 +82,12 @@ in {
     ".gemini/skills" = {
       source = "${self}/resources/skills";
     };
+
+    # Pi global settings
+    ".pi/agent/settings.json" = {
+      force = true;
+      source = ../resources/settings/pi.json;
+    };
   };
 
   fonts.fontconfig = {

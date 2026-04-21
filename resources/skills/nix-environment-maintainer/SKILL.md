@@ -79,7 +79,7 @@ Host-specific overrides live in `devices/AMININT-544228/configuration.nix` and h
 
 Persistent skills are exposed from `resources/skills/` into multiple agent homes via `sources/shell.nix`.
 
-That means a skill added under `resources/skills/<name>` becomes available to Claude Code, Codex, Goose, Gemini, and the shared `.agents` location after the Home Manager environment is applied.
+That means a skill added under `resources/skills/<name>` becomes available to Claude Code, Codex, Goose, Gemini, and the shared `.agents` location after the Home Manager environment is applied. Even a skill-only repo change usually ends with a Home Manager apply on this workstation.
 
 Upstream reusable skills are managed through:
 - git submodules under `.refs/<org>/<repo>/`
@@ -143,6 +143,7 @@ For an upstream skill:
 2. Use the repo convention: `.refs/...` plus a symlink under `resources/skills/`.
 3. Prefer the documented `env-load refs add <org/repo> <repo-path> [name]` workflow when appropriate.
 4. Do not assume the marketplace `id` equals the repo path; verify the actual path containing `SKILL.md`.
+5. If the repo clone is new or submodules are missing, remember that `git submodule update --init --recursive` may be needed before working with `.refs` content.
 
 ## Validation workflow
 
@@ -172,6 +173,32 @@ At minimum:
 - if the user wants, run a small qualitative test loop next
 
 If a change touches both Home Manager and NixOS, suggest validating both relevant outputs.
+
+## Common commands
+
+Use these when they directly help the task.
+
+### Manage upstream refs and skill links
+
+From `~/Desktop/Codebase/home/environment`:
+
+```bash
+env-load refs list
+env-load refs sync
+env-load refs add <org/repo> <repo-path> [name]
+env-load refs rm <name>
+```
+
+### Fallback when `env-load` is not installed yet
+
+If `env-load` is unavailable locally but the user still needs to apply the Home Manager environment from this repo, use the documented activation fallback:
+
+```bash
+nix build '.#homeConfigurations.notebook.activationPackage' --no-link && \
+  $(nix path-info '.#homeConfigurations.notebook.activationPackage')/activate
+```
+
+Use this as a fallback, not the default path.
 
 ## Apply workflow
 

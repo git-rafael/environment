@@ -182,6 +182,8 @@ in {
     devenv
     quarto
     
+    nodejs_22
+
     gh
     tldr
     httpie

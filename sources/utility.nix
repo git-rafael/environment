@@ -70,6 +70,8 @@ in  {
     
     bat
     tiv
+    chafa
+    libsixel
     perl
     htop
     ctop

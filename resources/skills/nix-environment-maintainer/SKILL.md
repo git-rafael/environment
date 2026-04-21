@@ -1,6 +1,6 @@
 ---
 name: nix-environment-maintainer
-description: Update the persistent Nix environment for this workstation through `~/Desktop/Codebase/home/environment`. Use this skill whenever the user wants to add or remove packages permanently, change Home Manager or NixOS settings, add a persistent agent skill, adjust the notebook target or `AMININT-544228` host, or make a machine-level change "the Nix way" instead of using ad hoc local installs.
+description: Update the persistent Nix environment for this workstation through `~/Desktop/Codebase/home/environment`. Use this skill whenever the user wants to add or remove packages permanently, change Home Manager or NixOS settings, add a persistent agent skill, adjust the notebook target or `AMININT-544228` host, or make a machine-level change "the Nix way" instead of using ad hoc local installs. Also use it for Portuguese requests like "instale isso de forma persistente", "adicione no Home Manager", "mude a configuração NixOS dessa máquina", "coloque essa skill no repo environment" or "faça isso via Nix".
 compatibility:
   tools: [read, bash, edit, write]
 ---
@@ -23,6 +23,13 @@ Translate requests like these into the right repository change:
 - "update the workstation setup"
 
 The goal is to keep the machine reproducible. Prefer a versioned repo change over one-off mutation of the live system.
+
+## Related skills
+
+Use this skill for **persisting the result in the environment repo**.
+
+- If the user wants to **create or iterate on a new skill itself**, use `skill-creator` for the drafting and evaluation loop, then place the final skill in `resources/skills/` here.
+- If the user wants to **discover an existing marketplace skill**, use `skill-finder` first, then use this skill to wire the chosen skill into `.refs/` and `resources/skills/` persistently.
 
 ## First steps
 
@@ -134,16 +141,18 @@ Be conservative with `hardware-configuration.nix`. Only edit it when the request
 ### 4) Adding or changing a persistent skill
 
 For a local skill maintained in this repo:
-1. Create or edit `resources/skills/<skill-name>/SKILL.md`.
-2. Add optional supporting files under that skill directory.
-3. Keep the skill self-contained and explicit about when it should trigger.
+1. If the request is about inventing or refining the skill behavior itself, use `skill-creator` as the authoring workflow.
+2. Create or edit `resources/skills/<skill-name>/SKILL.md`.
+3. Add optional supporting files under that skill directory.
+4. Keep the skill self-contained and explicit about when it should trigger.
 
 For an upstream skill:
-1. Verify the real path to the skill inside the upstream repository.
-2. Use the repo convention: `.refs/...` plus a symlink under `resources/skills/`.
-3. Prefer the documented `env-load refs add <org/repo> <repo-path> [name]` workflow when appropriate.
-4. Do not assume the marketplace `id` equals the repo path; verify the actual path containing `SKILL.md`.
-5. If the repo clone is new or submodules are missing, remember that `git submodule update --init --recursive` may be needed before working with `.refs` content.
+1. If the user still needs help choosing the skill, use `skill-finder` first.
+2. Verify the real path to the skill inside the upstream repository.
+3. Use the repo convention: `.refs/...` plus a symlink under `resources/skills/`.
+4. Prefer the documented `env-load refs add <org/repo> <repo-path> [name]` workflow when appropriate.
+5. Do not assume the marketplace `id` equals the repo path; verify the actual path containing `SKILL.md`.
+6. If the repo clone is new or submodules are missing, remember that `git submodule update --init --recursive` may be needed before working with `.refs` content.
 
 ## Validation workflow
 

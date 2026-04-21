@@ -18,6 +18,12 @@
       "prompt": "Preciso habilitar uma mudança de sistema só para o host AMININT-544228, sem fazer gambiarra fora do NixOS do repo. Descubra onde editar, valide e me diga como aplicar.",
       "expected_output": "Identifica que é uma mudança de NixOS, direciona para devices/AMININT-544228 ou módulos compartilhados em devices/, sugere validação do build do sistema e orienta a aplicar com sudo env-load system AMININT-544228 após commit local.",
       "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Já escolhi uma skill upstream que quero persistir nesta máquina via repo environment. Não preciso que você procure na marketplace; preciso que você me ajude a ligar isso em .refs e resources/skills do jeito certo.",
+      "expected_output": "Reconhece que a descoberta da skill não é mais o problema, direciona para o fluxo de skill upstream com .refs e symlink em resources/skills, e distingue esse caso do skill-finder.",
+      "files": []
     }
   ]
 }

@@ -200,36 +200,26 @@ export default function (pi: ExtensionAPI) {
     },
   });
 
-  pi.registerShortcut("ctrl+right", {
-    description: "Spawn pi in a pane to the right",
-    handler: async (ctx) => {
-      try {
-        notify(ctx, spawn("pi", "right", ctx.cwd), "success");
-      } catch (error) {
-        notify(ctx, `failed: ${extractError(error)}`, "error");
-      }
-    },
-  });
+  function registerSpawnShortcut(shortcut: string, description: string, target: SpawnTarget, location: SpawnLocation) {
+    pi.registerShortcut(shortcut, {
+      description,
+      handler: async (ctx) => {
+        try {
+          notify(ctx, spawn(target, location, ctx.cwd), "success");
+        } catch (error) {
+          notify(ctx, `failed: ${extractError(error)}`, "error");
+        }
+      },
+    });
+  }
 
-  pi.registerShortcut("ctrl+down", {
-    description: "Spawn pi in a pane below",
-    handler: async (ctx) => {
-      try {
-        notify(ctx, spawn("pi", "down", ctx.cwd), "success");
-      } catch (error) {
-        notify(ctx, `failed: ${extractError(error)}`, "error");
-      }
-    },
-  });
+  registerSpawnShortcut("ctrl+shift+right", "Spawn pi in a pane to the right", "pi", "right");
+  registerSpawnShortcut("ctrl+shift+down", "Spawn pi in a pane below", "pi", "down");
+  registerSpawnShortcut("ctrl+shift+up", "Spawn pi in a new tab", "pi", "tab");
+  registerSpawnShortcut("ctrl+shift+enter", "Spawn pi in a new workspace", "pi", "workspace");
 
-  pi.registerShortcut("ctrl+up", {
-    description: "Spawn pi in a new tab",
-    handler: async (ctx) => {
-      try {
-        notify(ctx, spawn("pi", "tab", ctx.cwd), "success");
-      } catch (error) {
-        notify(ctx, `failed: ${extractError(error)}`, "error");
-      }
-    },
-  });
+  registerSpawnShortcut("ctrl+shift+alt+right", "Spawn shell in a pane to the right", "shell", "right");
+  registerSpawnShortcut("ctrl+shift+alt+down", "Spawn shell in a pane below", "shell", "down");
+  registerSpawnShortcut("ctrl+shift+alt+up", "Spawn shell in a new tab", "shell", "tab");
+  registerSpawnShortcut("ctrl+shift+alt+enter", "Spawn shell in a new workspace", "shell", "workspace");
 }

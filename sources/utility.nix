@@ -100,6 +100,7 @@ in  {
     sbctl
     efibootmgr
   ] ++ pkgs.lib.optionals withUI [
+    kitty
     reco
     plasmaDnSwitcher
   ];

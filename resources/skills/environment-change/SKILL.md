@@ -1,11 +1,11 @@
 ---
-name: nix-environment-maintainer
+name: environment-change
 description: Update the persistent Nix environment for this workstation through `~/Desktop/Codebase/home/environment`. Use this skill whenever the user wants to add or remove packages permanently, change Home Manager or NixOS settings, add a persistent agent skill, adjust the notebook target or `AMININT-544228` host, or make a machine-level change "the Nix way" instead of using ad hoc local installs. Also use it for Portuguese requests like "instale isso de forma persistente", "adicione no Home Manager", "mude a configuração NixOS dessa máquina", "coloque essa skill no repo environment" or "faça isso via Nix".
 compatibility:
   tools: [read, bash, edit, write]
 ---
 
-# Nix Environment Maintainer
+# Environment Change
 
 Manage persistent changes for this machine through the environment repository at `~/Desktop/Codebase/home/environment`.
 

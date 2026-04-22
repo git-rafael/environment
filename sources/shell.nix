@@ -114,6 +114,12 @@ in {
       source = ../resources/agents/pi/keybindings.json;
     };
 
+    # Pi session summary config
+    ".pi/agent/session-summary.json" = {
+      force = true;
+      source = ../resources/agents/pi/session-summary.json;
+    };
+
     # Pi extensions
     ".pi/agent/extensions/herdr-session-sync.ts" = {
       force = true;

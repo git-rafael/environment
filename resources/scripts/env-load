@@ -786,7 +786,7 @@ cmd_refs() {
   local repo_root;
   repo_root="$(git rev-parse --show-toplevel)";
   local refs_dir="${repo_root}/.refs";
-  local skills_dir="${repo_root}/resources/skills";
+  local skills_dir="${repo_root}/resources/agents/skills";
 
   case "${subcmd}" in
     list)
@@ -861,9 +861,9 @@ refs_add() {
   url="https://github.com/${org}/${repo}.git";
   link_path="${skills_dir}/${name}";
   # relative path from link location back to .refs/<org>/<repo>/<repo-path>
-  # count extra depth from slashes in name (e.g. gws/gws-gmail needs ../../../ instead of ../../)
+  # count extra depth from slashes in name (e.g. gws/gws-gmail needs ../../../../ instead of ../../../)
   local depth; depth="$(echo "${name}" | tr -cd '/' | wc -c)";
-  local prefix="../../";
+  local prefix="../../../";
   local i; for i in $(seq 1 "${depth}"); do prefix="../${prefix}"; done;
   link_target="${prefix}.refs/${org}/${repo}/${repo_path}";
 
@@ -880,12 +880,12 @@ refs_add() {
   git -C "${repo_root}/${submodule_path}" sparse-checkout add "${repo_path}";
 
   if [ -e "${link_path}" ] || [ -L "${link_path}" ]; then
-    fail "symlink '${name}' already exists in resources/skills/. Use 'refs rm ${name}' first.";
+    fail "symlink '${name}' already exists in resources/agents/skills/. Use 'refs rm ${name}' first.";
   fi
 
   mkdir -p "$(dirname "${link_path}")";
   ln -s "${link_target}" "${link_path}";
-  echo "Added: resources/skills/${name}  →  ${link_target}";
+  echo "Added: resources/agents/skills/${name}  →  ${link_target}";
 }
 
 refs_rm() {
@@ -893,19 +893,19 @@ refs_rm() {
   local link_path="${skills_dir}/${name}";
 
   if [ ! -L "${link_path}" ]; then
-    fail "no symlink '${name}' found in resources/skills/.";
+    fail "no symlink '${name}' found in resources/agents/skills/.";
   fi
 
   local target org repo repo_path submodule_path;
   target="$(readlink "${link_path}")";
-  # target format: ../../.refs/<org>/<repo>/<repo-path>
+  # target format: ../../../.refs/<org>/<repo>/<repo-path>
   repo_path="$(echo "${target}" | sed 's|.*\.refs/[^/]*/[^/]*/||')";
   org="$(echo "${target}" | sed 's|.*\.refs/\([^/]*\)/.*|\1|')";
   repo="$(echo "${target}" | sed 's|.*\.refs/[^/]*/\([^/]*\)/.*|\1|')";
   submodule_path=".refs/${org}/${repo}";
 
   rm "${link_path}";
-  echo "Removed symlink: resources/skills/${name}";
+  echo "Removed symlink: resources/agents/skills/${name}";
 
   local repo_root;
   repo_root="$(dirname "${refs_dir}")";

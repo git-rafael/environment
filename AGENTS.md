@@ -116,7 +116,7 @@ Consumable resources in `resources/` reference these via symlinks. Currently:
 
 | Symlink | Points to |
 |---------|-----------|
-| [resources/skills/skill-creator](resources/skills/skill-creator) | `.refs/anthropic/skills/skills/skill-creator` |
+| [resources/agents/skills/skill-creator](resources/agents/skills/skill-creator) | `.refs/anthropic/skills/skills/skill-creator` |
 
 Manage refs with `env-load refs` — no Nix required:
 

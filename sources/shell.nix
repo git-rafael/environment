@@ -79,33 +79,45 @@ in {
 
     # Agent Skills — cross-client convention (~/.agents/skills/)
     ".agents/skills" = {
-      source = "${self}/resources/skills";
+      source = "${self}/resources/agents/skills";
     };
 
     # Agent Skills — Codex user convention (~/.codex/skills/user/)
     ".codex/skills/user" = {
-      source = "${self}/resources/skills";
+      source = "${self}/resources/agents/skills";
     };
 
     # Agent Skills — XDG cross-client convention, used by Goose and Amp (~/.config/agents/skills/)
     ".config/agents/skills" = {
-      source = "${self}/resources/skills";
+      source = "${self}/resources/agents/skills";
     };
 
     # Agent Skills — Claude Code convention (~/.claude/skills/)
     ".claude/skills" = {
-      source = "${self}/resources/skills";
+      source = "${self}/resources/agents/skills";
     };
 
     # Agent Skills — Gemini CLI convention (~/.gemini/skills/)
     ".gemini/skills" = {
-      source = "${self}/resources/skills";
+      source = "${self}/resources/agents/skills";
     };
 
     # Pi global settings
     ".pi/agent/settings.json" = {
       force = true;
-      source = ../resources/settings/pi.json;
+      source = ../resources/agents/pi/settings.json;
+    };
+
+    # Pi keybindings
+    ".pi/agent/keybindings.json" = {
+      force = true;
+      source = ../resources/agents/pi/keybindings.json;
+    };
+
+    # Pi extensions
+    ".pi/agent/extensions/herdr-session-sync.ts" = {
+      force = true;
+      source = ../resources/agents/extensions/herdr-session-sync.ts;
     };
   };
 

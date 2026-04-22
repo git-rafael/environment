@@ -11,6 +11,7 @@
     "npm:pi-session-summary",
     "npm:pi-ask-user@0.6.1",
     "npm:@tintinweb/pi-tasks@0.4.2",
-    "npm:@kaiserlich-dev/pi-session-search@1.1.1"
+    "npm:@kaiserlich-dev/pi-session-search@1.1.1",
+    "npm:@benvargas/pi-claude-code-use@1.0.1"
   ]
 }

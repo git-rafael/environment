@@ -10,6 +10,8 @@ type PaneGetResponse = {
 };
 
 const DEFAULT_INTERVAL_MS = 1000;
+const MAX_WORKSPACE_NAME_LENGTH = 32;
+const WORKSPACE_NAME_ELLIPSIS = "...";
 const GENERIC_SESSION_NAMES = new Set(["", "chat"]);
 
 export default function (pi: ExtensionAPI) {
@@ -49,16 +51,25 @@ export default function (pi: ExtensionAPI) {
     return name;
   }
 
+  function formatWorkspaceName(name: string): string {
+    const trimmed = name.trim();
+    if (trimmed.length <= MAX_WORKSPACE_NAME_LENGTH) return trimmed;
+
+    return `${trimmed.slice(0, MAX_WORKSPACE_NAME_LENGTH - WORKSPACE_NAME_ELLIPSIS.length).trimEnd()}${WORKSPACE_NAME_ELLIPSIS}`;
+  }
+
   function renameWorkspace(name: string): boolean {
     if (!workspaceId) return false;
 
+    const workspaceName = formatWorkspaceName(name);
+
     try {
-      execFileSync("herdr", ["workspace", "rename", workspaceId, name], {
+      execFileSync("herdr", ["workspace", "rename", workspaceId, workspaceName], {
         encoding: "utf8",
         timeout: 3000,
         env: process.env,
       });
-      lastSyncedName = name;
+      lastSyncedName = workspaceName;
       return true;
     } catch {
       return false;
@@ -68,7 +79,8 @@ export default function (pi: ExtensionAPI) {
   function syncNow(): boolean {
     if (!workspaceId) workspaceId = getWorkspaceIdFromHerdr();
     const name = getCurrentSessionName();
-    if (!workspaceId || !name || name === lastSyncedName) return false;
+    const workspaceName = name ? formatWorkspaceName(name) : null;
+    if (!workspaceId || !name || !workspaceName || workspaceName === lastSyncedName) return false;
     return renameWorkspace(name);
   }
 
@@ -137,7 +149,9 @@ export default function (pi: ExtensionAPI) {
         const ok = syncNow();
         if (ctx.hasUI) {
           ctx.ui.notify(
-            ok ? `[herdr-sync] session + workspace renamed to: ${name}` : `[herdr-sync] session renamed to: ${name}`,
+            ok
+              ? `[herdr-sync] session renamed to: ${name} | workspace: ${formatWorkspaceName(name)}`
+              : `[herdr-sync] session renamed to: ${name}`,
             ok ? "success" : "info"
           );
         }
@@ -149,10 +163,11 @@ export default function (pi: ExtensionAPI) {
       if (command === "now") {
         const ok = syncNow();
         if (ctx.hasUI) {
+          const sessionName = pi.getSessionName() ?? "(none)";
           ctx.ui.notify(
             ok
-              ? `[herdr-sync] synced workspace to: ${pi.getSessionName() ?? "(none)"}`
-              : `[herdr-sync] nothing to sync (workspace=${workspaceId ?? "none"}, session=${pi.getSessionName() ?? "none"})`,
+              ? `[herdr-sync] synced workspace to: ${formatWorkspaceName(sessionName)}`
+              : `[herdr-sync] nothing to sync (workspace=${workspaceId ?? "none"}, session=${sessionName})`,
             ok ? "success" : "info"
           );
         }

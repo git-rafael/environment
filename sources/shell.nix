@@ -7,6 +7,7 @@ let
 
   env-load = pkgs.writeShellScriptBin "env-load" (builtins.readFile ../resources/scripts/env-load);
   env-shell = pkgs.writeShellScriptBin "env-shell" (builtins.readFile ../resources/scripts/env-shell);
+  env-agent = pkgs.writeShellScriptBin "env-agent" (builtins.readFile ../resources/scripts/env-agent);
 
   pi = let
     npm = pkgs.writeShellScriptBin "npm" ''
@@ -41,6 +42,7 @@ in {
   home.packages = with pkgs; [
     env-load
     env-shell
+    env-agent
     pi
 
     vim

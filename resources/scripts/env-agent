@@ -1,0 +1,18 @@
+set -e;
+
+if command -v nixos-version &>/dev/null; then
+  exec pi "$@";
+elif [ -e ${HOME}/.nix-profile/etc/profile.d/nix.sh ]; then
+  if [ -f /etc/alpine-release ]; then
+    export USER=${USER:-root};
+  elif [ -n "${TERMUX_VERSION}" ]; then
+    export GC_NPROCS=1;
+    export USER=${USER:-null};
+  fi
+
+  . ${HOME}/.nix-profile/etc/profile.d/nix.sh;
+  LOCALE_ARCHIVE=/usr/lib/locale/locale-archive exec pi "$@";
+else
+  echo "Environment must be loaded with 'env-load' before running 'env-agent'.";
+  exit 1;
+fi

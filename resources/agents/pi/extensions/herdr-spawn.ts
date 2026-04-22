@@ -118,10 +118,8 @@ export default function (pi: ExtensionAPI) {
   }
 
   function getCommandForTarget(target: SpawnTarget): string {
-    if (target === "pi") return "pi";
-
-    const shell = process.env.SHELL?.trim() || "zsh";
-    return `exec ${shell} -il`;
+    if (target === "pi") return "env-agent";
+    return "env-shell";
   }
 
   function createDestinationPane(location: SpawnLocation, cwd: string): string {

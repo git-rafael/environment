@@ -121,9 +121,9 @@ in {
     };
 
     # Pi extensions
-    ".pi/agent/extensions/herdr-session-sync.ts" = {
+    ".pi/agent/extensions/herdr-workspace-summary.ts" = {
       force = true;
-      source = ../resources/agents/pi/extensions/herdr-session-sync.ts;
+      source = ../resources/agents/pi/extensions/herdr-workspace-summary.ts;
     };
   };
 

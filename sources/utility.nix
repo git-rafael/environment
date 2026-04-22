@@ -53,6 +53,34 @@ let
       google-auth-oauthlib
     ]; 
   } (builtins.readFile ../resources/scripts/gtoken);
+
+  herdrAsset = {
+    x86_64-linux = {
+      url = "https://github.com/ogulcancelik/herdr/releases/download/v0.5.0/herdr-linux-x86_64";
+      sha256 = "04hayacgnj3wkkq4sxlbs9fi2xcg8lbi1xk8afavrp3fjbv66bd3";
+    };
+    aarch64-linux = {
+      url = "https://github.com/ogulcancelik/herdr/releases/download/v0.5.0/herdr-linux-aarch64";
+      sha256 = "17ab1hgfa9vfd4wxhgm4g9lq1yf0wv8giwbl9rqp715c3kbnln4j";
+    };
+  }.${pkgs.stdenv.hostPlatform.system} or null;
+
+  herdr = if herdrAsset != null then pkgs.stdenvNoCC.mkDerivation {
+    pname = "herdr";
+    version = "0.5.0";
+    src = pkgs.fetchurl herdrAsset;
+    dontUnpack = true;
+    installPhase = ''
+      install -Dm755 "$src" "$out/bin/herdr"
+    '';
+    meta = with pkgs.lib; {
+      description = "Terminal workspace manager for AI coding agents";
+      homepage = "https://herdr.dev";
+      license = licenses.agpl3Plus;
+      mainProgram = "herdr";
+      platforms = [ "x86_64-linux" "aarch64-linux" ];
+    };
+  } else null;
   
 in  {
   home.packages = with pkgs; [
@@ -96,6 +124,8 @@ in  {
     claude-code
     agent-browser
     edgePkgs.codex
+  ] ++ pkgs.lib.optionals (herdrAsset != null) [
+    herdr
   ] ++ pkgs.lib.optionals onOS [
     sbctl
     efibootmgr

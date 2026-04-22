@@ -34,7 +34,7 @@ const USAGE = [
 ].join(" ");
 
 export default function (pi: ExtensionAPI) {
-  function notify(ctx: ExtensionCommandContext, message: string, level: NotifyLevel = "info") {
+  function notify(ctx: { hasUI: boolean; ui: { notify(message: string, level?: NotifyLevel): void } }, message: string, level: NotifyLevel = "info") {
     if (ctx.hasUI) ctx.ui.notify(`${LOG_PREFIX} ${message}`, level);
   }
 
@@ -151,6 +151,12 @@ export default function (pi: ExtensionAPI) {
     return newPaneId;
   }
 
+  function spawn(target: SpawnTarget, location: SpawnLocation, cwd: string) {
+    const paneId = createDestinationPane(location, cwd);
+    runHerdr(["pane", "run", paneId, getCommandForTarget(target)]);
+    return `started ${target === "pi" ? "pi" : "shell"} in ${location} from ${cwd}`;
+  }
+
   pi.registerCommand("spawn", {
     description: "Create a herdr pane/tab/workspace and start pi or a shell",
     handler: async (args: string, ctx: ExtensionCommandContext) => {
@@ -187,9 +193,40 @@ export default function (pi: ExtensionAPI) {
       }
 
       try {
-        const paneId = createDestinationPane(location, ctx.cwd);
-        runHerdr(["pane", "run", paneId, getCommandForTarget(target)]);
-        notify(ctx, `started ${target === "pi" ? "pi" : "shell"} in ${location} from ${ctx.cwd}`, "success");
+        notify(ctx, spawn(target, location, ctx.cwd), "success");
+      } catch (error) {
+        notify(ctx, `failed: ${extractError(error)}`, "error");
+      }
+    },
+  });
+
+  pi.registerShortcut("ctrl+right", {
+    description: "Spawn pi in a pane to the right",
+    handler: async (ctx) => {
+      try {
+        notify(ctx, spawn("pi", "right", ctx.cwd), "success");
+      } catch (error) {
+        notify(ctx, `failed: ${extractError(error)}`, "error");
+      }
+    },
+  });
+
+  pi.registerShortcut("ctrl+down", {
+    description: "Spawn pi in a pane below",
+    handler: async (ctx) => {
+      try {
+        notify(ctx, spawn("pi", "down", ctx.cwd), "success");
+      } catch (error) {
+        notify(ctx, `failed: ${extractError(error)}`, "error");
+      }
+    },
+  });
+
+  pi.registerShortcut("ctrl+up", {
+    description: "Spawn pi in a new tab",
+    handler: async (ctx) => {
+      try {
+        notify(ctx, spawn("pi", "tab", ctx.cwd), "success");
       } catch (error) {
         notify(ctx, `failed: ${extractError(error)}`, "error");
       }

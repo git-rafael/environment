@@ -1,3 +1,5 @@
 {
-  "tui.input.newLine": ["shift+enter", "ctrl+j"]
+  "tui.input.newLine": ["shift+enter", "ctrl+j"],
+  "tui.editor.cursorWordRight": ["alt+right", "alt+f"],
+  "app.tree.unfoldOrDown": ["alt+right"]
 }

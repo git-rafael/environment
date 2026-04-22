@@ -183,6 +183,8 @@ in {
     quarto
     
     nodejs_22
+    gnumake
+    stdenv.cc
 
     gh
     tldr

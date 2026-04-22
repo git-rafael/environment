@@ -4,7 +4,7 @@
   "defaultModel": "gpt-5.4",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": true,
-  "npmCommand": ["pi-npm"],
+  "npmCommand": ["npm"],
   "packages": [
     "git:github.com/nicobailon/pi-web-access@v0.10.6",
     "npm:@ogulcancelik/pi-herdr"

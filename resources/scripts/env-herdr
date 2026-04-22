@@ -1,0 +1,10 @@
+set -e;
+
+readonly AGENT_SHELL="$(command -v env-agent || true)";
+
+if [ -z "${AGENT_SHELL}" ]; then
+  echo "env-agent was not found in PATH. Apply the environment with 'env-load' before running 'env-herdr'.";
+  exit 1;
+fi
+
+exec env SHELL="${AGENT_SHELL}" herdr "$@";

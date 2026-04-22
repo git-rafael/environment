@@ -8,6 +8,7 @@ let
   env-load = pkgs.writeShellScriptBin "env-load" (builtins.readFile ../resources/scripts/env-load);
   env-shell = pkgs.writeShellScriptBin "env-shell" (builtins.readFile ../resources/scripts/env-shell);
   env-agent = pkgs.writeShellScriptBin "env-agent" (builtins.readFile ../resources/scripts/env-agent);
+  env-herdr = pkgs.writeShellScriptBin "env-herdr" (builtins.readFile ../resources/scripts/env-herdr);
 
   pi = let
     npm = pkgs.writeShellScriptBin "npm" ''
@@ -43,6 +44,7 @@ in {
     env-load
     env-shell
     env-agent
+    env-herdr
     pi
 
     vim
@@ -206,6 +208,7 @@ in {
 
       # other aliases
       open = "xdg-open";
+      herdr = "env-herdr";
       slugify = "rename \"s/ /_/g; s/_/-/g; s/[^a-zA-Z0-9.-]//g; y/A-Z/a-z/\"";
     };
     

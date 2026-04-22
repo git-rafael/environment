@@ -118,8 +118,8 @@ export default function (pi: ExtensionAPI) {
   }
 
   function getCommandForTarget(target: SpawnTarget): string {
-    if (target === "pi") return "env-agent";
-    return "env-shell";
+    if (target === "pi") return "exec env-agent";
+    return "exec env-shell";
   }
 
   function createDestinationPane(location: SpawnLocation, cwd: string): string {

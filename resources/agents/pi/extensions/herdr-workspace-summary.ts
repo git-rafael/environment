@@ -11,7 +11,7 @@ type PaneGetResponse = {
 };
 
 const DEFAULT_INTERVAL_MS = 1000;
-const DEFAULT_MAX_TOKENS = 24;
+const DEFAULT_MAX_TOKENS = 12;
 const DEFAULT_MAX_WORKSPACE_NAME_LENGTH = 32;
 const DEFAULT_VERBOSE = false;
 const AUTO_DETECT_MODELS = [
@@ -22,12 +22,8 @@ const AUTO_DETECT_MODELS = [
 ];
 const WORKSPACE_NAME_ELLIPSIS = "...";
 const GENERIC_SESSION_NAMES = new Set(["", "chat"]);
-const MAX_TITLE_WORDS = 5;
+const MAX_TITLE_WORDS = 3;
 const LOG_PREFIX = "[herdr-workspace-summary]";
-
-function wordCount(text: string): number {
-  return text.trim().split(/\s+/).filter(Boolean).length;
-}
 
 export default function (pi: ExtensionAPI) {
   let timer: NodeJS.Timeout | null = null;
@@ -85,6 +81,7 @@ export default function (pi: ExtensionAPI) {
       .trim()
       .replace(/^['"`]+|['"`]+$/g, "")
       .replace(/[\n\r]+/g, " ")
+      .replace(/[,:;.!?]+/g, " ")
       .replace(/\s+/g, " ");
 
     if (!cleaned) return "";
@@ -96,10 +93,6 @@ export default function (pi: ExtensionAPI) {
   function fallbackTitle(name: string): string {
     const firstWords = name.trim().split(/\s+/).filter(Boolean).slice(0, MAX_TITLE_WORDS).join(" ");
     return formatWorkspaceName(firstWords || name);
-  }
-
-  function shouldUseModel(name: string): boolean {
-    return wordCount(name) > MAX_TITLE_WORDS || name.trim().length > DEFAULT_MAX_WORKSPACE_NAME_LENGTH;
   }
 
   function resolveModel(ctx: ExtensionContext | ExtensionCommandContext): { provider: string; model: string } | undefined {
@@ -118,7 +111,7 @@ export default function (pi: ExtensionAPI) {
 
   async function summarizeWorkspaceTitle(name: string): Promise<string> {
     const ctx = latestCtx;
-    if (!ctx || !shouldUseModel(name)) return fallbackTitle(name);
+    if (!ctx) return fallbackTitle(name);
 
     const resolved = resolveModel(ctx);
     if (!resolved) {
@@ -139,16 +132,20 @@ export default function (pi: ExtensionAPI) {
     }
 
     const prompt = [
-      "Rewrite this coding-session title into a short workspace title.",
-      `Rules: maximum ${MAX_TITLE_WORDS} words; preserve the core task; no quotes; no punctuation unless essential; stay concrete; output only the title.`,
-      "If the title is already short and clear, return a tightened version.",
+      "Rewrite this coding-session title into a very short workspace title.",
+      `Rules: maximum ${MAX_TITLE_WORDS} words. Prefer 2 words whenever possible.`,
+      "Use a strong job-to-be-done format: verb + noun/object.",
+      "Prefer a present-progressive action verb when natural, like 'Configurando extensão' or 'Researching models'.",
+      "Keep the same language as the original title when clear from context.",
+      "Preserve only the current task focus. Drop filler, status words, and extra qualifiers.",
+      "No quotes. No commentary. Output only the title.",
       "",
       `<title>${name}</title>`,
     ].join("\n");
 
     try {
       const response = await complete(model, {
-        systemPrompt: "You create ultra-short workspace titles for coding sessions. Reply with title text only.",
+        systemPrompt: "You create ultra-short workspace titles for coding sessions. Return only a job-to-be-done title in at most 3 words, ideally verb plus noun/object.",
         messages: [{
           role: "user" as const,
           content: [{ type: "text" as const, text: prompt }],

@@ -7,6 +7,23 @@ let
   env-load = pkgs.writeShellScriptBin "env-load" (builtins.readFile ../resources/scripts/env-load);
   env-shell = pkgs.writeShellScriptBin "env-shell" (builtins.readFile ../resources/scripts/env-shell);
 
+  pi-npm = pkgs.writeShellScriptBin "pi-npm" ''
+    export npm_config_prefix="$HOME/.pi/npm"
+    export NPM_CONFIG_PREFIX="$HOME/.pi/npm"
+    export PATH="$HOME/.pi/npm/bin${PATH:+:$PATH}"
+    exec ${pkgs.nodejs}/bin/npm "$@"
+  '';
+
+  pi = pkgs.symlinkJoin {
+    name = "pi-coding-agent";
+    paths = [ edgePkgs.pi-coding-agent ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/pi \
+        --run 'export PATH="$HOME/.pi/npm/bin${PATH:+:$PATH}"'
+    '';
+  };
+
   python = pkgs.python3.withPackages (ps: with ps; [
     boto3
     openai
@@ -22,7 +39,8 @@ in {
   home.packages = with pkgs; [
     env-load
     env-shell
-    edgePkgs.pi-coding-agent
+    pi-npm
+    pi
 
     vim
     eza

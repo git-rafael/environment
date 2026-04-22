@@ -4,6 +4,7 @@
   "defaultModel": "gpt-5.4",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": true,
+  "npmCommand": ["pi-npm"],
   "packages": [
     "git:github.com/nicobailon/pi-web-access@v0.10.6"
   ]

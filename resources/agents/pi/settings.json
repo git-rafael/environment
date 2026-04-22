@@ -13,7 +13,6 @@
     "npm:@tintinweb/pi-tasks@0.4.2",
     "npm:@kaiserlich-dev/pi-session-search@1.1.1",
     "npm:@benvargas/pi-claude-code-use@1.0.1",
-    "npm:pi-zentui@0.1.2",
-    "npm:pi-persistent-term@0.3.0"
+    "npm:pi-zentui@0.1.2"
   ]
 }

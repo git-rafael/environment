@@ -123,7 +123,7 @@ in {
     # Pi extensions
     ".pi/agent/extensions/herdr-session-sync.ts" = {
       force = true;
-      source = ../resources/agents/extensions/herdr-session-sync.ts;
+      source = ../resources/agents/pi/extensions/herdr-session-sync.ts;
     };
   };
 

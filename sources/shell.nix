@@ -8,9 +8,9 @@ let
   env-shell = pkgs.writeShellScriptBin "env-shell" (builtins.readFile ../resources/scripts/env-shell);
 
   pi-npm = pkgs.writeShellScriptBin "pi-npm" ''
-    export npm_config_prefix="$HOME/.pi/npm"
-    export NPM_CONFIG_PREFIX="$HOME/.pi/npm"
-    export PATH="$HOME/.pi/npm/bin${PATH:+:$PATH}"
+    export npm_config_prefix="$HOME/.pi/agent/npm"
+    export NPM_CONFIG_PREFIX="$HOME/.pi/agent/npm"
+    export PATH="$HOME/.pi/agent/npm/bin${PATH:+:$PATH}"
     exec ${pkgs.nodejs}/bin/npm "$@"
   '';
 
@@ -20,7 +20,7 @@ let
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/pi \
-        --run 'export PATH="$HOME/.pi/npm/bin${PATH:+:$PATH}"'
+        --run 'export PATH="$HOME/.pi/agent/npm/bin:${pi-npm}/bin${PATH:+:$PATH}"'
     '';
   };
 
@@ -39,7 +39,6 @@ in {
   home.packages = with pkgs; [
     env-load
     env-shell
-    pi-npm
     pi
 
     vim

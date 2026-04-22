@@ -6,11 +6,11 @@
   "hideThinkingBlock": true,
   "npmCommand": ["npm"],
   "packages": [
-    "git:github.com/nicobailon/pi-web-access@v0.10.6",
+    "npm:pi-web-access@0.10.6",
     "npm:@ogulcancelik/pi-herdr",
     "npm:pi-session-summary",
-    "git:github.com/edlsh/pi-ask-user@v0.6.1",
-    "git:github.com/tintinweb/pi-tasks@v0.4.2",
-    "git:github.com/kaiserlich-dev/pi-session-search@08a6a9495b6ffcfaec13cce1bb47ba793dc2b1ef"
+    "npm:pi-ask-user@0.6.1",
+    "npm:@tintinweb/pi-tasks@0.4.2",
+    "npm:@kaiserlich-dev/pi-session-search@1.1.1"
   ]
 }

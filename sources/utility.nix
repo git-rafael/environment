@@ -100,7 +100,7 @@ in  {
     sbctl
     efibootmgr
   ] ++ pkgs.lib.optionals withUI [
-    kitty
+    ghostty
     reco
     plasmaDnSwitcher
   ];

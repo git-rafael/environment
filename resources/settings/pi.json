@@ -6,6 +6,7 @@
   "hideThinkingBlock": true,
   "npmCommand": ["pi-npm"],
   "packages": [
-    "git:github.com/nicobailon/pi-web-access@v0.10.6"
+    "git:github.com/nicobailon/pi-web-access@v0.10.6",
+    "npm:@ogulcancelik/pi-herdr"
   ]
 }

@@ -7,20 +7,20 @@ let
   env-load = pkgs.writeShellScriptBin "env-load" (builtins.readFile ../resources/scripts/env-load);
   env-shell = pkgs.writeShellScriptBin "env-shell" (builtins.readFile ../resources/scripts/env-shell);
 
-  pi-npm = pkgs.writeShellScriptBin "pi-npm" ''
-    export npm_config_prefix="$HOME/.pi/agent/npm"
-    export NPM_CONFIG_PREFIX="$HOME/.pi/agent/npm"
-    export PATH="$HOME/.pi/agent/npm/bin''${PATH:+:$PATH}"
-    exec ${pkgs.nodejs}/bin/npm "$@"
-  '';
-
-  pi = pkgs.symlinkJoin {
+  pi = let
+    npm = pkgs.writeShellScriptBin "npm" ''
+      export npm_config_prefix="$HOME/.pi/agent/npm"
+      export NPM_CONFIG_PREFIX="$HOME/.pi/agent/npm"
+      export PATH="$HOME/.pi/agent/npm/bin''${PATH:+:$PATH}"
+      exec ${pkgs.nodejs}/bin/npm "$@"
+    '';
+  in pkgs.symlinkJoin {
     name = "pi-coding-agent";
     paths = [ edgePkgs.pi-coding-agent ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/pi \
-        --run 'export PATH="$HOME/.pi/agent/npm/bin:${pi-npm}/bin''${PATH:+:''$PATH}"'
+        --run 'export PATH="$HOME/.pi/agent/npm/bin:${npm}/bin''${PATH:+:''$PATH}"'
     '';
   };
 

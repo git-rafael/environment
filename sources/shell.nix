@@ -1,6 +1,7 @@
 { pkgs, edgePkgs, features, self, ... }:
 
 let
+  withUI = builtins.elem "ui" features;
   forWork = builtins.elem "work" features;
   caCertBundle = "/etc/ssl/certs/ca-bundle.crt";
 
@@ -14,13 +15,14 @@ let
       export PATH="$HOME/.pi/agent/npm/bin''${PATH:+:$PATH}"
       exec ${pkgs.nodejs}/bin/npm "$@"
     '';
+    piPath = pkgs.lib.makeBinPath ([ npm ] ++ pkgs.lib.optionals withUI [ pkgs.google-chrome ]);
   in pkgs.symlinkJoin {
     name = "pi-coding-agent";
     paths = [ edgePkgs.pi-coding-agent ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/pi \
-        --run 'export PATH="$HOME/.pi/agent/npm/bin:${npm}/bin''${PATH:+:''$PATH}"'
+        --run 'export PATH="$HOME/.pi/agent/npm/bin:${piPath}''${PATH:+:''$PATH}"'
     '';
   };
 

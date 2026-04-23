@@ -49,11 +49,6 @@ in {
   ];
   
   home.file = {
-    ".config/zsh_codex.ini" = {
-      force = true;
-      text = builtins.readFile ../resources/settings/zsh_codex.ini;
-    };
-
     # Agent instructions — Codex convention (~/.codex/AGENTS.md)
     ".codex/AGENTS.md" = {
       force = true;

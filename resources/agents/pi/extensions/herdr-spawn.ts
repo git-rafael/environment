@@ -9,6 +9,7 @@ type PaneRef = {
   pane_id?: string;
   tab_id?: string;
   workspace_id?: string;
+  agent_status?: string;
 };
 
 type HerdrResponse = {
@@ -27,6 +28,9 @@ type HerdrResponse = {
 
 const LOG_PREFIX = "[herdr-spawn]";
 const DEFAULT_TIMEOUT_MS = 5000;
+const PANE_READY_TIMEOUT_MS = 15000;
+const PANE_READY_POLL_MS = 100;
+const COMMAND_SETTLE_MS = 350;
 const USAGE = [
   "usage: /spawn <pi|sh> <right|down|tab|workspace>",
   "examples: /spawn pi right | /spawn pi tab | /spawn sh workspace",
@@ -58,16 +62,20 @@ export default function (pi: ExtensionAPI) {
     return String(error);
   }
 
-  function runHerdr(args: string[]): string {
+  function sleep(ms: number) {
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+  }
+
+  function runHerdr(args: string[], timeout = DEFAULT_TIMEOUT_MS): string {
     return execFileSync("herdr", args, {
       encoding: "utf8",
-      timeout: DEFAULT_TIMEOUT_MS,
+      timeout,
       env: process.env,
     });
   }
 
-  function runHerdrJson(args: string[]): HerdrResponse {
-    const stdout = runHerdr(args).trim();
+  function runHerdrJson(args: string[], timeout = DEFAULT_TIMEOUT_MS): HerdrResponse {
+    const stdout = runHerdr(args, timeout).trim();
     if (!stdout) throw new Error(`herdr returned no JSON for: ${args.join(" ")}`);
     return JSON.parse(stdout) as HerdrResponse;
   }
@@ -122,6 +130,23 @@ export default function (pi: ExtensionAPI) {
     return "/shell";
   }
 
+  function waitForPaneReady(paneId: string) {
+    const deadline = Date.now() + PANE_READY_TIMEOUT_MS;
+    let lastStatus = "unknown";
+
+    while (Date.now() < deadline) {
+      const parsed = runHerdrJson(["pane", "get", paneId]);
+      const status = parsed.result?.pane?.agent_status?.trim() || "unknown";
+      lastStatus = status;
+
+      if (status === "idle") return;
+
+      sleep(PANE_READY_POLL_MS);
+    }
+
+    throw new Error(`pane ${paneId} did not become ready (last agent status: ${lastStatus})`);
+  }
+
   function createDestinationPane(location: SpawnLocation, cwd: string): string {
     if (location === "right" || location === "down") {
       const paneId = getCurrentPaneId();
@@ -154,7 +179,11 @@ export default function (pi: ExtensionAPI) {
     const command = getCommandForTarget(target);
 
     if (command) {
-      runHerdr(["pane", "run", paneId, command]);
+      waitForPaneReady(paneId);
+      runHerdr(["pane", "send-text", paneId, command]);
+      // pi receives slash commands reliably only after the editor has ingested the text.
+      sleep(COMMAND_SETTLE_MS);
+      runHerdr(["pane", "send-keys", paneId, "Enter"]);
     }
 
     return `started ${target === "pi" ? "pi" : "shell"} in ${location} from ${cwd}`;

@@ -14,7 +14,6 @@
     "npm:@kaiserlich-dev/pi-session-search@1.1.1",
     "npm:@benvargas/pi-claude-code-use@1.0.1",
     "npm:pi-zentui@0.1.2",
-    "npm:pi-tool-display@0.3.2",
-    "npm:pi-deep-research@0.1.6"
+    "npm:pi-tool-display@0.3.2"
   ]
 }

@@ -26,12 +26,6 @@ let
         --run 'export PATH="$HOME/.pi/agent/npm/bin:${piPath}''${PATH:+:''$PATH}"'
     '';
   };
-
-  python = pkgs.python3.withPackages (ps: with ps; [
-    boto3
-    openai
-    google-generativeai
-  ]);
 in {
   home.sessionVariables = pkgs.lib.optionalAttrs forWork {
     NODE_EXTRA_CA_CERTS = caCertBundle;
@@ -48,7 +42,6 @@ in {
     vim
     eza
 
-    python
     libsecret
 
     nerd-fonts.fira-code
@@ -73,12 +66,6 @@ in {
       source = ../resources/settings/AGENTS.md;
     };
 
-    # Agent instructions — Goose convention (~/.config/goose/AGENTS.md)
-    ".config/goose/AGENTS.md" = {
-      force = true;
-      source = ../resources/settings/AGENTS.md;
-    };
-
     # Agent Skills — cross-client convention (~/.agents/skills/)
     ".agents/skills" = {
       source = "${self}/resources/agents/skills";
@@ -86,11 +73,6 @@ in {
 
     # Agent Skills — Codex user convention (~/.codex/skills/user/)
     ".codex/skills/user" = {
-      source = "${self}/resources/agents/skills";
-    };
-
-    # Agent Skills — XDG cross-client convention, used by Goose and Amp (~/.config/agents/skills/)
-    ".config/agents/skills" = {
       source = "${self}/resources/agents/skills";
     };
 
@@ -114,12 +96,6 @@ in {
     ".pi/agent/keybindings.json" = {
       force = true;
       source = ../resources/agents/pi/keybindings.json;
-    };
-
-    # Pi session summary config
-    ".pi/agent/session-summary.json" = {
-      force = true;
-      source = ../resources/agents/pi/session-summary.json;
     };
 
     # Pi extensions
@@ -213,7 +189,6 @@ in {
     zplug = {
       enable = true;
       plugins = [
-        { name = "tom-doerr/zsh_codex"; }
         { name = "mfaerevaag/wd"; tags = [ as:command use:wd.sh "hook-load:'wd() { . $ZPLUG_REPOS/mfaerevaag/wd/wd.sh }'" ];  }
       ];
     };

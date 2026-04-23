@@ -103,6 +103,11 @@ in {
       force = true;
       source = ../resources/agents/pi/extensions/herdr-spawn.ts;
     };
+
+    ".pi/agent/extensions/shell.ts" = {
+      force = true;
+      source = ../resources/agents/pi/extensions/shell.ts;
+    };
   };
 
   fonts.fontconfig = {

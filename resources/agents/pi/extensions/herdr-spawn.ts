@@ -118,7 +118,7 @@ export default function (pi: ExtensionAPI) {
   }
 
   function getCommandForTarget(target: SpawnTarget): string {
-    if (target === "pi") return "exec env-agent";
+    if (target === "pi") return "exec pi";
     return "exec env-shell";
   }
 

@@ -1,7 +1,9 @@
 set -e;
 
+readonly SHELL='pi';
+
 if command -v nixos-version &>/dev/null; then
-  exec pi "$@";
+  exec env SHELL="${SHELL}" herdr "$@";
 elif [ -e ${HOME}/.nix-profile/etc/profile.d/nix.sh ]; then
   if [ -f /etc/alpine-release ]; then
     export USER=${USER:-root};
@@ -11,7 +13,7 @@ elif [ -e ${HOME}/.nix-profile/etc/profile.d/nix.sh ]; then
   fi
 
   . ${HOME}/.nix-profile/etc/profile.d/nix.sh;
-  LOCALE_ARCHIVE=/usr/lib/locale/locale-archive exec pi "$@";
+  LOCALE_ARCHIVE=/usr/lib/locale/locale-archive exec env SHELL="${SHELL}" herdr "$@";
 else
   echo "Environment must be loaded with 'env-load' before running 'env-agent'.";
   exit 1;

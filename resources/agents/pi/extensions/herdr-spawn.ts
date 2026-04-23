@@ -117,9 +117,9 @@ export default function (pi: ExtensionAPI) {
     }
   }
 
-  function getCommandForTarget(target: SpawnTarget): string {
-    if (target === "pi") return "exec pi";
-    return "exec env-shell";
+  function getCommandForTarget(target: SpawnTarget): string | null {
+    if (target === "pi") return null;
+    return "/shell";
   }
 
   function createDestinationPane(location: SpawnLocation, cwd: string): string {
@@ -151,12 +151,17 @@ export default function (pi: ExtensionAPI) {
 
   function spawn(target: SpawnTarget, location: SpawnLocation, cwd: string) {
     const paneId = createDestinationPane(location, cwd);
-    runHerdr(["pane", "run", paneId, getCommandForTarget(target)]);
+    const command = getCommandForTarget(target);
+
+    if (command) {
+      runHerdr(["pane", "run", paneId, command]);
+    }
+
     return `started ${target === "pi" ? "pi" : "shell"} in ${location} from ${cwd}`;
   }
 
   pi.registerCommand("spawn", {
-    description: "Create a herdr pane/tab/workspace and start pi or a shell",
+    description: "Create a herdr pane/tab/workspace and open pi or /shell",
     handler: async (args: string, ctx: ExtensionCommandContext) => {
       const trimmed = args.trim();
 

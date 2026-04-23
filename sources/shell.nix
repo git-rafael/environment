@@ -94,14 +94,9 @@ in {
     };
 
     # Pi extensions
-    ".pi/agent/extensions/herdr-workspace-summary.ts" = {
+    ".pi/agent/extensions/herdr-utils" = {
       force = true;
-      source = ../resources/agents/pi/extensions/herdr-workspace-summary.ts;
-    };
-
-    ".pi/agent/extensions/herdr-spawn.ts" = {
-      force = true;
-      source = ../resources/agents/pi/extensions/herdr-spawn.ts;
+      source = ../resources/agents/pi/extensions/herdr-utils;
     };
 
     ".pi/agent/extensions/shell.ts" = {

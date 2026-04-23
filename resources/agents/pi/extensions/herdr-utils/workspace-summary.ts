@@ -1,14 +1,6 @@
-import { execFileSync } from "node:child_process";
 import { complete } from "@mariozechner/pi-ai";
-import type { ExtensionAPI, ExtensionContext, ExtensionCommandContext } from "@mariozechner/pi-coding-agent";
-
-type PaneGetResponse = {
-  result?: {
-    pane?: {
-      workspace_id?: string;
-    };
-  };
-};
+import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "@mariozechner/pi-coding-agent";
+import { getWorkspaceIdFromCurrentPane, notify, runHerdr, type HerdrContext } from "./shared";
 
 const DEFAULT_INTERVAL_MS = 1000;
 const DEFAULT_MAX_TOKENS = 12;
@@ -25,7 +17,7 @@ const GENERIC_SESSION_NAMES = new Set(["", "chat"]);
 const MAX_TITLE_WORDS = 3;
 const LOG_PREFIX = "[herdr-workspace-summary]";
 
-export default function (pi: ExtensionAPI) {
+export function registerHerdrWorkspaceSummary(pi: ExtensionAPI) {
   let timer: NodeJS.Timeout | null = null;
   let workspaceId: string | null = null;
   let lastSyncedName: string | null = null;
@@ -34,33 +26,12 @@ export default function (pi: ExtensionAPI) {
   let pendingSourceName: string | null = null;
   let started = false;
   let syncGeneration = 0;
-  let latestCtx: ExtensionContext | ExtensionCommandContext | null = null;
+  let latestCtx: HerdrContext | null = null;
   let resolvedModelName = "";
   let lastError: string | null = null;
 
   function debug(ctx: ExtensionContext | ExtensionCommandContext, message: string) {
-    if (ctx.hasUI) ctx.ui.notify(`${LOG_PREFIX} ${message}`, "info");
-  }
-
-  function getPaneId(): string | null {
-    return process.env.HERDR_PANE_ID?.trim() || null;
-  }
-
-  function getWorkspaceIdFromHerdr(): string | null {
-    const paneId = getPaneId();
-    if (!paneId) return null;
-
-    try {
-      const stdout = execFileSync("herdr", ["pane", "get", paneId], {
-        encoding: "utf8",
-        timeout: 3000,
-        env: process.env,
-      });
-      const parsed = JSON.parse(stdout) as PaneGetResponse;
-      return parsed.result?.pane?.workspace_id?.trim() || null;
-    } catch {
-      return null;
-    }
+    notify(ctx, LOG_PREFIX, message, "info");
   }
 
   function getCurrentSessionName(): string | null {
@@ -198,11 +169,7 @@ export default function (pi: ExtensionAPI) {
     if (!workspaceId) return false;
 
     try {
-      execFileSync("herdr", ["workspace", "rename", workspaceId, workspaceName], {
-        encoding: "utf8",
-        timeout: 3000,
-        env: process.env,
-      });
+      runHerdr(["workspace", "rename", workspaceId, workspaceName], 3000);
       lastSyncedName = workspaceName;
       return true;
     } catch {
@@ -211,7 +178,7 @@ export default function (pi: ExtensionAPI) {
   }
 
   async function syncNow(force = false): Promise<boolean> {
-    if (!workspaceId) workspaceId = getWorkspaceIdFromHerdr();
+    if (!workspaceId) workspaceId = getWorkspaceIdFromCurrentPane();
     const name = getCurrentSessionName();
     if (!workspaceId || !name) return false;
 
@@ -244,7 +211,7 @@ export default function (pi: ExtensionAPI) {
 
     if (started) return;
     started = true;
-    workspaceId = getWorkspaceIdFromHerdr();
+    workspaceId = getWorkspaceIdFromCurrentPane();
     lastSyncedName = null;
     lastSourceName = null;
     lastResolvedName = null;

@@ -1,33 +1,20 @@
-import { execFileSync } from "node:child_process";
 import type { ExtensionAPI, ExtensionCommandContext } from "@mariozechner/pi-coding-agent";
+import {
+  extractError,
+  getPaneId,
+  getWorkspaceIdFromCurrentPane,
+  notify,
+  runHerdr,
+  runHerdrJson,
+  sleep,
+  type HerdrResponse,
+  type NotifyLevel,
+} from "./shared";
 
 type SpawnTarget = "pi" | "shell";
 type SpawnLocation = "right" | "down" | "tab" | "workspace";
-type NotifyLevel = "info" | "success" | "warning" | "error";
-
-type PaneRef = {
-  pane_id?: string;
-  tab_id?: string;
-  workspace_id?: string;
-  agent_status?: string;
-};
-
-type HerdrResponse = {
-  result?: {
-    pane?: PaneRef;
-    root_pane?: PaneRef;
-    tab?: {
-      tab_id?: string;
-      workspace_id?: string;
-    };
-    workspace?: {
-      workspace_id?: string;
-    };
-  };
-};
 
 const LOG_PREFIX = "[herdr-spawn]";
-const DEFAULT_TIMEOUT_MS = 5000;
 const PANE_READY_TIMEOUT_MS = 15000;
 const PANE_READY_POLL_MS = 100;
 const COMMAND_SETTLE_MS = 350;
@@ -37,59 +24,9 @@ const USAGE = [
   "extra: /spawn status",
 ].join(" ");
 
-export default function (pi: ExtensionAPI) {
-  function notify(ctx: { hasUI: boolean; ui: { notify(message: string, level?: NotifyLevel): void } }, message: string, level: NotifyLevel = "info") {
-    if (ctx.hasUI) ctx.ui.notify(`${LOG_PREFIX} ${message}`, level);
-  }
-
-  function extractError(error: unknown): string {
-    if (error && typeof error === "object") {
-      const maybeError = error as {
-        stderr?: string | Buffer;
-        stdout?: string | Buffer;
-        message?: string;
-      };
-
-      const stderr = maybeError.stderr?.toString().trim();
-      if (stderr) return stderr;
-
-      const stdout = maybeError.stdout?.toString().trim();
-      if (stdout) return stdout;
-
-      if (maybeError.message) return maybeError.message;
-    }
-
-    return String(error);
-  }
-
-  function sleep(ms: number) {
-    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
-  }
-
-  function runHerdr(args: string[], timeout = DEFAULT_TIMEOUT_MS): string {
-    return execFileSync("herdr", args, {
-      encoding: "utf8",
-      timeout,
-      env: process.env,
-    });
-  }
-
-  function runHerdrJson(args: string[], timeout = DEFAULT_TIMEOUT_MS): HerdrResponse {
-    const stdout = runHerdr(args, timeout).trim();
-    if (!stdout) throw new Error(`herdr returned no JSON for: ${args.join(" ")}`);
-    return JSON.parse(stdout) as HerdrResponse;
-  }
-
-  function getCurrentPaneId(): string | null {
-    return process.env.HERDR_PANE_ID?.trim() || null;
-  }
-
-  function getCurrentWorkspaceId(): string | null {
-    const paneId = getCurrentPaneId();
-    if (!paneId) return null;
-
-    const parsed = runHerdrJson(["pane", "get", paneId]);
-    return parsed.result?.pane?.workspace_id?.trim() || null;
+export function registerHerdrSpawn(pi: ExtensionAPI) {
+  function notifySpawn(ctx: { hasUI: boolean; ui: { notify(message: string, level?: NotifyLevel): void } }, message: string, level: NotifyLevel = "info") {
+    notify(ctx, LOG_PREFIX, message, level);
   }
 
   function normalizeTarget(value: string): SpawnTarget | null {
@@ -135,7 +72,7 @@ export default function (pi: ExtensionAPI) {
     let lastStatus = "unknown";
 
     while (Date.now() < deadline) {
-      const parsed = runHerdrJson(["pane", "get", paneId]);
+      const parsed = runHerdrJson<HerdrResponse>(["pane", "get", paneId]);
       const status = parsed.result?.pane?.agent_status?.trim() || "unknown";
       lastStatus = status;
 
@@ -149,26 +86,26 @@ export default function (pi: ExtensionAPI) {
 
   function createDestinationPane(location: SpawnLocation, cwd: string): string {
     if (location === "right" || location === "down") {
-      const paneId = getCurrentPaneId();
+      const paneId = getPaneId();
       if (!paneId) throw new Error("current pi is not running inside a herdr pane");
 
-      const parsed = runHerdrJson(["pane", "split", paneId, "--direction", location, "--cwd", cwd]);
+      const parsed = runHerdrJson<HerdrResponse>(["pane", "split", paneId, "--direction", location, "--cwd", cwd]);
       const newPaneId = parsed.result?.pane?.pane_id?.trim();
       if (!newPaneId) throw new Error(`herdr did not return a pane id for split ${location}`);
       return newPaneId;
     }
 
     if (location === "tab") {
-      const workspaceId = getCurrentWorkspaceId();
+      const workspaceId = getWorkspaceIdFromCurrentPane();
       if (!workspaceId) throw new Error("could not resolve the current herdr workspace");
 
-      const parsed = runHerdrJson(["tab", "create", "--workspace", workspaceId, "--cwd", cwd]);
+      const parsed = runHerdrJson<HerdrResponse>(["tab", "create", "--workspace", workspaceId, "--cwd", cwd]);
       const newPaneId = parsed.result?.root_pane?.pane_id?.trim();
       if (!newPaneId) throw new Error("herdr did not return the root pane for the new tab");
       return newPaneId;
     }
 
-    const parsed = runHerdrJson(["workspace", "create", "--cwd", cwd]);
+    const parsed = runHerdrJson<HerdrResponse>(["workspace", "create", "--cwd", cwd]);
     const newPaneId = parsed.result?.root_pane?.pane_id?.trim();
     if (!newPaneId) throw new Error("herdr did not return the root pane for the new workspace");
     return newPaneId;
@@ -195,14 +132,14 @@ export default function (pi: ExtensionAPI) {
       const trimmed = args.trim();
 
       if (!trimmed || trimmed.toLowerCase() === "help") {
-        notify(ctx, USAGE, "info");
+        notifySpawn(ctx, USAGE, "info");
         return;
       }
 
       if (trimmed.toLowerCase() === "status") {
-        const paneId = getCurrentPaneId();
-        const workspaceId = paneId ? getCurrentWorkspaceId() : null;
-        notify(
+        const paneId = getPaneId();
+        const workspaceId = paneId ? getWorkspaceIdFromCurrentPane() : null;
+        notifySpawn(
           ctx,
           `pane=${paneId ?? "none"}; workspace=${workspaceId ?? "none"}; cwd=${ctx.cwd}`,
           paneId ? "info" : "warning"
@@ -212,7 +149,7 @@ export default function (pi: ExtensionAPI) {
 
       const parts = trimmed.split(/\s+/).filter(Boolean);
       if (parts.length !== 2) {
-        notify(ctx, USAGE, "warning");
+        notifySpawn(ctx, USAGE, "warning");
         return;
       }
 
@@ -220,14 +157,14 @@ export default function (pi: ExtensionAPI) {
       const location = normalizeLocation(parts[1]);
 
       if (!target || !location) {
-        notify(ctx, USAGE, "warning");
+        notifySpawn(ctx, USAGE, "warning");
         return;
       }
 
       try {
-        notify(ctx, spawn(target, location, ctx.cwd), "success");
+        notifySpawn(ctx, spawn(target, location, ctx.cwd), "success");
       } catch (error) {
-        notify(ctx, `failed: ${extractError(error)}`, "error");
+        notifySpawn(ctx, `failed: ${extractError(error)}`, "error");
       }
     },
   });
@@ -237,9 +174,9 @@ export default function (pi: ExtensionAPI) {
       description,
       handler: async (ctx) => {
         try {
-          notify(ctx, spawn(target, location, ctx.cwd), "success");
+          notifySpawn(ctx, spawn(target, location, ctx.cwd), "success");
         } catch (error) {
-          notify(ctx, `failed: ${extractError(error)}`, "error");
+          notifySpawn(ctx, `failed: ${extractError(error)}`, "error");
         }
       },
     });

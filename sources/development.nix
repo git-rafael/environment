@@ -1,10 +1,7 @@
 { pkgs, edgePkgs, features, ... }:
 
 let
-  withUI = builtins.elem "ui" features;
   forWork = builtins.elem "work" features;
-  
-  ollama = edgePkgs.ollama;
 
   devbox = edgePkgs.devbox;
   huggingface-cli = pkgs.python3.pkgs.huggingface-hub;
@@ -22,38 +19,6 @@ let
     ];
 
     text = builtins.readFile ../resources/scripts/flash-install;
-  };
-
-  openwork = pkgs.stdenv.mkDerivation rec {
-    pname = "openwork";
-    version = "0.11.137";
-
-    src = pkgs.fetchurl {
-      url = "https://github.com/different-ai/openwork/releases/download/v${version}/openwork-desktop-linux-amd64.deb";
-      hash = "sha256-vGApxKr86ITTpghPaqUkqYnURPoKw2mVRqvH0jlJbqo=";
-    };
-
-    nativeBuildInputs = with pkgs; [ dpkg autoPatchelfHook wrapGAppsHook3 ];
-
-    buildInputs = with pkgs; [
-      cairo
-      gdk-pixbuf
-      glib
-      gtk3
-      gsettings-desktop-schemas
-      libsoup_3
-      webkitgtk_4_1
-    ];
-
-    unpackPhase = "dpkg-deb -x $src .";
-
-    installPhase = ''
-      mkdir -p $out
-      cp -r usr/bin $out/
-      cp -r usr/share $out/
-    '';
-
-    meta.mainProgram = "openwork";
   };
 
   code = edgePkgs.vscodium.fhsWithPackages (ps: with ps; [
@@ -110,8 +75,6 @@ in {
     docker-client
     podman-compose
     docker-compose
-  ] ++ pkgs.lib.optionals withUI [
-    openwork
   ] ++ pkgs.lib.optionals forWork [
     flash-install
   ];

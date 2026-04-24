@@ -6,7 +6,7 @@ This is my personal Linux environment repository containing [Nix](https://nixos.
 
 ```
 environment/
-  sources/         # Nix modules (development, shell, security, utility, operation)
+  sources/         # Nix modules (agents, development, shell, security, utility, operation)
   devices/         # NixOS system configurations per device
   resources/       # Scripts, settings, certificates and skills
 ```

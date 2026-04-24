@@ -4,7 +4,7 @@ This file provides guidance to AI agents when working with code in this reposito
 
 ## Applying Environments
 
-The central command is `env-load`, defined in [resources/scripts/env-load](resources/scripts/env-load) and packaged via [sources/shell.nix](sources/shell.nix).
+The central command is `env-load`, defined in [resources/scripts/env-load](resources/scripts/env-load) and packaged via [sources/utility.nix](sources/utility.nix).
 
 ```sh
 # Apply a home-manager user environment (from this repo locally)
@@ -50,9 +50,10 @@ All modules are functions with the signature `{ pkgs, edgePkgs, features, ... }`
 
 | File | Purpose |
 |------|---------|
-| [sources/shell.nix](sources/shell.nix) | zsh, tmux, starship, direnv, broot, git, fonts, `env-load`/`env-shell` scripts |
-| [sources/development.nix](sources/development.nix) | VSCodium (FHS), devbox, devenv, podman/docker, ollama, goose, openwork, gh, quarto |
-| [sources/utility.nix](sources/utility.nix) | claude-code, chromium, bitwarden-cli, common CLI tools, `gtoken` script |
+| [sources/agents.nix](sources/agents.nix) | pi, Claude Code, Codex, Ollama, agent-browser, herdr, agent home files and shared skills |
+| [sources/shell.nix](sources/shell.nix) | zsh, tmux, starship, direnv, broot, git, fonts, `env-shell` script |
+| [sources/development.nix](sources/development.nix) | VSCodium (FHS), devbox, devenv, podman/docker, gh, quarto |
+| [sources/utility.nix](sources/utility.nix) | `env-load`, chromium, bitwarden-cli, common CLI tools, `gtoken` script |
 | [sources/operation.nix](sources/operation.nix) | Cloud/infra tools: AWS, k8s, helm, Kafka, Databricks, CircleCI, steampipe |
 | [sources/security.nix](sources/security.nix) | Security tools: metasploit, nmap, tor, socat, sshuttle, gitleaks, etc. |
 

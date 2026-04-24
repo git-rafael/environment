@@ -10,6 +10,7 @@
   outputs = inputs@{ self, nixpkgs, nixpkgs-unstable, home-manager, ... }:
 
   let
+    agents = import ./sources/agents.nix;
     development = import ./sources/development.nix;
     operation = import ./sources/operation.nix;
     security = import ./sources/security.nix;
@@ -32,12 +33,14 @@
           };
           env = { inherit pkgs edgePkgs features self; };
           
+          agentsInstallation = (agents env);
           developmentInstallation = (development env);
           operationInstallation = (operation env);
           securityInstallation = (security env);
           utilityInstallation = (utility env);
           shellInstallation = (shell env);
         in [
+          agentsInstallation
           developmentInstallation
           operationInstallation
           securityInstallation

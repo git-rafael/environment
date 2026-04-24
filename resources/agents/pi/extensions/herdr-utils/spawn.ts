@@ -17,6 +17,7 @@ type SpawnLocation = "right" | "down" | "tab" | "workspace";
 const LOG_PREFIX = "[herdr-spawn]";
 const PANE_READY_TIMEOUT_MS = 15000;
 const PANE_READY_POLL_MS = 100;
+const COMMAND_SETTLE_MS = 350;
 const USAGE = [
   "usage: /spawn <pi|sh> <right|down|tab|workspace>",
   "examples: /spawn pi right | /spawn pi tab | /spawn sh workspace",
@@ -116,7 +117,11 @@ export function registerHerdrSpawn(pi: ExtensionAPI) {
 
     if (command) {
       waitForPaneReady(paneId);
-      runHerdr(["pane", "run", paneId, command]);
+      runHerdr(["pane", "send-text", paneId, command]);
+      // `pane run` inserts a newline in pi's composer for `/shell`; sending a raw
+      // Enter key after the text reliably executes the slash command.
+      sleep(COMMAND_SETTLE_MS);
+      runHerdr(["pane", "send-keys", paneId, "Enter"]);
     }
 
     return `started ${target === "pi" ? "pi" : "shell"} in ${location} from ${cwd}`;

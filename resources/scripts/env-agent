@@ -1,9 +1,37 @@
 set -e;
 
-readonly SHELL='pi';
+readonly AGENT_SHELL='pi';
+
+herdr_server_shell_mismatch() {
+  local cmdline_path pid cmdline env_shell;
+
+  for cmdline_path in /proc/[0-9]*/cmdline; do
+    [ -r "${cmdline_path}" ] || continue;
+
+    pid="${cmdline_path#/proc/}";
+    pid="${pid%/cmdline}";
+    cmdline="$(tr '\0' ' ' < "${cmdline_path}" 2>/dev/null || true)";
+
+    case "${cmdline}" in
+      *"/herdr server "*|"herdr server "*)
+        env_shell="$(tr '\0' '\n' < "/proc/${pid}/environ" 2>/dev/null | sed -n 's/^SHELL=//p' | head -n 1)";
+        [ "${env_shell}" = "${AGENT_SHELL}" ] || return 0;
+        ;;
+    esac
+  done
+
+  return 1;
+}
+
+ensure_herdr_uses_agent_shell() {
+  if herdr_server_shell_mismatch; then
+    herdr server stop >/dev/null 2>&1 || true;
+  fi
+}
 
 if command -v nixos-version &>/dev/null; then
-  exec env SHELL="${SHELL}" herdr "$@";
+  ensure_herdr_uses_agent_shell;
+  exec env SHELL="${AGENT_SHELL}" herdr "$@";
 elif [ -e ${HOME}/.nix-profile/etc/profile.d/nix.sh ]; then
   if [ -f /etc/alpine-release ]; then
     export USER=${USER:-root};
@@ -13,7 +41,8 @@ elif [ -e ${HOME}/.nix-profile/etc/profile.d/nix.sh ]; then
   fi
 
   . ${HOME}/.nix-profile/etc/profile.d/nix.sh;
-  LOCALE_ARCHIVE=/usr/lib/locale/locale-archive exec env SHELL="${SHELL}" herdr "$@";
+  ensure_herdr_uses_agent_shell;
+  LOCALE_ARCHIVE=/usr/lib/locale/locale-archive exec env SHELL="${AGENT_SHELL}" herdr "$@";
 else
   echo "Environment must be loaded with 'env-load' before running 'env-agent'.";
   exit 1;

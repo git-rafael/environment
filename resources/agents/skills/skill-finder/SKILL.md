@@ -63,24 +63,19 @@ Show results in a clean table format:
 
 ### 5. Let the user choose
 
-After showing the results, ask if they want to install any of them. To install, the user needs:
+After showing the results, ask if they want to persist any of them in the environment repo.
 
-1. A local clone of the `git-rafael/environment` repository
-2. The `env-load` CLI (which is part of that repo)
+For this repo, persistent installation now works by:
 
-The install command uses `env-load refs add`, which adds an upstream GitHub repo as a sparse-checkout submodule under `.refs/` and creates a symlink in `resources/agents/skills/`:
+1. adding the upstream repo under `resources/agents/pi/settings.json` in the `packages` list
+2. adding an explicit `skills` path there if package discovery is not enough
+3. exporting the chosen skill through `sources/agents.nix` into the shared `~/.agents/skills` directory
 
-```bash
-env-load refs add <source> <path-to-skill>
-```
-
-Where `<source>` is the `source` field from the API (e.g. `vercel-labs/agent-skills`) and `<path-to-skill>` is the path within that repo to the skill directory.
-
-**The `id` field is NOT always the correct repo path.** The API `id` is `<source>/<skill-name>`, but skills are often nested inside a subdirectory (e.g. `skills/skill-name`). Always verify the actual path before presenting the install command.
+**The `id` field is NOT always the correct repo path.** The API `id` is `<source>/<skill-name>`, but skills are often nested inside a subdirectory (e.g. `skills/skill-name`). Always verify the actual path before suggesting the persistent wiring.
 
 ### Verifying the correct repo path
 
-Before suggesting the install command, check the repo's directory structure via the GitHub API:
+Before suggesting the persistent wiring, check the repo's directory structure via the GitHub API:
 
 ```bash
 curl -s "https://api.github.com/repos/<org>/<repo>/contents/" | jq -r '.[] | "\(.type)\t\(.name)"'
@@ -97,11 +92,11 @@ Use whichever path actually contains the skill's `SKILL.md`.
 **Example:**
 ```bash
 # Repo vercel-labs/agent-browser has skills under skills/, not at root:
-env-load refs add vercel-labs/agent-browser skills/agent-browser
-# NOT: env-load refs add vercel-labs/agent-browser agent-browser  ← broken symlink
+source: vercel-labs/agent-browser
+repo skill path: skills/agent-browser
 ```
 
-Do NOT run the install command yourself — present it to the user and let them run it, since it modifies git submodules and the repo state.
+When the user wants to persist the result, hand off to the `environment-change` skill to update `resources/agents/pi/settings.json` and `sources/agents.nix`. Do not invent `.refs` or submodule steps.
 
 ## Tips
 

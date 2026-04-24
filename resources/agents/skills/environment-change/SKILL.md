@@ -29,7 +29,7 @@ The goal is to keep the machine reproducible. Prefer a versioned repo change ove
 Use this skill for **persisting the result in the environment repo**.
 
 - If the user wants to **create or iterate on a new skill itself**, use `skill-creator` for the drafting and evaluation loop, then place the final skill in `resources/agents/skills/` here.
-- If the user wants to **discover an existing marketplace skill**, use `skill-finder` first, then use this skill to wire the chosen skill into `.refs/` and `resources/agents/skills/` persistently.
+- If the user wants to **discover an existing marketplace skill**, use `skill-finder` first, then use this skill to wire the chosen skill into pi's declarative settings and the shared cross-agent exports persistently.
 
 ## First steps
 
@@ -40,7 +40,7 @@ Use this skill for **persisting the result in the environment repo**.
    - **Home Manager package/config**
    - **NixOS system config**
    - **Local skill in this repo**
-   - **Upstream skill via `.refs/` + symlink**
+   - **Pi-managed upstream skill/package**
    - **Mixed change**
 5. Identify the apply target for this machine:
    - Home Manager target: `notebook`
@@ -61,7 +61,8 @@ For this workstation:
 
 The main Home Manager modules live in `sources/`:
 
-- `sources/shell.nix` — shell, tmux, git, fonts, `env-load`, agent config, skill exposure
+- `sources/agents.nix` — pi, agent CLIs, pi settings, and shared skill exports for Claude/Codex/Gemini
+- `sources/shell.nix` — shell, tmux, git, fonts, `env-shell`
 - `sources/development.nix` — editor and development tooling
 - `sources/utility.nix` — common CLI tools, browser, agent CLIs, small utilities
 - `sources/operation.nix` — cloud, kubernetes, infra tooling
@@ -84,14 +85,15 @@ Host-specific overrides live in `devices/AMININT-544228/configuration.nix` and h
 
 ### Skills
 
-Persistent skills are exposed from `resources/agents/skills/` into multiple agent homes via `sources/shell.nix`.
+Persistent skills are exposed into multiple agent homes via `sources/agents.nix`.
 
-That means a skill added under `resources/agents/skills/<name>` becomes available to Claude Code, Codex, Goose, Gemini, and the shared `.agents` location after the Home Manager environment is applied. Even a skill-only repo change usually ends with a Home Manager apply on this workstation.
+That means:
+- repo-local skills live under `resources/agents/skills/<name>`
+- pi-managed upstream skills are declared in `resources/agents/pi/settings.json`
+- selected pi-managed skills are exported from `~/.pi/agent/` into the shared `~/.agents/skills/` directory
+- Claude Code, Codex, and Gemini all consume that shared skill directory after the Home Manager environment is applied
 
-Upstream reusable skills are managed through:
-- git submodules under `.refs/<org>/<repo>/`
-- symlinks under `resources/agents/skills/`
-- helper command: `env-load refs ...`
+Even a skill-only repo change usually ends with a Home Manager apply on this workstation.
 
 ## Decision rules
 
@@ -118,7 +120,8 @@ Do **not** solve persistent package requests with `nix-env`, `nix profile`, `pip
 Edit the smallest relevant module in `sources/`.
 
 Common examples:
-- shell aliases, zsh, tmux, agent home files → `sources/shell.nix`
+- shell aliases, zsh, tmux → `sources/shell.nix`
+- agent home files, pi settings, shared skill exports → `sources/agents.nix`
 - chromium or CLI utilities → `sources/utility.nix`
 - VSCodium/dev tooling → `sources/development.nix`
 
@@ -149,10 +152,10 @@ For a local skill maintained in this repo:
 For an upstream skill:
 1. If the user still needs help choosing the skill, use `skill-finder` first.
 2. Verify the real path to the skill inside the upstream repository.
-3. Use the repo convention: `.refs/...` plus a symlink under `resources/agents/skills/`.
-4. Prefer the documented `env-load refs add <org/repo> <repo-path> [name]` workflow when appropriate.
-5. Do not assume the marketplace `id` equals the repo path; verify the actual path containing `SKILL.md`.
-6. If the repo clone is new or submodules are missing, remember that `git submodule update --init --recursive` may be needed before working with `.refs` content.
+3. Add or update the upstream package declaration in `resources/agents/pi/settings.json` under `packages`.
+4. If the repo does not expose the skill through standard package discovery, add an explicit entry under the `skills` array in `resources/agents/pi/settings.json`.
+5. Add or update the export mapping in `sources/agents.nix` so the chosen skill is exposed through `~/.agents/skills` for the other agents.
+6. Do not assume the marketplace `id` equals the repo path; verify the actual path containing `SKILL.md`.
 
 ## Validation workflow
 
@@ -187,15 +190,13 @@ If a change touches both Home Manager and NixOS, suggest validating both relevan
 
 Use these when they directly help the task.
 
-### Manage upstream refs and skill links
+### Manage pi-declared upstream skills
 
-From `~/Desktop/Codebase/home/environment`:
+Update these files when you need to persist a third-party skill:
 
 ```bash
-env-load refs list
-env-load refs sync
-env-load refs add <org/repo> <repo-path> [name]
-env-load refs rm <name>
+resources/agents/pi/settings.json
+sources/agents.nix
 ```
 
 ### Fallback when `env-load` is not installed yet
@@ -274,7 +275,7 @@ Output approach: update the appropriate `sources/*.nix` module, validate `homeCo
 
 **Example 2**
 Input: "Add a persistent skill for Claude Code and Codex on this machine."
-Output approach: add or link the skill under `resources/agents/skills/`, explain that `sources/shell.nix` already exposes that tree to the supported agent directories, then suggest applying the Home Manager environment after a local commit.
+Output approach: update `resources/agents/pi/settings.json` and `sources/agents.nix` when the skill comes from an upstream package, or add it under `resources/agents/skills/` when it is repo-local. Explain that `sources/agents.nix` exposes the shared skill directory to the supported agent homes, then suggest applying the Home Manager environment after a local commit.
 
 **Example 3**
 Input: "Enable a system-level service only on `AMININT-544228`."

@@ -72,7 +72,7 @@ After the user environment is applied (via the bootstrap above), follow these st
 `system init` prompts for hostname, username, description and features (fingerprint, Secure Boot, TPM2, Cloudflare WARP, etc.), generates `devices/<hostname>/{configuration,hardware-configuration}.nix`, injects the new entry in `devices/flake.nix`, and commits. LUKS entries from `/etc/nixos/configuration.nix` are merged into the device's `hardware-configuration.nix` automatically.
 
 ```sh
-git clone --recurse-submodules git@github.com:git-rafael/environment.git ~/Desktop/Codebase/environment
+git clone git@github.com:git-rafael/environment.git ~/Desktop/Codebase/environment
 env-load system init ~/Desktop/Codebase/environment
 ```
 
@@ -136,24 +136,15 @@ EOF
 
 Restart the container for changes to take place.
 
-## External References (.refs/)
+## Agent Skills
 
-`.refs/` holds git submodules organized as `.refs/<org>/<repo>/` with sparse-checkout. Symlinks in `resources/` expose selected paths without duplicating files.
+Pi is the declarative source of truth for third-party agent skills and extensions through `resources/agents/pi/settings.json`.
 
-Managed via `env-load refs` (no Nix required):
-
-```sh
-env-load refs list                                     # list tracked refs and symlinks
-env-load refs sync                                     # pull latest from all upstreams
-env-load refs add anthropic/skills skills/mcp-builder  # add a path from a ref
-env-load refs rm mcp-builder                           # remove a symlink
-```
-
-After cloning, initialize submodules with:
-
-```sh
-git submodule update --init --recursive
-```
+- Upstream packages are declared in pi settings under `packages`
+- Non-standard skill paths can be added through pi settings under `skills`
+- `sources/agents.nix` exports selected pi-managed skills into `~/.agents/skills`
+- Claude, Codex, and Gemini consume that shared `~/.agents/skills` directory
+- Repo-local skills still live directly under `resources/agents/skills/`
 
 ## Notes
 

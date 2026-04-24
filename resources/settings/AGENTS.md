@@ -42,5 +42,5 @@ Machine-level instructions for coding agents installed on this workstation.
 
 - You may install or link skills locally for temporary agent testing when needed.
 - Do not treat ad hoc local skill installation as the final persistent solution.
-- For persistent skill availability, suggest adding the skill to `~/Desktop/Codebase/home/environment` using the repository conventions, including `.refs/` and the symlinks exposed through `resources/agents/skills` when appropriate.
+- For persistent skill availability, suggest adding the skill to `~/Desktop/Codebase/home/environment` using the repository conventions: pi package declarations in `resources/agents/pi/settings.json`, explicit skill path exports when needed, and repo-local skills under `resources/agents/skills`.
 - Prefer persistent skill changes in the environment repository over manual one-off changes in agent home directories.

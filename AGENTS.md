@@ -46,11 +46,11 @@ Before suggesting `env-load` for local changes in this repository, always sugges
 
 ### Home Manager modules (sources/)
 
-All modules are functions with the signature `{ pkgs, edgePkgs, features, ... }`. They are imported directly (not as flake modules) and instantiated with an `env` attrset in [flake.nix](flake.nix).
+All modules are functions instantiated with an `env` attrset from [flake.nix](flake.nix), including `pkgs`, `edgePkgs`, `features`, `self`, and target metadata such as `username` when needed.
 
 | File | Purpose |
 |------|---------|
-| [sources/agents.nix](sources/agents.nix) | pi, Claude Code, Codex, Ollama, agent-browser, herdr, agent home files and shared skills |
+| [sources/agents.nix](sources/agents.nix) | pi, Claude Code, Codex, Ollama, agent-browser, herdr, pi settings, and shared skill exports |
 | [sources/shell.nix](sources/shell.nix) | zsh, tmux, starship, direnv, broot, git, fonts, `env-shell` script |
 | [sources/development.nix](sources/development.nix) | VSCodium (FHS), devbox, devenv, podman/docker, gh, quarto |
 | [sources/utility.nix](sources/utility.nix) | `env-load`, chromium, bitwarden-cli, common CLI tools, `gtoken` script |
@@ -109,29 +109,19 @@ Support resource files:
 - Settings deployed via `home.file`.
 - General files like binaries, certificates, images and so on.
 
-### External references (.refs/)
+### Agent skill sourcing
 
-`.refs/` holds git submodules tracking upstream repositories, organized as `.refs/<org>/<repo>/`. Each submodule uses sparse-checkout so only selected paths are fetched.
+Third-party agent skills and extensions are declared through [resources/agents/pi/settings.json](resources/agents/pi/settings.json).
 
-Consumable resources in `resources/` reference these via symlinks. Currently:
+The current model is:
 
-| Symlink | Points to |
-|---------|-----------|
-| [resources/agents/skills/skill-creator](resources/agents/skills/skill-creator) | `.refs/anthropic/skills/skills/skill-creator` |
+- pi installs upstream packages from the declarative `packages` list in `settings.json`
+- non-standard upstream skill paths can be added through the `skills` list in `settings.json`
+- [sources/agents.nix](sources/agents.nix) exports selected pi-managed skills from `~/.pi/agent/` into the shared `~/.agents/skills/` directory
+- `~/.claude/skills`, `~/.codex/skills/user`, and `~/.gemini/skills` all point at that shared directory
+- repo-local skills continue to live directly under [resources/agents/skills/](resources/agents/skills/)
 
-Manage refs with `env-load refs` — no Nix required:
-
-```sh
-env-load refs list                                     # list tracked refs and symlinks
-env-load refs sync                                     # pull latest from all upstreams
-env-load refs add anthropic/skills skills/mcp-builder  # add a new skill from anthropics/skills
-env-load refs rm mcp-builder                           # remove a skill (and submodule if empty)
-```
-
-When cloning this repo, initialise submodules with:
-```sh
-git submodule update --init --recursive
-```
+This repo no longer uses `.refs/` submodules or `env-load refs` for skill management.
 
 ## Nix Packaging Notes
 

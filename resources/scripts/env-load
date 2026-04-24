@@ -29,10 +29,6 @@ Usage:
   env-load clean                                    Remove unreferenced user and system Nix store paths
   env-load purge                                    Delete all old generations and collect garbage (no rollback)
   env-load push                                     Squash unpushed commits since last apply and push
-  env-load refs list                                List tracked refs and their symlinks
-  env-load refs sync                                Update all refs to latest upstream
-  env-load refs add <org/repo> <repo-path> [<name>] Add a resource from a GitHub ref
-  env-load refs rm <name>                           Remove a resource symlink
   env-load help                                     Show this help message
 
 Options:
@@ -42,9 +38,6 @@ Arguments:
   <path|ref>    Local path to repo or git ref (branch/tag). Defaults to 'main'.
                   Local:  env-load user notebook ~/environment
                   Remote: env-load user notebook my-branch
-  <org/repo>    GitHub organization and repository (e.g. anthropic/skills)
-  <repo-path>   Path to resource within the repository (e.g. skills/skill-creator)
-  <name>        Local name for the symlink, defaults to last component of repo-path
 EOF
 }
 
@@ -113,12 +106,9 @@ parse_args() {
       COMMAND_ARG="${arg2}";
       REFERENCE="${arg3:-${TARGET_REF:-main}}";
       ;;
-    help|clean|purge|push|refs|'')
+    help|clean|purge|push|'')
       COMMAND="${arg1:-help}";
       COMMAND_ARG="${arg2}";
-      REFS_ARG1="${arg3:-}";
-      REFS_ARG2="${4:-}";
-      REFS_ARG3="${5:-}";
       ;;
     *)
       [ -n "${arg2}" ] && die "unknown command '${arg1}'.";
@@ -142,8 +132,8 @@ parse_args() {
     [ -f "${REFERENCE}/flake.nix" ] || die "'${REFERENCE}' does not appear to be the environment repo (no flake.nix found).";
     git -C "${REFERENCE}" remote -v 2>/dev/null | grep -q "git-rafael/environment" \
       || die "'${REFERENCE}' is not the git-rafael/environment repository.";
-    HOME_URL="git+file://$(realpath "${REFERENCE}")?submodules=1";
-    DEVICES_URL="git+file://$(realpath "${REFERENCE}")?submodules=1&dir=devices";
+    HOME_URL="git+file://$(realpath "${REFERENCE}")";
+    DEVICES_URL="git+file://$(realpath "${REFERENCE}")?dir=devices";
   else
     HOME_URL="github:git-rafael/environment?ref=${REFERENCE}";
     DEVICES_URL="github:git-rafael/environment?dir=devices&ref=${REFERENCE}";
@@ -219,7 +209,7 @@ cmd_system_init() {
   [ -f /etc/NIXOS ] || fail "'system init' only works on NixOS.";
   [ -f /etc/nixos/hardware-configuration.nix ] || fail "/etc/nixos/hardware-configuration.nix not found.";
   [ -f /etc/nixos/configuration.nix ] || fail "/etc/nixos/configuration.nix not found.";
-  [ -d "${REFERENCE}" ] || fail "'system init' requires a local clone of git-rafael/environment. Clone it first and re-run: git clone --recurse-submodules https://github.com/git-rafael/environment.git <path>";
+  [ -d "${REFERENCE}" ] || fail "'system init' requires a local clone of git-rafael/environment. Clone it first and re-run: git clone https://github.com/git-rafael/environment.git <path>";
 
   require_clean_repo;
 
@@ -416,12 +406,8 @@ apply_system() {
 
   if [ -d "${REFERENCE}" ]; then
     sudo git config --global --add safe.directory "$(realpath "${REFERENCE}")";
-    git -C "${REFERENCE}" submodule foreach --quiet --recursive 'printf "%s\n" "$toplevel/$sm_path"' | \
-      while IFS= read -r sm; do
-        sudo git config --global --add safe.directory "$(realpath "$sm")";
-      done;
   fi;
-  if [ "${UPDATE}" = true ]; then update_submodules; nix flake update --flake "${DEVICES_URL}"; fi;
+  if [ "${UPDATE}" = true ]; then nix flake update --flake "${DEVICES_URL}"; fi;
 
   # Lanzaboote (Secure Boot): ensure sbctl keys exist before rebuilding.
   if [ -d "${REFERENCE}" ] && grep -rq 'lanzaboote' "${REFERENCE}/devices/${device}/configuration.nix" 2>/dev/null; then
@@ -648,7 +634,7 @@ cmd_user() {
 
   require_clean_repo;
 
-  if [ "${UPDATE}" = true ]; then update_submodules; nix flake update --flake "${HOME_URL}"; fi;
+  if [ "${UPDATE}" = true ]; then nix flake update --flake "${HOME_URL}"; fi;
 
   local target_path="${HOME_URL}#homeConfigurations.${target}.activationPackage";
   local out;
@@ -675,18 +661,9 @@ suggest_system_init() {
   echo "This NixOS device has no system configuration applied yet.";
   echo "To register it in the environment repo and apply it, clone the repo and run 'system init':";
   echo;
-  echo "  git clone --recurse-submodules https://github.com/git-rafael/environment.git ~/Desktop/Codebase/environment";
+  echo "  git clone https://github.com/git-rafael/environment.git ~/Desktop/Codebase/environment";
   echo "  env-load system init ~/Desktop/Codebase/environment";
   echo;
-}
-
-update_submodules() {
-  [ -d "${REFERENCE}" ] || return 0;
-  git -C "${REFERENCE}" submodule update --remote --merge --quiet;
-  local changed;
-  changed="$(git -C "${REFERENCE}" status --porcelain 2>/dev/null)";
-  [ -n "${changed}" ] && git -C "${REFERENCE}" add -u \
-    && git -C "${REFERENCE}" commit -m "Update submodules";
 }
 
 require_sudo() {
@@ -778,153 +755,6 @@ cmd_clean() {
   clean_os;
 }
 
-cmd_refs() {
-  local subcmd="${COMMAND_ARG:-}";
-  local repo_ref="${REFS_ARG1:-}";
-  local repo_path="${REFS_ARG2:-}";
-
-  local repo_root;
-  repo_root="$(git rev-parse --show-toplevel)";
-  local refs_dir="${repo_root}/.refs";
-  local skills_dir="${repo_root}/resources/agents/skills";
-
-  case "${subcmd}" in
-    list)
-      refs_list "${refs_dir}" "${skills_dir}";
-      ;;
-    sync)
-      refs_sync "${refs_dir}";
-      ;;
-    add)
-      [ -z "${repo_ref}" ]  && die "'refs add' requires <org/repo>.";
-      [ -z "${repo_path}" ] && die "'refs add' requires <repo-path>.";
-      local name="${REFS_ARG3:-$(basename "${repo_path}")}";
-      refs_add "${refs_dir}" "${skills_dir}" "${repo_ref}" "${repo_path}" "${name}";
-      ;;
-    rm)
-      [ -z "${repo_ref}" ] && die "'refs rm' requires <name>.";
-      refs_rm "${refs_dir}" "${skills_dir}" "${repo_ref}";
-      ;;
-    *)
-      die "'refs' requires a subcommand: list, sync, add, rm.";
-      ;;
-  esac
-}
-
-refs_list() {
-  local refs_dir="$1" skills_dir="$2";
-
-  echo "Refs:";
-  if [ -d "${refs_dir}" ]; then
-    find "${refs_dir}" -mindepth 2 -maxdepth 2 -type d | sort | while read -r ref_path; do
-      local org repo remote;
-      org="$(basename "$(dirname "${ref_path}")")";
-      repo="$(basename "${ref_path}")";
-      remote="$(git -C "${ref_path}" remote get-url origin 2>/dev/null || echo '?')";
-      local sparse;
-      sparse="$(git -C "${ref_path}" sparse-checkout list 2>/dev/null | tr '\n' ' ' | sed 's/ *$//')";
-      echo "  ${org}/${repo}  ${remote}";
-      [ -n "${sparse}" ] && echo "    paths: ${sparse}";
-    done
-  else
-    echo "  (none)";
-  fi
-
-  echo "";
-  echo "Symlinks:";
-  if [ -d "${skills_dir}" ]; then
-    find "${skills_dir}" -maxdepth 1 -type l | sort | while read -r link; do
-      local target;
-      target="$(readlink "${link}")";
-      echo "  $(basename "${link}")  →  ${target}";
-    done
-  else
-    echo "  (none)";
-  fi
-}
-
-refs_sync() {
-  local refs_dir="$1";
-  echo "Syncing refs...";
-  git -C "$(dirname "${refs_dir}")" submodule update --remote --merge -- \
-    $(git -C "$(dirname "${refs_dir}")" submodule foreach --quiet 'echo $sm_path' | grep "^\.refs/" | tr '\n' ' ');
-  echo "Done.";
-}
-
-refs_add() {
-  local refs_dir="$1" skills_dir="$2" org_repo="$3" repo_path="$4" name="$5";
-  local org repo submodule_path url link_path link_target;
-
-  org="$(echo "${org_repo}" | cut -d/ -f1)";
-  repo="$(echo "${org_repo}" | cut -d/ -f2)";
-  submodule_path=".refs/${org}/${repo}";
-  url="https://github.com/${org}/${repo}.git";
-  link_path="${skills_dir}/${name}";
-  # relative path from link location back to .refs/<org>/<repo>/<repo-path>
-  # count extra depth from slashes in name (e.g. gws/gws-gmail needs ../../../../ instead of ../../../)
-  local depth; depth="$(echo "${name}" | tr -cd '/' | wc -c)";
-  local prefix="../../../";
-  local i; for i in $(seq 1 "${depth}"); do prefix="../${prefix}"; done;
-  link_target="${prefix}.refs/${org}/${repo}/${repo_path}";
-
-  local repo_root;
-  repo_root="$(dirname "${refs_dir}")";
-
-  if [ ! -d "${repo_root}/${submodule_path}" ]; then
-    echo "Adding submodule ${org}/${repo}...";
-    git -C "${repo_root}" submodule add --depth=1 "${url}" "${submodule_path}";
-    git -C "${repo_root}/${submodule_path}" sparse-checkout init --cone;
-  fi
-
-  echo "Adding sparse-checkout path: ${repo_path}";
-  git -C "${repo_root}/${submodule_path}" sparse-checkout add "${repo_path}";
-
-  if [ -e "${link_path}" ] || [ -L "${link_path}" ]; then
-    fail "symlink '${name}' already exists in resources/agents/skills/. Use 'refs rm ${name}' first.";
-  fi
-
-  mkdir -p "$(dirname "${link_path}")";
-  ln -s "${link_target}" "${link_path}";
-  echo "Added: resources/agents/skills/${name}  →  ${link_target}";
-}
-
-refs_rm() {
-  local refs_dir="$1" skills_dir="$2" name="$3";
-  local link_path="${skills_dir}/${name}";
-
-  if [ ! -L "${link_path}" ]; then
-    fail "no symlink '${name}' found in resources/agents/skills/.";
-  fi
-
-  local target org repo repo_path submodule_path;
-  target="$(readlink "${link_path}")";
-  # target format: ../../../.refs/<org>/<repo>/<repo-path>
-  repo_path="$(echo "${target}" | sed 's|.*\.refs/[^/]*/[^/]*/||')";
-  org="$(echo "${target}" | sed 's|.*\.refs/\([^/]*\)/.*|\1|')";
-  repo="$(echo "${target}" | sed 's|.*\.refs/[^/]*/\([^/]*\)/.*|\1|')";
-  submodule_path=".refs/${org}/${repo}";
-
-  rm "${link_path}";
-  echo "Removed symlink: resources/agents/skills/${name}";
-
-  local repo_root;
-  repo_root="$(dirname "${refs_dir}")";
-
-  if [ -d "${repo_root}/${submodule_path}" ]; then
-    echo "Removing sparse-checkout path: ${repo_path}";
-    local remaining;
-    remaining="$(git -C "${repo_root}/${submodule_path}" sparse-checkout list 2>/dev/null | grep -v "^${repo_path}$" || true)";
-    if [ -z "${remaining}" ]; then
-      echo "No more paths tracked from ${org}/${repo}. Removing submodule...";
-      git -C "${repo_root}" submodule deinit -f "${submodule_path}";
-      git -C "${repo_root}" rm -f "${submodule_path}";
-      rm -rf "${repo_root}/.git/modules/${submodule_path}";
-    else
-      git -C "${repo_root}/${submodule_path}" sparse-checkout set ${remaining};
-    fi
-  fi
-}
-
 cmd_purge() {
   require_sudo;
   echo "WARNING: This will delete ALL old Nix generations for both user and system.";
@@ -943,7 +773,6 @@ parse_args "$@";
 
 case "${COMMAND}" in
   help) show_help; exit 0 ;;
-  refs) cmd_refs;  exit 0 ;;
   push) cmd_push;  exit 0 ;;
 esac
 

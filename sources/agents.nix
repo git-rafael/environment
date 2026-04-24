@@ -43,6 +43,33 @@ let
 
   env-agent = pkgs.writeShellScriptBin "env-agent" (builtins.readFile ../resources/scripts/env-agent);
 
+  piVersion = "0.70.2";
+
+  piPackage = pkgs.buildNpmPackage {
+    pname = "pi-coding-agent";
+    version = piVersion;
+
+    src = pkgs.fetchurl {
+      url = "https://registry.npmjs.org/@mariozechner/pi-coding-agent/-/pi-coding-agent-${piVersion}.tgz";
+      hash = "sha256-bv+JqGQb0tIUXkm4B7f874y9VUzxlP/DHRq+DjYGddU=";
+    };
+
+    sourceRoot = "package";
+    postPatch = ''
+      cp ${../resources/packages/pi/package-lock.json} package-lock.json
+    '';
+
+    npmDepsHash = "sha256-bG1Hg8sH8kY0IEkL2CWdscrVLMVL6PDfDkTS5RviPDg=";
+    dontNpmBuild = true;
+
+    meta = with pkgs.lib; {
+      description = "Minimal terminal coding harness";
+      homepage = "https://github.com/badlogic/pi-mono";
+      license = licenses.mit;
+      mainProgram = "pi";
+    };
+  };
+
   pi = let
     npm = pkgs.writeShellScriptBin "npm" ''
       export npm_config_prefix="$HOME/.pi/agent/npm"
@@ -53,7 +80,7 @@ let
     piPath = pkgs.lib.makeBinPath ([ npm ] ++ pkgs.lib.optionals withUI [ pkgs.google-chrome ]);
   in pkgs.symlinkJoin {
     name = "pi-coding-agent";
-    paths = [ edgePkgs.pi-coding-agent ];
+    paths = [ piPackage ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/pi \

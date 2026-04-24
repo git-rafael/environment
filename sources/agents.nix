@@ -109,13 +109,26 @@ EOF
     npm = pkgs.writeShellScriptBin "npm" ''
       export npm_config_prefix="$HOME/.pi/agent/npm"
       export NPM_CONFIG_PREFIX="$HOME/.pi/agent/npm"
+      export npm_config_cache="$HOME/.pi/agent/npm/cache"
+      export NPM_CONFIG_CACHE="$HOME/.pi/agent/npm/cache"
       export PYTHONUSERBASE="$HOME/.pi/agent/python"
       export PIP_CACHE_DIR="$HOME/.pi/agent/python/cache/pip"
       export PATH="$HOME/.pi/agent/python/bin:${piPython}/bin:${piBuildPath}:$HOME/.pi/agent/npm/bin''${PATH:+:$PATH}"
       exec ${pkgs.nodejs}/bin/npm "$@"
     '';
+    npx = pkgs.writeShellScriptBin "npx" ''
+      export npm_config_prefix="$HOME/.pi/agent/npm"
+      export NPM_CONFIG_PREFIX="$HOME/.pi/agent/npm"
+      export npm_config_cache="$HOME/.pi/agent/npm/cache"
+      export NPM_CONFIG_CACHE="$HOME/.pi/agent/npm/cache"
+      export PYTHONUSERBASE="$HOME/.pi/agent/python"
+      export PIP_CACHE_DIR="$HOME/.pi/agent/python/cache/pip"
+      export PATH="$HOME/.pi/agent/python/bin:${piPython}/bin:${piBuildPath}:$HOME/.pi/agent/npm/bin''${PATH:+:$PATH}"
+      exec ${pkgs.nodejs}/bin/npx "$@"
+    '';
     piPath = pkgs.lib.makeBinPath ([
       npm
+      npx
       piPython
       pythonRuntime
       pkgs.stdenv.cc

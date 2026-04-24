@@ -24,6 +24,13 @@ let
     ]; 
   } (builtins.readFile ../resources/scripts/gtoken);
 
+  tv-vim = pkgs.fetchFromGitHub {
+    owner = "prabirshrestha";
+    repo = "tv.vim";
+    rev = "88163c4cfd72e580452a72af46282d707abc186b";
+    sha256 = "1qpaj23lhm7n03hj5jdr2k49w314f78j8kascpixh17i389nni9r";
+  };
+
 in  {
   home.packages = with pkgs; [
     env-load
@@ -75,6 +82,13 @@ in  {
     plasmaDnSwitcher
   ];
 
+  home.file = {
+    ".vim/pack/plugins/start/tv.vim".source = tv-vim;
+  } // pkgs.lib.mkIf withUI {
+    ".config/google-chrome/NativeMessagingHosts/org.kde.plasma.browser_integration.json".source =
+      "${pkgs.kdePackages.plasma-browser-integration}/etc/chromium/native-messaging-hosts/org.kde.plasma.browser_integration.json";
+  };
+
   programs.chromium = {
     enable = withUI;
     package = pkgs.google-chrome;
@@ -84,11 +98,6 @@ in  {
       "--disable-pinch"
     ];
   };
-  home.file = pkgs.lib.mkIf withUI {
-    ".config/google-chrome/NativeMessagingHosts/org.kde.plasma.browser_integration.json".source =
-      "${pkgs.kdePackages.plasma-browser-integration}/etc/chromium/native-messaging-hosts/org.kde.plasma.browser_integration.json";
-  };
-
   systemd.user.services.btproximity = pkgs.lib.mkIf onOS {
     Unit.Description = "Bluetooth proximity screen lock";
     Install.WantedBy = [ "default.target" ];

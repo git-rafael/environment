@@ -38,6 +38,7 @@ in  {
     wget
     zip
     jq
+    television
     
     bat
     tiv

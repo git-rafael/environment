@@ -136,10 +136,12 @@ EOF
 
 Restart the container for changes to take place.
 
-## Agent Skills
+## Pi and Agent Skills
 
-Pi is the declarative source of truth for third-party agent skills and extensions through `resources/agents/pi/settings.json`.
+Pi is packaged declaratively in `sources/agents.nix` from a pinned npm release of `@mariozechner/pi-coding-agent`.
 
+- The pinned npm dependency graph for the pi CLI lives in `resources/packages/pi/package-lock.json`
+- Third-party pi packages, skills, and extensions are declared in `resources/agents/pi/settings.json`
 - Upstream packages are declared in pi settings under `packages`
 - Non-standard skill paths can be added through pi settings under `skills`
 - `sources/agents.nix` exports selected pi-managed skills into `~/.agents/skills`

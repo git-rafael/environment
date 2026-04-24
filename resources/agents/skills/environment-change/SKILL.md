@@ -61,7 +61,7 @@ For this workstation:
 
 The main Home Manager modules live in `sources/`:
 
-- `sources/agents.nix` — pi, agent CLIs, pi settings, and shared skill exports for Claude/Codex/Gemini
+- `sources/agents.nix` — pi (packaged from a pinned npm release), agent CLIs, pi settings, and shared skill exports for Claude/Codex/Gemini
 - `sources/shell.nix` — shell, tmux, git, fonts, `env-shell`
 - `sources/development.nix` — editor and development tooling
 - `sources/utility.nix` — common CLI tools, browser, agent CLIs, small utilities
@@ -112,6 +112,7 @@ When editing package lists:
 - Use `pkgs.lib.optionals forWork [...]` for work-only tools.
 - Ask before placing something behind the `work` feature if the work/personal boundary is unclear.
 - Prefer `edgePkgs` only when a newer unstable package is actually needed.
+- For `pi`, prefer the pinned npm-tarball package pattern already used in `sources/agents.nix` instead of reintroducing `edgePkgs.pi-coding-agent`.
 
 Do **not** solve persistent package requests with `nix-env`, `nix profile`, `pip install`, `npm install -g`, or similar one-off installs unless the user explicitly asks for that.
 

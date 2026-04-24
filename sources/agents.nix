@@ -31,12 +31,14 @@ let
     map (name: {
       name = ".agents/skills/${name}";
       value = {
+        force = true;
         source = "${self}/resources/agents/skills/${name}";
       };
     }) (builtins.attrNames localSkillEntries)
   );
 
   piManagedSkillFiles = pkgs.lib.mapAttrs' (name: relativePath: pkgs.lib.nameValuePair ".agents/skills/${name}" {
+    force = true;
     source = mkOutOfStoreSymlink (mkPiManagedSkillPath relativePath);
   }) piSkillExports;
 

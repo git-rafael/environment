@@ -33,6 +33,3 @@ bindkey '^X' create_completion;
 if [[ -n "$OPENAI_API_KEY" ]]; then
   sed -i "/^\[openai_service\]/,/^\[/ s/^api_key *= *.*/api_key = $OPENAI_API_KEY/" ~/.config/zsh_codex.ini
 fi
-
-# alias function for goose
-o() { goose run -st "$*"; }

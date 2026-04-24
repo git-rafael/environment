@@ -18,7 +18,7 @@ Translate requests like these into the right repository change:
 - "install this package permanently"
 - "adjust my Home Manager"
 - "change the NixOS config for this notebook"
-- "make this available to Claude/Codex/Goose/Gemini on this machine"
+- "make this available to Claude/Codex/Gemini on this machine"
 - "add a persistent skill"
 - "update the workstation setup"
 

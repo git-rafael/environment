@@ -27,20 +27,19 @@ let
   sharedAgentSkillsPath = "${homeDirectory}/.agents/skills";
   mkPiManagedSkillPath = relativePath: "${homeDirectory}/.pi/agent/${relativePath}";
 
-  localSkillFiles = builtins.listToAttrs (
-    map (name: {
-      name = ".agents/skills/${name}";
-      value = {
-        force = true;
-        source = "${self}/resources/agents/skills/${name}";
-      };
-    }) (builtins.attrNames localSkillEntries)
-  );
+  sharedAgentSkills = pkgs.runCommandLocal "shared-agent-skills" { } ''
+    mkdir -p "$out"
 
-  piManagedSkillFiles = pkgs.lib.mapAttrs' (name: relativePath: pkgs.lib.nameValuePair ".agents/skills/${name}" {
-    force = true;
-    source = mkOutOfStoreSymlink (mkPiManagedSkillPath relativePath);
-  }) piSkillExports;
+    ${pkgs.lib.concatMapStringsSep "\n" (name: ''
+      ln -s ${pkgs.lib.escapeShellArg "${self}/resources/agents/skills/${name}"} "$out/${name}"
+    '') (builtins.attrNames localSkillEntries)}
+
+    ${pkgs.lib.concatStringsSep "\n" (
+      pkgs.lib.mapAttrsToList (name: relativePath: ''
+        ln -s ${pkgs.lib.escapeShellArg (mkPiManagedSkillPath relativePath)} "$out/${name}"
+      '') piSkillExports
+    )}
+  '';
 
   env-agent = pkgs.writeShellScriptBin "env-agent" (builtins.readFile ../resources/scripts/env-agent);
 
@@ -130,7 +129,7 @@ in {
     herdr
   ];
 
-  home.file = localSkillFiles // piManagedSkillFiles // {
+  home.file = {
     # Agent instructions — Codex convention (~/.codex/AGENTS.md)
     ".codex/AGENTS.md" = {
       force = true;
@@ -141,6 +140,12 @@ in {
     ".claude/CLAUDE.md" = {
       force = true;
       source = ../resources/settings/AGENTS.md;
+    };
+
+    # Agent Skills — cross-client convention (~/.agents/skills/)
+    ".agents/skills" = {
+      force = true;
+      source = sharedAgentSkills;
     };
 
     # Agent Skills — Codex user convention (~/.codex/skills/user/)

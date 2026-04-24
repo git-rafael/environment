@@ -31,7 +31,7 @@
             config.allowUnfree = true;
             config.allowUnsupportedSystem = true;
           };
-          env = { inherit pkgs edgePkgs features self; };
+          env = { inherit pkgs edgePkgs features self username; };
           
           agentsInstallation = (agents env);
           developmentInstallation = (development env);

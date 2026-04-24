@@ -1,7 +1,44 @@
-{ pkgs, edgePkgs, features, self, ... }:
+{ pkgs, edgePkgs, features, self, username, ... }:
 
 let
   withUI = builtins.elem "ui" features;
+
+  homeDirectory =
+    if username == "null" then "/home"
+    else if username == "root" then "/root"
+    else "/home/${username}";
+
+  mkOutOfStoreSymlink = path:
+    let
+      pathStr = toString path;
+      name = "hm_${pkgs.lib.replaceStrings [ " " "/" ] [ "-" "-" ] (baseNameOf pathStr)}";
+    in
+    pkgs.runCommandLocal name { } "ln -s ${pkgs.lib.escapeShellArg pathStr} $out";
+
+  piSkillExports = {
+    agent-browser = "git/github.com/vercel-labs/agent-browser/skills/agent-browser";
+    skill-creator = "git/github.com/anthropics/skills/skills/skill-creator";
+    visual-explainer = "git/github.com/nicobailon/visual-explainer/plugins/visual-explainer";
+  };
+
+  localSkillEntries =
+    builtins.removeAttrs (builtins.readDir ../resources/agents/skills) (builtins.attrNames piSkillExports);
+
+  sharedAgentSkillsPath = "${homeDirectory}/.agents/skills";
+  mkPiManagedSkillPath = relativePath: "${homeDirectory}/.pi/agent/${relativePath}";
+
+  localSkillFiles = builtins.listToAttrs (
+    map (name: {
+      name = ".agents/skills/${name}";
+      value = {
+        source = "${self}/resources/agents/skills/${name}";
+      };
+    }) (builtins.attrNames localSkillEntries)
+  );
+
+  piManagedSkillFiles = pkgs.lib.mapAttrs' (name: relativePath: pkgs.lib.nameValuePair ".agents/skills/${name}" {
+    source = mkOutOfStoreSymlink (mkPiManagedSkillPath relativePath);
+  }) piSkillExports;
 
   env-agent = pkgs.writeShellScriptBin "env-agent" (builtins.readFile ../resources/scripts/env-agent);
 
@@ -91,7 +128,7 @@ in {
     herdr
   ];
 
-  home.file = {
+  home.file = localSkillFiles // piManagedSkillFiles // {
     # Agent instructions — Codex convention (~/.codex/AGENTS.md)
     ".codex/AGENTS.md" = {
       force = true;
@@ -104,24 +141,19 @@ in {
       source = ../resources/settings/AGENTS.md;
     };
 
-    # Agent Skills — cross-client convention (~/.agents/skills/)
-    ".agents/skills" = {
-      source = "${self}/resources/agents/skills";
-    };
-
     # Agent Skills — Codex user convention (~/.codex/skills/user/)
     ".codex/skills/user" = {
-      source = "${self}/resources/agents/skills";
+      source = mkOutOfStoreSymlink sharedAgentSkillsPath;
     };
 
     # Agent Skills — Claude Code convention (~/.claude/skills/)
     ".claude/skills" = {
-      source = "${self}/resources/agents/skills";
+      source = mkOutOfStoreSymlink sharedAgentSkillsPath;
     };
 
     # Agent Skills — Gemini CLI convention (~/.gemini/skills/)
     ".gemini/skills" = {
-      source = "${self}/resources/agents/skills";
+      source = mkOutOfStoreSymlink sharedAgentSkillsPath;
     };
 
     # Pi global settings

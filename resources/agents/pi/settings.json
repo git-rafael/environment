@@ -14,6 +14,30 @@
     "npm:@kaiserlich-dev/pi-session-search@1.1.1",
     "npm:@benvargas/pi-claude-code-use@1.0.1",
     "npm:pi-zentui@0.1.2",
-    "npm:pi-tool-display@0.3.2"
+    "npm:pi-tool-display@0.3.2",
+    {
+      "source": "git:github.com/anthropics/skills",
+      "extensions": [],
+      "skills": ["skills/skill-creator"],
+      "prompts": [],
+      "themes": []
+    },
+    {
+      "source": "git:github.com/vercel-labs/agent-browser",
+      "extensions": [],
+      "skills": ["skills/agent-browser"],
+      "prompts": [],
+      "themes": []
+    },
+    {
+      "source": "git:github.com/nicobailon/visual-explainer",
+      "extensions": [],
+      "skills": [],
+      "prompts": [],
+      "themes": []
+    }
+  ],
+  "skills": [
+    "git/github.com/nicobailon/visual-explainer/plugins/visual-explainer"
   ]
 }

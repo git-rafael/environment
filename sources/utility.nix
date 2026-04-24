@@ -39,6 +39,9 @@ in  {
     zip
     jq
     television
+    fd
+    ripgrep
+    binutils
     
     bat
     tiv

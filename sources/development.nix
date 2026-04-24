@@ -75,6 +75,8 @@ in {
     docker-client
     podman-compose
     docker-compose
+    distrobox
+    just
   ] ++ pkgs.lib.optionals forWork [
     flash-install
   ];

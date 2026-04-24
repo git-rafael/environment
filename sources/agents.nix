@@ -71,20 +71,68 @@ let
   };
 
   pi = let
+    pythonRuntime = pkgs.python3.withPackages (ps: with ps; [
+      pip
+      setuptools
+      wheel
+    ]);
+    piBuildPath = pkgs.lib.makeBinPath (with pkgs; [
+      stdenv.cc
+      gnumake
+      pkg-config
+      binutils
+    ]);
+    piPython = pkgs.runCommandLocal "pi-python" { } ''
+      mkdir -p "$out/bin"
+
+      cat > "$out/bin/python" <<'EOF'
+#!${pkgs.runtimeShell}
+export PYTHONUSERBASE="$HOME/.pi/agent/python"
+export PIP_CACHE_DIR="$HOME/.pi/agent/python/cache/pip"
+export PATH="$PYTHONUSERBASE/bin:${piBuildPath}''${PATH:+:$PATH}"
+exec ${pythonRuntime}/bin/python3 "$@"
+EOF
+
+      cat > "$out/bin/pip" <<'EOF'
+#!${pkgs.runtimeShell}
+export PYTHONUSERBASE="$HOME/.pi/agent/python"
+export PIP_CACHE_DIR="$HOME/.pi/agent/python/cache/pip"
+export PIP_USER=1
+export PATH="$PYTHONUSERBASE/bin:${piBuildPath}''${PATH:+:$PATH}"
+exec ${pythonRuntime}/bin/python3 -m pip "$@"
+EOF
+
+      chmod +x "$out/bin/python" "$out/bin/pip"
+      ln -s python "$out/bin/python3"
+      ln -s pip "$out/bin/pip3"
+    '';
     npm = pkgs.writeShellScriptBin "npm" ''
       export npm_config_prefix="$HOME/.pi/agent/npm"
       export NPM_CONFIG_PREFIX="$HOME/.pi/agent/npm"
-      export PATH="$HOME/.pi/agent/npm/bin''${PATH:+:$PATH}"
+      export PYTHONUSERBASE="$HOME/.pi/agent/python"
+      export PIP_CACHE_DIR="$HOME/.pi/agent/python/cache/pip"
+      export PATH="$HOME/.pi/agent/python/bin:${piPython}/bin:${piBuildPath}:$HOME/.pi/agent/npm/bin''${PATH:+:$PATH}"
       exec ${pkgs.nodejs}/bin/npm "$@"
     '';
-    piPath = pkgs.lib.makeBinPath ([ npm ] ++ pkgs.lib.optionals withUI [ pkgs.google-chrome ]);
+    piPath = pkgs.lib.makeBinPath ([
+      npm
+      piPython
+      pythonRuntime
+      pkgs.stdenv.cc
+      pkgs.gnumake
+      pkgs.pkg-config
+      pkgs.binutils
+    ] ++ pkgs.lib.optionals withUI [ pkgs.google-chrome ]);
   in pkgs.symlinkJoin {
     name = "pi-coding-agent";
     paths = [ piPackage ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/pi \
-        --run 'export PATH="$HOME/.pi/agent/npm/bin:${piPath}''${PATH:+:''$PATH}"'
+        --run 'export PYTHONUSERBASE="$HOME/.pi/agent/python"' \
+        --run 'export PIP_CACHE_DIR="$HOME/.pi/agent/python/cache/pip"' \
+        --run 'export PIP_USER=1' \
+        --run 'export PATH="$HOME/.pi/agent/python/bin:$HOME/.pi/agent/npm/bin:${piPath}''${PATH:+:''$PATH}"'
     '';
   };
 

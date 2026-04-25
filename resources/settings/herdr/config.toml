@@ -1,0 +1,26 @@
+onboarding = false
+
+[theme]
+name = "nord"
+
+[keys]
+# Match tmux muscle memory from resources/settings/tmux.conf.
+# Shift+arrows focus panes directly from terminal mode.
+focus_pane_up = "shift+up"
+focus_pane_down = "shift+down"
+focus_pane_left = "shift+left"
+focus_pane_right = "shift+right"
+
+# Prefix-mode Herdr spawns/splits equivalent to tmux:
+# C-S-Up    -> new tab/window
+# C-S-Down  -> split below (tmux split-window -v)
+# C-S-Right -> split right (tmux split-window -h)
+new_tab = "ctrl+shift+up"
+split_horizontal = "ctrl+shift+down"
+split_vertical = "ctrl+shift+right"
+
+[ui.sound]
+enabled = false
+
+[ui.toast]
+enabled = true

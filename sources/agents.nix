@@ -233,6 +233,12 @@ in {
       source = mkOutOfStoreSymlink sharedAgentSkillsPath;
     };
 
+    # Herdr settings
+    ".config/herdr/config.toml" = {
+      force = true;
+      source = ../resources/settings/herdr/config.toml;
+    };
+
     # Pi global settings
     ".pi/agent/settings.json" = {
       force = true;

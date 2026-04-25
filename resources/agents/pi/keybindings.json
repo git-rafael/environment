@@ -1,4 +1,4 @@
 {
-  "tui.input.newLine": ["shift+enter", "ctrl+j"],
+  "tui.input.newLine": ["ctrl+space", "shift+enter"],
   "tui.editor.cursorRight": ["right"]
 }

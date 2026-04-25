@@ -126,6 +126,8 @@ EOF
       sourceRoot = "package";
       postPatch = ''
         cp ${./.npm/packages/even-terminal/package-lock.json} package-lock.json
+        substituteInPlace dist/claude/session.js \
+          --replace-fail 'options: {' 'options: { pathToClaudeCodeExecutable: "${edgePkgs.claude-code}/bin/claude",'
       '';
 
       npmDepsHash = "sha256-HmrHbxHRBwKoINwRLll/kx611frewjBiELAsPzm18XQ=";

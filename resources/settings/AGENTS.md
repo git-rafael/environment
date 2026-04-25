@@ -44,3 +44,11 @@ Machine-level instructions for coding agents installed on this workstation.
 - Do not treat ad hoc local skill installation as the final persistent solution.
 - For persistent skill availability, suggest adding the skill to `~/Desktop/Codebase/home/environment` using the repository conventions: pi package declarations in `resources/agents/pi/settings.json`, explicit skill path exports when needed, and repo-local skills under `resources/agents/skills`.
 - Prefer persistent skill changes in the environment repository over manual one-off changes in agent home directories.
+
+## Workarounds
+
+- Prefer `pi-web-access` as the canonical `web_search` provider on this workstation.
+- For checkpoint-driven/deep research loops, call `web_search` with `workflow: "none"` to avoid the interactive curator interrupting the loop.
+- Use the `pi-web-access` parameter names: `numResults`, `domainFilter`, `recencyFilter`, `includeContent`, and `provider`.
+- Do not use older Tavily/Brave-style `web_search` parameter names such as `max_results`, `search_depth`, `include_domains`, or `exclude_domains` unless the active tool schema explicitly supports them.
+- When using `pi-deep-research`, combine `web_search` from `pi-web-access` with the available deep research tools such as `web_extract` and `research_checkpoint`.

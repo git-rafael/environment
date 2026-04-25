@@ -127,6 +127,7 @@ The current model is:
 - the npm dependency graph for that package is vendored in [resources/packages/pi/package-lock.json](resources/packages/pi/package-lock.json)
 - other agent CLIs should come directly from standard nixpkgs packages, using `edgePkgs` when current stable nixpkgs is missing features or is behind the desired agent release
 - pi installs upstream packages from the declarative `packages` list in `settings.json`
+- repo-local Pi skills maintained under `resources/agents/skills/` are deployed to `~/.pi/agent/skills/` by `sources/agents.nix`
 - non-standard pi skill paths can be added through the `skills` list in `settings.json`
 - skills are not shared across coding agents by default; Claude Code, Codex, Gemini, and OpenCode keep their own native skill directories
 - this repo only shares the global agent instruction file across supported agents

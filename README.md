@@ -141,6 +141,7 @@ Restart the container for changes to take place.
 Pi is the primary agent and the declarative source of truth for its third-party skills and extensions through `resources/agents/pi/settings.json`.
 
 - Upstream pi packages are declared in pi settings under `packages`
+- Repo-local Pi skills are maintained under `resources/agents/skills/` and deployed to `~/.pi/agent/skills/`
 - Non-standard pi skill paths can be added through pi settings under `skills`
 - Skills are not shared across coding agents by default
 - Claude, Codex, Gemini, and OpenCode keep their own native skill directories

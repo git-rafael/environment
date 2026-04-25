@@ -61,7 +61,7 @@ For this workstation:
 
 The main Home Manager modules live in `sources/`:
 
-- `sources/agents.nix` — pi packaged from a pinned npm release, other agent CLIs from nixpkgs/edge nixpkgs, pi settings, and global agent instructions for Claude/Codex/Gemini/OpenCode
+- `sources/agents.nix` — pi packaged from a pinned npm release, other agent CLIs from nixpkgs/edge nixpkgs, pi settings, repo-local Pi skills, and global agent instructions for Claude/Codex/Gemini/OpenCode
 - `sources/shell.nix` — shell, tmux, git, fonts, `env-shell`
 - `sources/development.nix` — editor and development tooling
 - `sources/utility.nix` — common CLI tools, browser, agent CLIs, small utilities
@@ -89,7 +89,8 @@ Pi is the primary agent for declarative third-party skills and extensions in thi
 
 That means:
 - pi-managed upstream skills are declared in `resources/agents/pi/settings.json`
-- non-standard pi skill paths can be added through the `skills` array in that settings file
+- repo-local Pi skills live under `resources/agents/skills/<name>` and are deployed by `sources/agents.nix` to `~/.pi/agent/skills/`
+- non-standard pi skill paths can be added through the `skills` array in `resources/agents/pi/settings.json`
 - Claude Code, Codex, Gemini, and OpenCode keep their own native skill directories by default
 - this repo shares the global `AGENTS.md` instruction file across agents, but does not create cross-agent skill links
 
@@ -124,7 +125,7 @@ Edit the smallest relevant module in `sources/`.
 
 Common examples:
 - shell aliases, zsh, tmux → `sources/shell.nix`
-- agent home files and pi settings → `sources/agents.nix`
+- agent home files, pi settings, and repo-local Pi skill deployment → `sources/agents.nix`
 - chromium or CLI utilities → `sources/utility.nix`
 - VSCodium/dev tooling → `sources/development.nix`
 
@@ -146,12 +147,13 @@ Be conservative with `hardware-configuration.nix`. Only edit it when the request
 
 ### 4) Adding or changing a persistent skill
 
-For a local skill maintained in this repo:
+For a local Pi skill maintained in this repo:
 1. If the request is about inventing or refining the skill behavior itself, use `skill-creator` as the authoring workflow.
 2. Create or edit `resources/agents/skills/<skill-name>/SKILL.md` only when the skill is intentionally maintained as repository content.
 3. Add optional supporting files under that skill directory.
 4. Keep the skill self-contained and explicit about when it should trigger.
-5. Wire it to a specific agent only when explicitly requested; do not add cross-agent skill links by default.
+5. Ensure `sources/agents.nix` deploys `resources/agents/skills/` to `~/.pi/agent/skills/` so Pi auto-discovers the repo-local skills.
+6. Wire it to non-Pi agents only when explicitly requested; do not add cross-agent skill links by default.
 
 For an upstream pi skill:
 1. If the user still needs help choosing the skill, use `skill-finder` first.

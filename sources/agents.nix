@@ -202,6 +202,12 @@ in {
       source = ../resources/agents/pi/keybindings.json;
     };
 
+    # Pi repo-local skills
+    ".pi/agent/skills" = {
+      force = true;
+      source = ../resources/agents/skills;
+    };
+
     # Pi extensions
     ".pi/agent/extensions/deep-research-compat.ts" = {
       force = true;

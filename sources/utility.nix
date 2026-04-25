@@ -84,7 +84,7 @@ in  {
 
   home.file = {
     ".vim/pack/plugins/start/tv.vim".source = tv-vim;
-  } // pkgs.lib.mkIf withUI {
+  } // pkgs.lib.optionalAttrs withUI {
     ".config/google-chrome/NativeMessagingHosts/org.kde.plasma.browser_integration.json".source =
       "${pkgs.kdePackages.plasma-browser-integration}/etc/chromium/native-messaging-hosts/org.kde.plasma.browser_integration.json";
   };

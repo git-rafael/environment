@@ -1,8 +1,6 @@
 { pkgs, edgePkgs, features, self, username, ... }:
 
 let
-  withUI = builtins.elem "ui" features;
-
   homeDirectory =
     if username == "null" then "/home"
     else if username == "root" then "/root"
@@ -43,34 +41,35 @@ let
 
   env-agent = pkgs.writeShellScriptBin "env-agent" (builtins.readFile ../resources/scripts/env-agent);
 
-  piVersion = "0.70.2";
-
-  piPackage = pkgs.buildNpmPackage {
-    pname = "pi-coding-agent";
-    version = piVersion;
-
-    src = pkgs.fetchurl {
-      url = "https://registry.npmjs.org/@mariozechner/pi-coding-agent/-/pi-coding-agent-${piVersion}.tgz";
-      hash = "sha256-bv+JqGQb0tIUXkm4B7f874y9VUzxlP/DHRq+DjYGddU=";
-    };
-
-    sourceRoot = "package";
-    postPatch = ''
-      cp ${../resources/packages/pi/package-lock.json} package-lock.json
-    '';
-
-    npmDepsHash = "sha256-bG1Hg8sH8kY0IEkL2CWdscrVLMVL6PDfDkTS5RviPDg=";
-    dontNpmBuild = true;
-
-    meta = with pkgs.lib; {
-      description = "Minimal terminal coding harness";
-      homepage = "https://github.com/badlogic/pi-mono";
-      license = licenses.mit;
-      mainProgram = "pi";
-    };
-  };
-
   pi = let
+    withUI = builtins.elem "ui" features;
+    version = "0.70.2";
+
+    package = pkgs.buildNpmPackage {
+      pname = "pi-coding-agent";
+      inherit version;
+
+      src = pkgs.fetchurl {
+        url = "https://registry.npmjs.org/@mariozechner/pi-coding-agent/-/pi-coding-agent-${version}.tgz";
+        hash = "sha256-bv+JqGQb0tIUXkm4B7f874y9VUzxlP/DHRq+DjYGddU=";
+      };
+
+      sourceRoot = "package";
+      postPatch = ''
+        cp ${../resources/packages/pi/package-lock.json} package-lock.json
+      '';
+
+      npmDepsHash = "sha256-bG1Hg8sH8kY0IEkL2CWdscrVLMVL6PDfDkTS5RviPDg=";
+      dontNpmBuild = true;
+
+      meta = with pkgs.lib; {
+        description = "Minimal terminal coding harness";
+        homepage = "https://github.com/badlogic/pi-mono";
+        license = licenses.mit;
+        mainProgram = "pi";
+      };
+    };
+
     pythonRuntime = pkgs.python3.withPackages (ps: with ps; [
       pip
       setuptools
@@ -139,7 +138,7 @@ EOF
     ] ++ pkgs.lib.optionals withUI [ pkgs.google-chrome ]);
   in pkgs.symlinkJoin {
     name = "pi-coding-agent";
-    paths = [ piPackage ];
+    paths = [ package ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/pi \

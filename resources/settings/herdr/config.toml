@@ -4,6 +4,9 @@ onboarding = false
 name = "nord"
 
 [keys]
+# Ctrl+A enters navigate mode.
+prefix = "ctrl+a"
+
 # Match tmux muscle memory from resources/settings/tmux.conf.
 # Shift+arrows focus panes directly from terminal mode.
 focus_pane_up = "shift+up"
@@ -11,17 +14,17 @@ focus_pane_down = "shift+down"
 focus_pane_left = "shift+left"
 focus_pane_right = "shift+right"
 
-# Prefix-mode Herdr spawns/splits equivalent to tmux:
-# C-T       -> new workspace/space
-# C-W       -> close focused pane
-# C-S-Up    -> new tab/window
-# C-S-Down  -> split below (tmux split-window -v)
-# C-S-Right -> split right (tmux split-window -h)
-new_workspace = "ctrl+t"
-close_pane = "ctrl+w"
-new_tab = "ctrl+shift+up"
-split_horizontal = "ctrl+shift+down"
-split_vertical = "ctrl+shift+right"
+# Navigate-mode Herdr spawns/splits equivalent to tmux, without Ctrl:
+# Q then T       -> new workspace/space
+# Q then W       -> close focused pane
+# Q then S-Up    -> new tab/window
+# Q then S-Down  -> split below (tmux split-window -v)
+# Q then S-Right -> split right (tmux split-window -h)
+new_workspace = "t"
+close_pane = "w"
+new_tab = "shift+up"
+split_horizontal = "shift+down"
+split_vertical = "shift+right"
 
 [ui.sound]
 enabled = false

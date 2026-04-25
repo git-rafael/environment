@@ -50,7 +50,7 @@ All modules are functions instantiated with an `env` attrset from [flake.nix](fl
 
 | File | Purpose |
 |------|---------|
-| [sources/agents.nix](sources/agents.nix) | pi (packaged from a pinned npm release), Claude Code, Codex, Ollama, agent-browser, herdr, pi settings, and shared skill exports |
+| [sources/agents.nix](sources/agents.nix) | pi packaged from pinned npm release, other agent CLIs from edge nixpkgs, Ollama, agent-browser, herdr, pi settings, global agent instructions, and shared skill exports |
 | [sources/shell.nix](sources/shell.nix) | zsh, tmux, starship, direnv, broot, git, fonts, `env-shell` script |
 | [sources/development.nix](sources/development.nix) | VSCodium (FHS), devbox, devenv, podman/docker, gh, quarto |
 | [sources/utility.nix](sources/utility.nix) | `env-load`, chromium, bitwarden-cli, common CLI tools, `gtoken` script |
@@ -117,10 +117,11 @@ The current model is:
 
 - the `pi` CLI itself is packaged in [sources/agents.nix](sources/agents.nix) from a pinned npm tarball using Nix
 - the npm dependency graph for that package is vendored in [resources/packages/pi/package-lock.json](resources/packages/pi/package-lock.json)
+- other agent CLIs should come directly from standard nixpkgs packages, using `edgePkgs` when current stable nixpkgs is missing features or is behind the desired agent release
 - pi installs upstream packages from the declarative `packages` list in `settings.json`
 - non-standard upstream skill paths can be added through the `skills` list in `settings.json`
 - [sources/agents.nix](sources/agents.nix) exports selected pi-managed skills from `~/.pi/agent/` into the shared `~/.agents/skills/` directory
-- `~/.claude/skills`, `~/.codex/skills/user`, and `~/.gemini/skills` all point at that shared directory
+- `~/.claude/skills`, `~/.codex/skills/user`, `~/.gemini/skills`, and `~/.config/opencode/skills` all point at that shared directory
 - repo-local skills continue to live directly under [resources/agents/skills/](resources/agents/skills/)
 
 This repo no longer uses `.refs/` submodules or `env-load refs` for skill management.

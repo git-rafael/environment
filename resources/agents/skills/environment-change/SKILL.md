@@ -61,7 +61,7 @@ For this workstation:
 
 The main Home Manager modules live in `sources/`:
 
-- `sources/agents.nix` — pi (packaged from a pinned npm release), agent CLIs, pi settings, and shared skill exports for Claude/Codex/Gemini
+- `sources/agents.nix` — pi packaged from a pinned npm release, other agent CLIs from nixpkgs/edge nixpkgs, pi settings, global agent instructions, and shared skill exports for Claude/Codex/Gemini/OpenCode
 - `sources/shell.nix` — shell, tmux, git, fonts, `env-shell`
 - `sources/development.nix` — editor and development tooling
 - `sources/utility.nix` — common CLI tools, browser, agent CLIs, small utilities
@@ -91,7 +91,7 @@ That means:
 - repo-local skills live under `resources/agents/skills/<name>`
 - pi-managed upstream skills are declared in `resources/agents/pi/settings.json`
 - selected pi-managed skills are exported from `~/.pi/agent/` into the shared `~/.agents/skills/` directory
-- Claude Code, Codex, and Gemini all consume that shared skill directory after the Home Manager environment is applied
+- Claude Code, Codex, Gemini, and OpenCode all consume that shared skill directory after the Home Manager environment is applied
 
 Even a skill-only repo change usually ends with a Home Manager apply on this workstation.
 
@@ -111,8 +111,10 @@ When editing package lists:
 - Use `pkgs.lib.optionals withUI [...]` for GUI-only apps.
 - Use `pkgs.lib.optionals forWork [...]` for work-only tools.
 - Ask before placing something behind the `work` feature if the work/personal boundary is unclear.
-- Prefer `edgePkgs` only when a newer unstable package is actually needed.
-- For `pi`, prefer the pinned npm-tarball package pattern already used in `sources/agents.nix` instead of reintroducing `edgePkgs.pi-coding-agent`.
+- Keep `pi` on the pinned npm-tarball package pattern already used in `sources/agents.nix` unless explicitly asked otherwise.
+- Prefer stable `pkgs` packages for other agent CLIs when they provide the required features.
+- Use `edgePkgs` for other agent CLIs when stable `pkgs` is missing the package or lacks required agent features.
+- Do not add custom non-pi agent CLI builds when a standard `pkgs` or `edgePkgs` package is available.
 
 Do **not** solve persistent package requests with `nix-env`, `nix profile`, `pip install`, `npm install -g`, or similar one-off installs unless the user explicitly asks for that.
 

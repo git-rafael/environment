@@ -149,16 +149,6 @@ EOF
     '';
   };
 
-  claude-code = pkgs.symlinkJoin {
-    name = "claude-code";
-    paths = [ edgePkgs.claude-code ];
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      wrapProgram $out/bin/claude \
-        --set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1
-    '';
-  };
-
   herdr =
     let
       asset = {
@@ -192,8 +182,10 @@ in {
   home.packages = [
     env-agent
     pi
-    claude-code
+    edgePkgs.claude-code
     edgePkgs.codex
+    edgePkgs.gemini-cli
+    edgePkgs.opencode
     edgePkgs.ollama
   ] ++ pkgs.lib.optionals (herdr != null) [
     herdr
@@ -208,6 +200,24 @@ in {
 
     # Agent instructions — Claude Code convention (~/.claude/CLAUDE.md)
     ".claude/CLAUDE.md" = {
+      force = true;
+      source = ../resources/settings/AGENTS.md;
+    };
+
+    # Agent instructions — Pi convention (~/.pi/agent/AGENTS.md)
+    ".pi/agent/AGENTS.md" = {
+      force = true;
+      source = ../resources/settings/AGENTS.md;
+    };
+
+    # Agent instructions — Gemini CLI convention (~/.gemini/GEMINI.md)
+    ".gemini/GEMINI.md" = {
+      force = true;
+      source = ../resources/settings/AGENTS.md;
+    };
+
+    # Agent instructions — OpenCode convention (~/.config/opencode/AGENTS.md)
+    ".config/opencode/AGENTS.md" = {
       force = true;
       source = ../resources/settings/AGENTS.md;
     };
@@ -230,6 +240,11 @@ in {
 
     # Agent Skills — Gemini CLI convention (~/.gemini/skills/)
     ".gemini/skills" = {
+      source = mkOutOfStoreSymlink sharedAgentSkillsPath;
+    };
+
+    # Agent Skills — OpenCode native convention (~/.config/opencode/skills/)
+    ".config/opencode/skills" = {
       source = mkOutOfStoreSymlink sharedAgentSkillsPath;
     };
 

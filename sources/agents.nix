@@ -1,178 +1,246 @@
-{ pkgs, edgePkgs, features, ... }:
+{
+  pkgs,
+  edgePkgs,
+  features,
+  ...
+}:
 
 let
+  withUI = builtins.elem "ui" features;
+
   env-agent = pkgs.writeShellScriptBin "env-agent" (builtins.readFile ../resources/scripts/env-agent);
 
-  pi = let
-    withUI = builtins.elem "ui" features;
-    version = "0.70.2";
-
-    package = pkgs.buildNpmPackage {
-      pname = "pi-coding-agent";
-      inherit version;
-
-      src = pkgs.fetchurl {
-        url = "https://registry.npmjs.org/@mariozechner/pi-coding-agent/-/pi-coding-agent-${version}.tgz";
-        hash = "sha256-bv+JqGQb0tIUXkm4B7f874y9VUzxlP/DHRq+DjYGddU=";
-      };
-
-      sourceRoot = "package";
-      postPatch = ''
-        cp ${./.npm/packages/pi/package-lock.json} package-lock.json
-      '';
-
-      npmDepsHash = "sha256-bG1Hg8sH8kY0IEkL2CWdscrVLMVL6PDfDkTS5RviPDg=";
-      dontNpmBuild = true;
-
-      meta = with pkgs.lib; {
-        description = "Minimal terminal coding harness";
-        homepage = "https://github.com/badlogic/pi-mono";
-        license = licenses.mit;
-        mainProgram = "pi";
-      };
-    };
-
-    pythonRuntime = pkgs.python3.withPackages (ps: with ps; [
+  agentPythonRuntime = pkgs.python3.withPackages (
+    ps: with ps; [
       pip
       setuptools
       wheel
-    ]);
-    piBuildPath = pkgs.lib.makeBinPath (with pkgs; [
+    ]
+  );
+  agentBuildPath = pkgs.lib.makeBinPath (
+    with pkgs;
+    [
       stdenv.cc
       gnumake
       pkg-config
       binutils
-    ]);
-    piPython = pkgs.runCommandLocal "pi-python" { } ''
-      mkdir -p "$out/bin"
+    ]
+  );
 
-      cat > "$out/bin/python" <<'EOF'
-#!${pkgs.runtimeShell}
-export PYTHONUSERBASE="$HOME/.pi/agent/python"
-export PIP_CACHE_DIR="$HOME/.pi/agent/python/cache/pip"
-export PATH="$PYTHONUSERBASE/bin:${piBuildPath}''${PATH:+:$PATH}"
-exec ${pythonRuntime}/bin/python3 "$@"
-EOF
+  mkAgentPython =
+    agentName: stateDir:
+    pkgs.runCommandLocal "${agentName}-python" { } ''
+          mkdir -p "$out/bin"
 
-      cat > "$out/bin/pip" <<'EOF'
-#!${pkgs.runtimeShell}
-export PYTHONUSERBASE="$HOME/.pi/agent/python"
-export PIP_CACHE_DIR="$HOME/.pi/agent/python/cache/pip"
-export PIP_USER=1
-export PATH="$PYTHONUSERBASE/bin:${piBuildPath}''${PATH:+:$PATH}"
-exec ${pythonRuntime}/bin/python3 -m pip "$@"
-EOF
+          cat > "$out/bin/python" <<'EOF'
+      #!${pkgs.runtimeShell}
+      export PYTHONUSERBASE="$HOME/${stateDir}/python"
+      export PIP_CACHE_DIR="$HOME/${stateDir}/python/cache/pip"
+      export PATH="$PYTHONUSERBASE/bin:${agentBuildPath}''${PATH:+:$PATH}"
+      exec ${agentPythonRuntime}/bin/python3 "$@"
+      EOF
 
-      chmod +x "$out/bin/python" "$out/bin/pip"
-      ln -s python "$out/bin/python3"
-      ln -s pip "$out/bin/pip3"
+          cat > "$out/bin/pip" <<'EOF'
+      #!${pkgs.runtimeShell}
+      export PYTHONUSERBASE="$HOME/${stateDir}/python"
+      export PIP_CACHE_DIR="$HOME/${stateDir}/python/cache/pip"
+      export PIP_USER=1
+      export PATH="$PYTHONUSERBASE/bin:${agentBuildPath}''${PATH:+:$PATH}"
+      exec ${agentPythonRuntime}/bin/python3 -m pip "$@"
+      EOF
+
+          chmod +x "$out/bin/python" "$out/bin/pip"
+          ln -s python "$out/bin/python3"
+          ln -s pip "$out/bin/pip3"
     '';
-    npm = pkgs.writeShellScriptBin "npm" ''
-      export npm_config_prefix="$HOME/.pi/agent/npm"
-      export NPM_CONFIG_PREFIX="$HOME/.pi/agent/npm"
-      export npm_config_cache="$HOME/.pi/agent/npm/cache"
-      export NPM_CONFIG_CACHE="$HOME/.pi/agent/npm/cache"
-      export PYTHONUSERBASE="$HOME/.pi/agent/python"
-      export PIP_CACHE_DIR="$HOME/.pi/agent/python/cache/pip"
-      export PATH="$HOME/.pi/agent/python/bin:${piPython}/bin:${piBuildPath}:$HOME/.pi/agent/npm/bin''${PATH:+:$PATH}"
+
+  mkAgentNpm =
+    stateDir: agentPython:
+    pkgs.writeShellScriptBin "npm" ''
+      export npm_config_prefix="$HOME/${stateDir}/npm"
+      export NPM_CONFIG_PREFIX="$HOME/${stateDir}/npm"
+      export npm_config_cache="$HOME/${stateDir}/npm/cache"
+      export NPM_CONFIG_CACHE="$HOME/${stateDir}/npm/cache"
+      export PYTHONUSERBASE="$HOME/${stateDir}/python"
+      export PIP_CACHE_DIR="$HOME/${stateDir}/python/cache/pip"
+      export PATH="$HOME/${stateDir}/python/bin:${agentPython}/bin:${agentBuildPath}:$HOME/${stateDir}/npm/bin''${PATH:+:$PATH}"
       exec ${pkgs.nodejs}/bin/npm "$@"
     '';
-    npx = pkgs.writeShellScriptBin "npx" ''
-      export npm_config_prefix="$HOME/.pi/agent/npm"
-      export NPM_CONFIG_PREFIX="$HOME/.pi/agent/npm"
-      export npm_config_cache="$HOME/.pi/agent/npm/cache"
-      export NPM_CONFIG_CACHE="$HOME/.pi/agent/npm/cache"
-      export PYTHONUSERBASE="$HOME/.pi/agent/python"
-      export PIP_CACHE_DIR="$HOME/.pi/agent/python/cache/pip"
-      export PATH="$HOME/.pi/agent/python/bin:${piPython}/bin:${piBuildPath}:$HOME/.pi/agent/npm/bin''${PATH:+:$PATH}"
+  mkAgentNpx =
+    stateDir: agentPython:
+    pkgs.writeShellScriptBin "npx" ''
+      export npm_config_prefix="$HOME/${stateDir}/npm"
+      export NPM_CONFIG_PREFIX="$HOME/${stateDir}/npm"
+      export npm_config_cache="$HOME/${stateDir}/npm/cache"
+      export NPM_CONFIG_CACHE="$HOME/${stateDir}/npm/cache"
+      export PYTHONUSERBASE="$HOME/${stateDir}/python"
+      export PIP_CACHE_DIR="$HOME/${stateDir}/python/cache/pip"
+      export PATH="$HOME/${stateDir}/python/bin:${agentPython}/bin:${agentBuildPath}:$HOME/${stateDir}/npm/bin''${PATH:+:$PATH}"
       exec ${pkgs.nodejs}/bin/npx "$@"
     '';
-    piPath = pkgs.lib.makeBinPath ([
-      npm
-      npx
-      piPython
-      pythonRuntime
-      pkgs.nodejs
-      pkgs.stdenv.cc
-      pkgs.gnumake
-      pkgs.pkg-config
-      pkgs.binutils
-    ] ++ pkgs.lib.optionals withUI [ pkgs.google-chrome ]);
-  in pkgs.symlinkJoin {
-    name = "pi-coding-agent";
-    paths = [ package ];
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      wrapProgram $out/bin/pi \
-        --run 'export PYTHONUSERBASE="$HOME/.pi/agent/python"' \
-        --run 'export PIP_CACHE_DIR="$HOME/.pi/agent/python/cache/pip"' \
-        --run 'export PIP_USER=1' \
-        --run 'export PATH="$HOME/.pi/agent/python/bin:$HOME/.pi/agent/npm/bin:${piPath}''${PATH:+:''$PATH}"'
-    '';
-  };
+  mkAgentToolPath =
+    {
+      agentPython,
+      npm,
+      npx,
+    }:
+    pkgs.lib.makeBinPath (
+      [
+        npm
+        npx
+        agentPython
+        agentPythonRuntime
+        pkgs.nodejs
+        pkgs.stdenv.cc
+        pkgs.gnumake
+        pkgs.pkg-config
+        pkgs.binutils
+      ]
+      ++ pkgs.lib.optionals withUI [ pkgs.google-chrome ]
+    );
 
-  even-terminal = let
-    version = "0.6.5";
+  pi =
+    let
+      version = "0.70.2";
 
-    package = pkgs.buildNpmPackage {
-      pname = "even-terminal";
-      inherit version;
+      package = pkgs.buildNpmPackage {
+        pname = "pi-coding-agent";
+        inherit version;
 
-      src = pkgs.fetchurl {
-        url = "https://registry.npmjs.org/@evenrealities/even-terminal/-/even-terminal-${version}.tgz";
-        hash = "sha256-GEpXzl6Uaff/Zwd04PTm4oq1CTr03OmrNIQoNkCwdzM=";
+        src = pkgs.fetchurl {
+          url = "https://registry.npmjs.org/@mariozechner/pi-coding-agent/-/pi-coding-agent-${version}.tgz";
+          hash = "sha256-bv+JqGQb0tIUXkm4B7f874y9VUzxlP/DHRq+DjYGddU=";
+        };
+
+        sourceRoot = "package";
+        postPatch = ''
+          cp ${./.npm/packages/pi/package-lock.json} package-lock.json
+        '';
+
+        npmDepsHash = "sha256-bG1Hg8sH8kY0IEkL2CWdscrVLMVL6PDfDkTS5RviPDg=";
+        dontNpmBuild = true;
+
+        meta = with pkgs.lib; {
+          description = "Minimal terminal coding harness";
+          homepage = "https://github.com/badlogic/pi-mono";
+          license = licenses.mit;
+          mainProgram = "pi";
+        };
       };
 
-      sourceRoot = "package";
-      postPatch = ''
-        cp ${./.npm/packages/even-terminal/package-lock.json} package-lock.json
-        substituteInPlace dist/claude/session.js \
-          --replace-fail 'options: {' 'options: { pathToClaudeCodeExecutable: "${edgePkgs.claude-code}/bin/claude",'
+      piStateDir = ".pi/agent";
+      piPython = mkAgentPython "pi" piStateDir;
+      npm = mkAgentNpm piStateDir piPython;
+      npx = mkAgentNpx piStateDir piPython;
+      piPath = mkAgentToolPath {
+        agentPython = piPython;
+        inherit npm npx;
+      };
+    in
+    pkgs.symlinkJoin {
+      name = "pi-coding-agent";
+      paths = [ package ];
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        wrapProgram $out/bin/pi \
+          --run 'export PYTHONUSERBASE="$HOME/.pi/agent/python"' \
+          --run 'export PIP_CACHE_DIR="$HOME/.pi/agent/python/cache/pip"' \
+          --run 'export PIP_USER=1' \
+          --run 'export PATH="$HOME/.pi/agent/python/bin:$HOME/.pi/agent/npm/bin:${piPath}''${PATH:+:''$PATH}"'
       '';
-
-      npmDepsHash = "sha256-HmrHbxHRBwKoINwRLll/kx611frewjBiELAsPzm18XQ=";
-      dontNpmBuild = true;
-      npmPackFlags = [ "--ignore-scripts" ];
-
-      meta = with pkgs.lib; {
-        description = "Even Terminal — AI Coding CLI on smart glasses and Flutter app";
-        homepage = "https://github.com/even-realities/even-terminal";
-        license = licenses.mit;
-        mainProgram = "even-terminal";
-      };
     };
 
-    evenTerminalPath = pkgs.lib.makeBinPath [
-      pi
-      edgePkgs.claude-code
-      edgePkgs.codex
-      edgePkgs.gemini-cli
-      edgePkgs.opencode
-    ];
-  in pkgs.symlinkJoin {
-    name = "even-terminal";
-    paths = [ package ];
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      wrapProgram $out/bin/even-terminal \
-        --run 'export PATH="${evenTerminalPath}''${PATH:+:''$PATH}"'
-    '';
-  };
+  claude-code =
+    let
+      claudeStateDir = ".claude/agent";
+      claudePython = mkAgentPython "claude" claudeStateDir;
+      npm = mkAgentNpm claudeStateDir claudePython;
+      npx = mkAgentNpx claudeStateDir claudePython;
+      claudePath = mkAgentToolPath {
+        agentPython = claudePython;
+        inherit npm npx;
+      };
+    in
+    pkgs.symlinkJoin {
+      name = "claude-code";
+      paths = [ edgePkgs.claude-code ];
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        wrapProgram $out/bin/claude \
+          --run 'export PYTHONUSERBASE="$HOME/.claude/agent/python"' \
+          --run 'export PIP_CACHE_DIR="$HOME/.claude/agent/python/cache/pip"' \
+          --run 'export PIP_USER=1' \
+          --run 'export PATH="$HOME/.claude/agent/python/bin:$HOME/.claude/agent/npm/bin:${claudePath}''${PATH:+:''$PATH}"'
+      '';
+    };
+
+  even-terminal =
+    let
+      version = "0.6.5";
+
+      package = pkgs.buildNpmPackage {
+        pname = "even-terminal";
+        inherit version;
+
+        src = pkgs.fetchurl {
+          url = "https://registry.npmjs.org/@evenrealities/even-terminal/-/even-terminal-${version}.tgz";
+          hash = "sha256-GEpXzl6Uaff/Zwd04PTm4oq1CTr03OmrNIQoNkCwdzM=";
+        };
+
+        sourceRoot = "package";
+        postPatch = ''
+          cp ${./.npm/packages/even-terminal/package-lock.json} package-lock.json
+          substituteInPlace dist/claude/session.js \
+            --replace-fail 'options: {' 'options: { pathToClaudeCodeExecutable: "${claude-code}/bin/claude",'
+        '';
+
+        npmDepsHash = "sha256-HmrHbxHRBwKoINwRLll/kx611frewjBiELAsPzm18XQ=";
+        dontNpmBuild = true;
+        npmPackFlags = [ "--ignore-scripts" ];
+
+        meta = with pkgs.lib; {
+          description = "Even Terminal — AI Coding CLI on smart glasses and Flutter app";
+          homepage = "https://github.com/even-realities/even-terminal";
+          license = licenses.mit;
+          mainProgram = "even-terminal";
+        };
+      };
+
+      evenTerminalPath = pkgs.lib.makeBinPath [
+        pi
+        claude-code
+        edgePkgs.codex
+        edgePkgs.gemini-cli
+        edgePkgs.opencode
+      ];
+    in
+    pkgs.symlinkJoin {
+      name = "even-terminal";
+      paths = [ package ];
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        wrapProgram $out/bin/even-terminal \
+          --run 'export PATH="${evenTerminalPath}''${PATH:+:''$PATH}"'
+      '';
+    };
 
   herdr =
     let
-      asset = {
-        x86_64-linux = {
-          url = "https://github.com/ogulcancelik/herdr/releases/download/v0.5.0/herdr-linux-x86_64";
-          sha256 = "04hayacgnj3wkkq4sxlbs9fi2xcg8lbi1xk8afavrp3fjbv66bd3";
-        };
-        aarch64-linux = {
-          url = "https://github.com/ogulcancelik/herdr/releases/download/v0.5.0/herdr-linux-aarch64";
-          sha256 = "17ab1hgfa9vfd4wxhgm4g9lq1yf0wv8giwbl9rqp715c3kbnln4j";
-        };
-      }.${pkgs.stdenv.hostPlatform.system} or null;
+      asset =
+        {
+          x86_64-linux = {
+            url = "https://github.com/ogulcancelik/herdr/releases/download/v0.5.0/herdr-linux-x86_64";
+            sha256 = "04hayacgnj3wkkq4sxlbs9fi2xcg8lbi1xk8afavrp3fjbv66bd3";
+          };
+          aarch64-linux = {
+            url = "https://github.com/ogulcancelik/herdr/releases/download/v0.5.0/herdr-linux-aarch64";
+            sha256 = "17ab1hgfa9vfd4wxhgm4g9lq1yf0wv8giwbl9rqp715c3kbnln4j";
+          };
+        }
+        .${pkgs.stdenv.hostPlatform.system} or null;
     in
-      if asset != null then pkgs.stdenvNoCC.mkDerivation {
+    if asset != null then
+      pkgs.stdenvNoCC.mkDerivation {
         pname = "herdr";
         version = "0.5.0";
         src = pkgs.fetchurl asset;
@@ -185,21 +253,28 @@ EOF
           homepage = "https://herdr.dev";
           license = licenses.agpl3Plus;
           mainProgram = "herdr";
-          platforms = [ "x86_64-linux" "aarch64-linux" ];
+          platforms = [
+            "x86_64-linux"
+            "aarch64-linux"
+          ];
         };
-      } else null;
-in {
+      }
+    else
+      null;
+in
+{
   home.packages = [
     env-agent
     pi
     even-terminal
-    edgePkgs.claude-code
+    claude-code
     edgePkgs.codex
     edgePkgs.gemini-cli
     edgePkgs.gws
     edgePkgs.opencode
     edgePkgs.ollama
-  ] ++ pkgs.lib.optionals (herdr != null) [
+  ]
+  ++ pkgs.lib.optionals (herdr != null) [
     herdr
   ];
 

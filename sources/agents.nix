@@ -147,6 +147,7 @@ in {
     edgePkgs.claude-code
     edgePkgs.codex
     edgePkgs.gemini-cli
+    edgePkgs.gws
     edgePkgs.opencode
     edgePkgs.ollama
   ] ++ pkgs.lib.optionals (herdr != null) [

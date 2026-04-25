@@ -50,7 +50,7 @@ All modules are functions instantiated with an `env` attrset from [flake.nix](fl
 
 | File | Purpose |
 |------|---------|
-| [sources/agents.nix](sources/agents.nix) | pi packaged from pinned npm release, other agent CLIs from edge nixpkgs, Ollama, agent-browser, herdr, pi settings, global agent instructions, and shared skill exports |
+| [sources/agents.nix](sources/agents.nix) | pi packaged from pinned npm release, other agent CLIs from edge nixpkgs, Ollama, agent-browser, herdr, pi settings, and global agent instructions |
 | [sources/shell.nix](sources/shell.nix) | zsh, tmux, starship, direnv, broot, git, fonts, `env-shell` script |
 | [sources/development.nix](sources/development.nix) | VSCodium (FHS), devbox, devenv, podman/docker, gh, quarto |
 | [sources/utility.nix](sources/utility.nix) | `env-load`, chromium, bitwarden-cli, common CLI tools, `gtoken` script |
@@ -119,7 +119,7 @@ Do not confuse it with this repository-local [AGENTS.md](AGENTS.md): this file e
 
 ### Agent skill sourcing
 
-Third-party agent skills and extensions are declared through [resources/agents/pi/settings.json](resources/agents/pi/settings.json).
+Pi is the primary agent and its third-party packages, skills, extensions, prompts, and themes are declared through [resources/agents/pi/settings.json](resources/agents/pi/settings.json).
 
 The current model is:
 
@@ -127,10 +127,9 @@ The current model is:
 - the npm dependency graph for that package is vendored in [resources/packages/pi/package-lock.json](resources/packages/pi/package-lock.json)
 - other agent CLIs should come directly from standard nixpkgs packages, using `edgePkgs` when current stable nixpkgs is missing features or is behind the desired agent release
 - pi installs upstream packages from the declarative `packages` list in `settings.json`
-- non-standard upstream skill paths can be added through the `skills` list in `settings.json`
-- [sources/agents.nix](sources/agents.nix) exports selected pi-managed skills from `~/.pi/agent/` into the shared `~/.agents/skills/` directory
-- `~/.claude/skills`, `~/.codex/skills/user`, `~/.gemini/skills`, and `~/.config/opencode/skills` all point at that shared directory
-- repo-local skills continue to live directly under [resources/agents/skills/](resources/agents/skills/)
+- non-standard pi skill paths can be added through the `skills` list in `settings.json`
+- skills are not shared across coding agents by default; Claude Code, Codex, Gemini, and OpenCode keep their own native skill directories
+- this repo only shares the global agent instruction file across supported agents
 
 This repo no longer uses `.refs/` submodules or `env-load refs` for skill management.
 

@@ -1,39 +1,6 @@
-{ pkgs, edgePkgs, features, self, homeDirectory, ... }:
+{ pkgs, edgePkgs, features, ... }:
 
 let
-  mkOutOfStoreSymlink = path:
-    let
-      pathStr = toString path;
-      name = "hm_${pkgs.lib.replaceStrings [ " " "/" ] [ "-" "-" ] (baseNameOf pathStr)}";
-    in
-    pkgs.runCommandLocal name { } "ln -s ${pkgs.lib.escapeShellArg pathStr} $out";
-
-  piSkillExports = {
-    agent-browser = "git/github.com/vercel-labs/agent-browser/skills/agent-browser";
-    skill-creator = "git/github.com/anthropics/skills/skills/skill-creator";
-    visual-explainer = "git/github.com/nicobailon/visual-explainer/plugins/visual-explainer";
-  };
-
-  localSkillEntries =
-    builtins.removeAttrs (builtins.readDir ../resources/agents/skills) (builtins.attrNames piSkillExports);
-
-  sharedAgentSkillsPath = "${homeDirectory}/.agents/skills";
-  mkPiManagedSkillPath = relativePath: "${homeDirectory}/.pi/agent/${relativePath}";
-
-  sharedAgentSkills = pkgs.runCommandLocal "shared-agent-skills" { } ''
-    mkdir -p "$out"
-
-    ${pkgs.lib.concatMapStringsSep "\n" (name: ''
-      ln -s ${pkgs.lib.escapeShellArg "${self}/resources/agents/skills/${name}"} "$out/${name}"
-    '') (builtins.attrNames localSkillEntries)}
-
-    ${pkgs.lib.concatStringsSep "\n" (
-      pkgs.lib.mapAttrsToList (name: relativePath: ''
-        ln -s ${pkgs.lib.escapeShellArg (mkPiManagedSkillPath relativePath)} "$out/${name}"
-      '') piSkillExports
-    )}
-  '';
-
   env-agent = pkgs.writeShellScriptBin "env-agent" (builtins.readFile ../resources/scripts/env-agent);
 
   pi = let
@@ -215,32 +182,6 @@ in {
     ".config/opencode/AGENTS.md" = {
       force = true;
       source = ../resources/settings/AGENTS.md;
-    };
-
-    # Agent Skills — cross-client convention (~/.agents/skills/)
-    ".agents/skills" = {
-      force = true;
-      source = sharedAgentSkills;
-    };
-
-    # Agent Skills — Codex user convention (~/.codex/skills/user/)
-    ".codex/skills/user" = {
-      source = mkOutOfStoreSymlink sharedAgentSkillsPath;
-    };
-
-    # Agent Skills — Claude Code convention (~/.claude/skills/)
-    ".claude/skills" = {
-      source = mkOutOfStoreSymlink sharedAgentSkillsPath;
-    };
-
-    # Agent Skills — Gemini CLI convention (~/.gemini/skills/)
-    ".gemini/skills" = {
-      source = mkOutOfStoreSymlink sharedAgentSkillsPath;
-    };
-
-    # Agent Skills — OpenCode native convention (~/.config/opencode/skills/)
-    ".config/opencode/skills" = {
-      source = mkOutOfStoreSymlink sharedAgentSkillsPath;
     };
 
     # Herdr settings

@@ -10,7 +10,7 @@
     {
       "id": 2,
       "prompt": "Adicione uma nova skill persistente para meus agentes nessa máquina. Quero que ela seja mantida dentro do repo environment e não só instalada manualmente na minha home.",
-      "expected_output": "Identifica que skills persistentes podem ser repo-locais em resources/agents/skills ou upstream via pi settings, menciona a exposição feita por sources/agents.nix para múltiplos clientes e trata a mudança como Home Manager.",
+      "expected_output": "Identifica que skills persistentes para Pi podem ser upstream via resources/agents/pi/settings.json ou repo-locais quando explicitamente solicitado, menciona que skills não são compartilhadas entre agentes por padrão e trata a mudança como Home Manager.",
       "files": []
     },
     {
@@ -21,8 +21,8 @@
     },
     {
       "id": 4,
-      "prompt": "Já escolhi uma skill upstream que quero persistir nesta máquina via repo environment. Não preciso que você procure na marketplace; preciso que você me ajude a ligar isso no settings do pi e na exportação compartilhada do jeito certo.",
-      "expected_output": "Reconhece que a descoberta da skill não é mais o problema, direciona para o fluxo de skill upstream com resources/agents/pi/settings.json mais exportação em sources/agents.nix, e distingue esse caso do skill-finder.",
+      "prompt": "Já escolhi uma skill upstream que quero persistir nesta máquina via repo environment. Não preciso que você procure na marketplace; preciso que você me ajude a ligar isso no settings do pi do jeito certo.",
+      "expected_output": "Reconhece que a descoberta da skill não é mais o problema, direciona para o fluxo de skill upstream com resources/agents/pi/settings.json, não cria exportação compartilhada para outros agentes por padrão, e distingue esse caso do skill-finder.",
       "files": []
     }
   ]

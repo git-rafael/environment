@@ -29,7 +29,7 @@ The goal is to keep the machine reproducible. Prefer a versioned repo change ove
 Use this skill for **persisting the result in the environment repo**.
 
 - If the user wants to **create or iterate on a new skill itself**, use `skill-creator` for the drafting and evaluation loop, then place the final skill in `resources/agents/skills/` here.
-- If the user wants to **discover an existing marketplace skill**, use `skill-finder` first, then use this skill to wire the chosen skill into pi's declarative settings and the shared cross-agent exports persistently.
+- If the user wants to **discover an existing marketplace skill**, use `skill-finder` first, then use this skill to wire the chosen skill into pi's declarative settings persistently.
 
 ## First steps
 
@@ -61,7 +61,7 @@ For this workstation:
 
 The main Home Manager modules live in `sources/`:
 
-- `sources/agents.nix` — pi packaged from a pinned npm release, other agent CLIs from nixpkgs/edge nixpkgs, pi settings, global agent instructions, and shared skill exports for Claude/Codex/Gemini/OpenCode
+- `sources/agents.nix` — pi packaged from a pinned npm release, other agent CLIs from nixpkgs/edge nixpkgs, pi settings, and global agent instructions for Claude/Codex/Gemini/OpenCode
 - `sources/shell.nix` — shell, tmux, git, fonts, `env-shell`
 - `sources/development.nix` — editor and development tooling
 - `sources/utility.nix` — common CLI tools, browser, agent CLIs, small utilities
@@ -85,15 +85,15 @@ Host-specific overrides live in `devices/AMININT-544228/configuration.nix` and h
 
 ### Skills
 
-Persistent skills are exposed into multiple agent homes via `sources/agents.nix`.
+Pi is the primary agent for declarative third-party skills and extensions in this repository.
 
 That means:
-- repo-local skills live under `resources/agents/skills/<name>`
 - pi-managed upstream skills are declared in `resources/agents/pi/settings.json`
-- selected pi-managed skills are exported from `~/.pi/agent/` into the shared `~/.agents/skills/` directory
-- Claude Code, Codex, Gemini, and OpenCode all consume that shared skill directory after the Home Manager environment is applied
+- non-standard pi skill paths can be added through the `skills` array in that settings file
+- Claude Code, Codex, Gemini, and OpenCode keep their own native skill directories by default
+- this repo shares the global `AGENTS.md` instruction file across agents, but does not create cross-agent skill links
 
-Even a skill-only repo change usually ends with a Home Manager apply on this workstation.
+Even a pi skill/package change usually ends with a Home Manager apply on this workstation.
 
 ## Decision rules
 
@@ -124,7 +124,7 @@ Edit the smallest relevant module in `sources/`.
 
 Common examples:
 - shell aliases, zsh, tmux → `sources/shell.nix`
-- agent home files, pi settings, shared skill exports → `sources/agents.nix`
+- agent home files and pi settings → `sources/agents.nix`
 - chromium or CLI utilities → `sources/utility.nix`
 - VSCodium/dev tooling → `sources/development.nix`
 
@@ -148,17 +148,17 @@ Be conservative with `hardware-configuration.nix`. Only edit it when the request
 
 For a local skill maintained in this repo:
 1. If the request is about inventing or refining the skill behavior itself, use `skill-creator` as the authoring workflow.
-2. Create or edit `resources/agents/skills/<skill-name>/SKILL.md`.
+2. Create or edit `resources/agents/skills/<skill-name>/SKILL.md` only when the skill is intentionally maintained as repository content.
 3. Add optional supporting files under that skill directory.
 4. Keep the skill self-contained and explicit about when it should trigger.
+5. Wire it to a specific agent only when explicitly requested; do not add cross-agent skill links by default.
 
-For an upstream skill:
+For an upstream pi skill:
 1. If the user still needs help choosing the skill, use `skill-finder` first.
 2. Verify the real path to the skill inside the upstream repository.
 3. Add or update the upstream package declaration in `resources/agents/pi/settings.json` under `packages`.
 4. If the repo does not expose the skill through standard package discovery, add an explicit entry under the `skills` array in `resources/agents/pi/settings.json`.
-5. Add or update the export mapping in `sources/agents.nix` so the chosen skill is exposed through `~/.agents/skills` for the other agents.
-6. Do not assume the marketplace `id` equals the repo path; verify the actual path containing `SKILL.md`.
+5. Do not assume the marketplace `id` equals the repo path; verify the actual path containing `SKILL.md`.
 
 ## Validation workflow
 
@@ -278,7 +278,7 @@ Output approach: update the appropriate `sources/*.nix` module, validate `homeCo
 
 **Example 2**
 Input: "Add a persistent skill for Claude Code and Codex on this machine."
-Output approach: update `resources/agents/pi/settings.json` and `sources/agents.nix` when the skill comes from an upstream package, or add it under `resources/agents/skills/` when it is repo-local. Explain that `sources/agents.nix` exposes the shared skill directory to the supported agent homes, then suggest applying the Home Manager environment after a local commit.
+Output approach: for Pi, update `resources/agents/pi/settings.json` when the skill comes from an upstream package, or add it under `resources/agents/skills/` only when it is intentionally repo-local. Explain that skills are not shared across agents by default, then suggest applying the Home Manager environment after a local commit.
 
 **Example 3**
 Input: "Enable a system-level service only on `AMININT-544228`."

@@ -65,11 +65,12 @@ Show results in a clean table format:
 
 After showing the results, ask if they want to persist any of them in the environment repo.
 
-For this repo, persistent installation now works by:
+For this repo, persistent Pi installation now works by:
 
 1. adding the upstream repo under `resources/agents/pi/settings.json` in the `packages` list
 2. adding an explicit `skills` path there if package discovery is not enough
-3. exporting the chosen skill through `sources/agents.nix` into the shared `~/.agents/skills` directory
+
+Skills are not shared across coding agents by default in this repository; non-Pi agents use their native skill locations unless the user explicitly asks otherwise.
 
 **The `id` field is NOT always the correct repo path.** The API `id` is `<source>/<skill-name>`, but skills are often nested inside a subdirectory (e.g. `skills/skill-name`). Always verify the actual path before suggesting the persistent wiring.
 

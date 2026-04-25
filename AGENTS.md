@@ -109,6 +109,14 @@ Support resource files:
 - Settings deployed via `home.file`.
 - General files like binaries, certificates, images and so on.
 
+### Global agent instructions
+
+The global cross-agent instruction file for this machine is [resources/settings/AGENTS.md](resources/settings/AGENTS.md). Future agents should edit that file when the goal is to change their default behavior across projects.
+
+Do not confuse it with this repository-local [AGENTS.md](AGENTS.md): this file exists to explain how to work on the `environment` repository itself. It is not the global agent behavior source.
+
+[sources/agents.nix](sources/agents.nix) deploys `resources/settings/AGENTS.md` to each supported agent's global instruction path, such as `~/.codex/AGENTS.md`, `~/.claude/CLAUDE.md`, `~/.pi/agent/AGENTS.md`, `~/.gemini/GEMINI.md`, and `~/.config/opencode/AGENTS.md`.
+
 ### Agent skill sourcing
 
 Third-party agent skills and extensions are declared through [resources/agents/pi/settings.json](resources/agents/pi/settings.json).

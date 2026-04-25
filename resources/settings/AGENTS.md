@@ -47,6 +47,10 @@ Machine-level instructions for coding agents installed on this workstation.
 
 ## Workarounds
 
+- When using the `pi-herdr` extension, remember that `herdr run` submits a line plus Enter to the target pane; it does not guarantee that the pane is a shell.
+- Before using `herdr run` for a shell command, confirm the target pane is actually a shell and not an already-running Pi/agent pane.
+- If a herdr pane shows an agent such as Pi, treat `herdr run` input as a prompt/message to that agent, not as a shell command; do not send commands like `pi --no-session` into an existing Pi pane.
+- Prefer `bash` for quick local shell commands, and use `herdr` for long-running processes only in panes that are confirmed to be shell panes.
 - Prefer `pi-web-access` as the canonical `web_search` provider on this workstation.
 - For checkpoint-driven/deep research loops, call `web_search` with `workflow: "none"` to avoid the interactive curator interrupting the loop.
 - Use the `pi-web-access` parameter names: `numResults`, `domainFilter`, `recencyFilter`, `includeContent`, and `provider`.

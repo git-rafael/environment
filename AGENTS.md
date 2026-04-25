@@ -124,7 +124,7 @@ Pi is the primary agent and its third-party packages, skills, extensions, prompt
 The current model is:
 
 - the `pi` CLI itself is packaged in [sources/agents.nix](sources/agents.nix) from a pinned npm tarball using Nix
-- the npm dependency graph for that package is vendored in [resources/packages/pi/package-lock.json](resources/packages/pi/package-lock.json)
+- npm dependency lockfiles for npm-tarball packages are vendored under [sources/.npm/packages/](sources/.npm/packages/), for example [sources/.npm/packages/pi/package-lock.json](sources/.npm/packages/pi/package-lock.json); packages listed in [sources/.npm/packages/packages.tsv](sources/.npm/packages/packages.tsv) are refreshed automatically by `env-load user <target> <repo> --update`
 - other agent CLIs should come directly from standard nixpkgs packages, using `edgePkgs` when current stable nixpkgs is missing features or is behind the desired agent release
 - pi installs upstream packages from the declarative `packages` list in `settings.json`
 - repo-local Pi skills maintained under `resources/agents/skills/` are deployed to `~/.pi/agent/skills/` by `sources/agents.nix`

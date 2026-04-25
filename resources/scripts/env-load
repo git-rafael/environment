@@ -32,7 +32,9 @@ Usage:
   env-load help                                     Show this help message
 
 Options:
-  --update      Update flake inputs before running the command
+  --update      Update flake inputs before running the command. For local user
+                environments, also refresh npm packages declared under
+                sources/.npm/packages/packages.tsv.
 
 Arguments:
   <path|ref>    Local path to repo or git ref (branch/tag). Defaults to 'main'.
@@ -193,6 +195,104 @@ configure_nix() {
   if ! grep -Fxq "${NIX_EXPERIMENTAL_CONFIG}" "${NIX_CONFIG_FILE}"; then
     echo "${NIX_EXPERIMENTAL_CONFIG}" >> "${NIX_CONFIG_FILE}";
   fi
+}
+
+# ── npm package updates ───────────────────────────────────────────────────────
+
+run_npm() {
+  if command -v npm >/dev/null 2>&1; then
+    npm "$@";
+  else
+    nix shell nixpkgs#nodejs --command npm "$@";
+  fi
+}
+
+json_hash() {
+  sed -n 's/.*"hash":"\([^"]*\)".*/\1/p';
+}
+
+update_npm_package_lock() {
+  local lock_dir="$1" package_name="$2";
+  local agents_nix="${REFERENCE}/sources/agents.nix";
+  local lock_path="${REFERENCE}/sources/.npm/packages/${lock_dir}/package-lock.json";
+
+  [ -f "${agents_nix}" ] || fail "sources/agents.nix not found.";
+  [ -d "$(dirname "${lock_path}")" ] || fail "npm lock directory not found: $(dirname "${lock_path}")";
+
+  echo "Updating npm package ${package_name} (${lock_dir})...";
+
+  local version tarball src_hash tmp tgz deps_hash;
+  version="$(run_npm view "${package_name}" version --silent)";
+  [ -n "${version}" ] || fail "could not resolve latest npm version for ${package_name}.";
+
+  tarball="$(run_npm view "${package_name}@${version}" dist.tarball --silent)";
+  [ -n "${tarball}" ] || fail "could not resolve npm tarball for ${package_name}@${version}.";
+
+  src_hash="$(nix store prefetch-file --json "${tarball}" | json_hash)";
+  [ -n "${src_hash}" ] || fail "could not prefetch ${tarball}.";
+
+  tmp="$(mktemp -d)" || fail "failed to create temp directory.";
+  (
+    cd "${tmp}";
+    run_npm pack "${package_name}@${version}" --ignore-scripts --silent >/dev/null;
+    tgz="$(ls ./*.tgz | head -n 1)";
+    [ -n "${tgz}" ] || fail "npm pack did not produce a tarball for ${package_name}@${version}.";
+    tar -xzf "${tgz}";
+    cd package;
+    run_npm install --package-lock-only --ignore-scripts --silent >/dev/null;
+    cp package-lock.json "${lock_path}";
+  );
+  rm -rf "${tmp}";
+
+  deps_hash="$(nix run nixpkgs#prefetch-npm-deps -- "${lock_path}" | tail -n 1)";
+  case "${deps_hash}" in
+    sha256-*) ;;
+    *) fail "could not compute npmDepsHash for ${package_name}." ;;
+  esac
+
+  local tmp_agents;
+  tmp_agents="$(mktemp)" || fail "failed to create temp file.";
+  awk \
+    -v attr="${lock_dir}" \
+    -v version="${version}" \
+    -v src_hash="${src_hash}" \
+    -v deps_hash="${deps_hash}" '
+      $0 == "  " attr " = let" { in_block = 1 }
+      in_block && $0 ~ /^    version = "/ {
+        print "    version = \"" version "\";";
+        next;
+      }
+      in_block && $0 ~ /^        hash = "/ {
+        print "        hash = \"" src_hash "\";";
+        next;
+      }
+      in_block && $0 ~ /^      npmDepsHash = "/ {
+        print "      npmDepsHash = \"" deps_hash "\";";
+        next;
+      }
+      { print }
+      in_block && $0 == "  };" { in_block = 0 }
+    ' "${agents_nix}" > "${tmp_agents}";
+  mv "${tmp_agents}" "${agents_nix}";
+
+  echo "  ${package_name}@${version}";
+}
+
+update_environment_npm_packages() {
+  [ -d "${REFERENCE}" ] || return 0;
+
+  local manifest="${REFERENCE}/sources/.npm/packages/packages.tsv";
+  [ -f "${manifest}" ] || return 0;
+
+  echo "Updating environment npm packages...";
+
+  while read -r lock_dir package_name _; do
+    case "${lock_dir}" in
+      ''|'#'*) continue ;;
+    esac
+    [ -n "${package_name}" ] || fail "invalid npm package manifest entry for '${lock_dir}'.";
+    update_npm_package_lock "${lock_dir}" "${package_name}";
+  done < "${manifest}";
 }
 
 # ── Commands ──────────────────────────────────────────────────────────────────
@@ -634,7 +734,10 @@ cmd_user() {
 
   require_clean_repo;
 
-  if [ "${UPDATE}" = true ]; then nix flake update --flake "${HOME_URL}"; fi;
+  if [ "${UPDATE}" = true ]; then
+    update_environment_npm_packages;
+    nix flake update --flake "${HOME_URL}";
+  fi;
 
   local target_path="${HOME_URL}#homeConfigurations.${target}.activationPackage";
   local out;

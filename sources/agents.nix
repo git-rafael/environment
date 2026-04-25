@@ -18,7 +18,7 @@ let
 
       sourceRoot = "package";
       postPatch = ''
-        cp ${../resources/packages/pi/package-lock.json} package-lock.json
+        cp ${./.npm/packages/pi/package-lock.json} package-lock.json
       '';
 
       npmDepsHash = "sha256-bG1Hg8sH8kY0IEkL2CWdscrVLMVL6PDfDkTS5RviPDg=";
@@ -111,6 +111,48 @@ EOF
     '';
   };
 
+  even-terminal = let
+    version = "0.6.5";
+
+    package = pkgs.buildNpmPackage {
+      pname = "even-terminal";
+      inherit version;
+
+      src = pkgs.fetchurl {
+        url = "https://registry.npmjs.org/@evenrealities/even-terminal/-/even-terminal-${version}.tgz";
+        hash = "sha256-GEpXzl6Uaff/Zwd04PTm4oq1CTr03OmrNIQoNkCwdzM=";
+      };
+
+      sourceRoot = "package";
+      postPatch = ''
+        cp ${./.npm/packages/even-terminal/package-lock.json} package-lock.json
+      '';
+
+      npmDepsHash = "sha256-HmrHbxHRBwKoINwRLll/kx611frewjBiELAsPzm18XQ=";
+      dontNpmBuild = true;
+      npmPackFlags = [ "--ignore-scripts" ];
+
+      meta = with pkgs.lib; {
+        description = "Even Terminal — AI Coding CLI on smart glasses and Flutter app";
+        homepage = "https://github.com/even-realities/even-terminal";
+        license = licenses.mit;
+        mainProgram = "even-terminal";
+      };
+    };
+
+    evenTerminalPath = pkgs.lib.makeBinPath [
+      pi
+    ];
+  in pkgs.symlinkJoin {
+    name = "even-terminal";
+    paths = [ package ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/even-terminal \
+        --run 'export PATH="${evenTerminalPath}''${PATH:+:''$PATH}"'
+    '';
+  };
+
   herdr =
     let
       asset = {
@@ -144,6 +186,7 @@ in {
   home.packages = [
     env-agent
     pi
+    even-terminal
     edgePkgs.claude-code
     edgePkgs.codex
     edgePkgs.gemini-cli

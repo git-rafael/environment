@@ -252,6 +252,11 @@ in {
     };
 
     # Pi extensions
+    ".pi/agent/extensions/deep-research-compat.ts" = {
+      force = true;
+      source = ../resources/agents/pi/extensions/deep-research-compat.ts;
+    };
+
     ".pi/agent/extensions/herdr-utils" = {
       force = true;
       source = ../resources/agents/pi/extensions/herdr-utils;

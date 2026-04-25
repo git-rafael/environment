@@ -7,6 +7,13 @@
   "npmCommand": ["npm"],
   "packages": [
     "npm:pi-web-access",
+    {
+      "source": "npm:pi-deep-research",
+      "extensions": [],
+      "skills": ["pi-deep-research"],
+      "prompts": ["prompts/research.md"],
+      "themes": []
+    },
     "npm:@ogulcancelik/pi-herdr",
     "npm:pi-session-summary",
     "npm:pi-ask-user",

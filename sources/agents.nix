@@ -142,6 +142,10 @@ EOF
 
     evenTerminalPath = pkgs.lib.makeBinPath [
       pi
+      edgePkgs.claude-code
+      edgePkgs.codex
+      edgePkgs.gemini-cli
+      edgePkgs.opencode
     ];
   in pkgs.symlinkJoin {
     name = "even-terminal";

@@ -12,9 +12,13 @@ focus_pane_left = "shift+left"
 focus_pane_right = "shift+right"
 
 # Prefix-mode Herdr spawns/splits equivalent to tmux:
+# C-T       -> new workspace/space
+# C-W       -> close focused pane
 # C-S-Up    -> new tab/window
 # C-S-Down  -> split below (tmux split-window -v)
 # C-S-Right -> split right (tmux split-window -h)
+new_workspace = "ctrl+t"
+close_pane = "ctrl+w"
 new_tab = "ctrl+shift+up"
 split_horizontal = "ctrl+shift+down"
 split_vertical = "ctrl+shift+right"

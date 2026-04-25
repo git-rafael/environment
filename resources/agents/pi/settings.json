@@ -84,6 +84,13 @@
       "themes": []
     },
     {
+      "source": "git:github.com/mattpocock/skills@60aa99c0230fbac087514ba5fca2ae6e519965fe",
+      "extensions": [],
+      "skills": [],
+      "prompts": [],
+      "themes": []
+    },
+    {
       "source": "git:github.com/nicobailon/visual-explainer",
       "extensions": [],
       "skills": [],
@@ -92,6 +99,14 @@
     }
   ],
   "skills": [
-    "git/github.com/nicobailon/visual-explainer/plugins/visual-explainer"
+    "git/github.com/nicobailon/visual-explainer/plugins/visual-explainer",
+    "git/github.com/mattpocock/skills/grill-me",
+    "git/github.com/mattpocock/skills/tdd",
+    "git/github.com/mattpocock/skills/design-an-interface",
+    "git/github.com/mattpocock/skills/request-refactor-plan",
+    "git/github.com/mattpocock/skills/triage-issue",
+    "git/github.com/mattpocock/skills/to-issues",
+    "git/github.com/mattpocock/skills/to-prd",
+    "git/github.com/mattpocock/skills/zoom-out"
   ]
 }

@@ -1,11 +1,11 @@
 ---
 name: skill-finder
-description: Search for and discover AI agent skills from the skills.sh marketplace. Use this skill whenever the user wants to find, search for, discover, or browse skills for Claude Code or other AI agents — even if they just say something like "is there a skill for X?" or "find me something that helps with Y". Also trigger when the user mentions skills.sh directly.
+description: Search for and discover AI agent skills from the skills.sh marketplace, then help decide whether and how to wire them into Pi. Use this skill whenever the user wants to find, search for, discover, or browse skills for Pi or other AI agents — even if they just say something like "is there a skill for X?" or "find me something that helps with Y". Also trigger when the user mentions skills.sh directly.
 ---
 
 # Skill Finder
 
-Search the [skills.sh](https://skills.sh) marketplace to discover reusable skills for AI agents like Claude Code, Cursor, Copilot, and others.
+Search the [skills.sh](https://skills.sh) marketplace to discover reusable skills for Pi and other AI agents, then map the selected skill to this repository's Pi installation model when the user wants it persisted.
 
 ## How it works
 

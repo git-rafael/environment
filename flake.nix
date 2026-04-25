@@ -31,7 +31,11 @@
             config.allowUnfree = true;
             config.allowUnsupportedSystem = true;
           };
-          env = { inherit pkgs edgePkgs features self username; };
+          homeDirectory =
+            if username == "null" then "/home"
+            else if username == "root" then "/root"
+            else "/home/${username}";
+          env = { inherit pkgs edgePkgs features self username homeDirectory; };
           
           agentsInstallation = (agents env);
           developmentInstallation = (development env);
@@ -47,10 +51,7 @@
           utilityInstallation
           shellInstallation
           {
-            home.homeDirectory =
-              if username == "null" then "/home"
-              else if username == "root" then "/root"
-              else "/home/${username}";
+            home.homeDirectory = homeDirectory;
 
             home.username = username;
             home.stateVersion = "25.05";

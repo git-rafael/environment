@@ -1,11 +1,6 @@
-{ pkgs, edgePkgs, features, self, username, ... }:
+{ pkgs, edgePkgs, features, self, homeDirectory, ... }:
 
 let
-  homeDirectory =
-    if username == "null" then "/home"
-    else if username == "root" then "/root"
-    else "/home/${username}";
-
   mkOutOfStoreSymlink = path:
     let
       pathStr = toString path;

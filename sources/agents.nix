@@ -131,6 +131,7 @@ EOF
       npx
       piPython
       pythonRuntime
+      pkgs.nodejs
       pkgs.stdenv.cc
       pkgs.gnumake
       pkgs.pkg-config
